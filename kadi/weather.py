@@ -54,7 +54,7 @@ def _store_weather_in_cache(location_id: str, lat: float, lon: float, data: List
                     confidence=excluded.confidence,
                     fetched_at=excluded.fetched_at
             """, (
-                location_id, lat, lon, row["date"], row["hour"],
+                location_id, lat, lon, row["date"], row.get("hour") if row.get("hour") is not None else -1,
                 row["temperature_min"], row["temperature_max"], row["temperature_avg"],
                 row["precipitation"], row["data_type"], row["data_source"],
                 row["confidence"], now
@@ -85,10 +85,16 @@ def _get_weather_from_cache(location_id: str, start_date: str, end_date: str) ->
                    data_type, data_source, confidence, fetched_at
             FROM weather_data
             WHERE location_id = ? AND date >= ? AND date <= ?
-            ORDER BY date ASC
+            ORDER BY date ASC, fetched_at DESC
         """, (location_id, start_date, end_date))
         
-        return [dict(row) for row in cursor.fetchall()]
+        # Deduplication pour contourner les anciens doublons liés au NULL dans hour
+        results = {}
+        for row in cursor.fetchall():
+            if row["date"] not in results:
+                results[row["date"]] = dict(row)
+                
+        return [results[d] for d in sorted(results.keys())]
 
 
 def forecast(location: str, days: int = None, refresh: bool = False) -> Dict[str, Any]:
@@ -153,13 +159,15 @@ def forecast(location: str, days: int = None, refresh: bool = False) -> Dict[str
     }
 
 
-def historical(location: str, months_back: int = 12, metric: str = "all") -> Dict[str, Any]:
+def historical(location: str, days_back: int = None, months_back: int = None, year_back: int = None, metric: str = "all") -> Dict[str, Any]:
     """
     Récupère l'historique météo (d'abord en cache, sinon depuis l'API).
     
     Args:
         location: Le nom de la ville (ex: "Abomey").
+        days_back: Le nombre de jours d'historique souhaité.
         months_back: Le nombre de mois d'historique souhaité.
+        year_back: Le nombre d'années d'historique souhaité.
         metric: (Optionnel) pour un futur filtrage.
         
     Returns:
@@ -168,12 +176,26 @@ def historical(location: str, months_back: int = 12, metric: str = "all") -> Dic
     lat, lon = normalize_location(location)
     
     end_date = datetime.date.today()
-    start_date = end_date - datetime.timedelta(days=30 * months_back)
+
+    if days_back is not None:
+        target_days = days_back
+        final_months = max(1, (days_back + 29) // 30)
+    elif months_back is not None:
+        target_days = 30 * months_back
+        final_months = max(1, months_back)
+    elif year_back is not None:
+        target_days = 365 * year_back
+        final_months = max(1, year_back * 12)
+    else:
+        target_days = 365
+        final_months = 12
+
+    start_date = end_date - datetime.timedelta(days=target_days)
     
     cached_data = _get_weather_from_cache(location, start_date.isoformat(), end_date.isoformat())
     
-    # Si le cache est suffisant (on s'attend à environ 30 * months_back jours)
-    expected_days = 30 * months_back - 5
+    # Si le cache est suffisant (avec une tolérance de 5 jours ou si on demande très peu de jours)
+    expected_days = target_days - 5 if target_days > 5 else target_days
     if len(cached_data) >= expected_days:
         return {
             "location": {"name": location, "lat": lat, "lon": lon},
@@ -182,17 +204,20 @@ def historical(location: str, months_back: int = 12, metric: str = "all") -> Dic
             "status": "success"
         }
         
-    # Sinon, on fetch l'historique
+    # Sinon, on fetch l'historique sur la base du nombre de mois nécessaires
     fresh_data = fetch_with_retry(
-        fetch_historical, 3, 5, lat=lat, lon=lon, months_back=months_back
+        fetch_historical, 3, 5, lat=lat, lon=lon, months_back=final_months
     )
     
     _store_weather_in_cache(location, lat, lon, fresh_data)
     
+    # On récupère depuis le cache pour s'assurer du filtrage des dates et deduplication
+    final_data = _get_weather_from_cache(location, start_date.isoformat(), end_date.isoformat())
+    
     return {
         "location": {"name": location, "lat": lat, "lon": lon},
-        "data": fresh_data,
-        "data_source": fresh_data[0]["data_source"],
+        "data": final_data,
+        "data_source": fresh_data[0]["data_source"] if fresh_data else "cache",
         "status": "success"
     }
 
