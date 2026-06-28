@@ -1,2 +1,6 @@
 .*
 documents
+main.ipynb
+__pycache__
+*.ipynb
+tes*
