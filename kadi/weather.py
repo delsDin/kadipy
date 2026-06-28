@@ -107,6 +107,9 @@ def forecast(location: str, days: int = None, refresh: bool = False) -> Dict[str
     """
     if days is None:
         days = CONFIG["weather"]["forecast_days_default"]
+        
+    if days > 16:
+        days = 16  # Limite stricte de l'API Open-Meteo pour les prévisions
     
     lat, lon = normalize_location(location)
     
@@ -282,24 +285,54 @@ def rain_probability(location: str, days_ahead: int = 3) -> Dict[str, Any]:
     Returns:
         Dict: Probabilité et quantité de pluie.
     """
+
+    if days_ahead > 16:
+        days_ahead = 16
+        
     forecast_data = forecast(location, days=days_ahead)
     data = forecast_data.get("data", [])
     
     rain_days = 0
+    heavy_rain_days = 0
     total_rain = 0.0
     
     for day in data:
         precip = day.get("precipitation", 0)
-        if precip is not None and precip > 0.5:
-            rain_days += 1
+        if precip is not None and precip > 0.0:
             total_rain += precip
-            
-    prob = (rain_days / len(data)) * 100 if data else 0
+            if precip > 1.0: # Plus d'1 mm, pluie significative
+                rain_days += 1
+            if precip > 10.0: # Plus de 10 mm, forte pluie
+                heavy_rain_days += 1
+                
+    # Calcul d'un indice de risque (0 à 100)
+    if not data:
+        risk_index = 0
+        risk_level = "Aucun"
+    elif heavy_rain_days > 0:
+        risk_index = min(100, 50 + (heavy_rain_days / len(data)) * 50)
+        risk_level = "Fort"
+    elif rain_days > 0:
+        risk_index = min(100, (rain_days / len(data)) * 50)
+        risk_level = "Modéré" if risk_index > 25 else "Faible"
+    elif total_rain > 0:
+        risk_index = 10
+        risk_level = "Très Faible"
+    else:
+        risk_index = 0
+        risk_level = "Aucun"
+        
+    # Message formaté clair
+    if risk_level == "Aucun":
+        message = "Aucune pluie prévue."
+    else:
+        message = f"Risque de pluie {risk_level.lower()} ({round(total_rain)} mm attendus sur la période)."
     
     return {
         "location": location,
-        "days_ahead": days_ahead,
-        "probability_pct": round(prob, 1),
+        "days_evaluated": len(data),
+        "risk_index_pct": round(risk_index),
+        "risk_level": risk_level,
         "total_expected_rain_mm": round(total_rain, 1),
-        "message": f"{round(prob)}% de chance de pluie (Total: {round(total_rain)} mm)."
+        "message": message
     }
