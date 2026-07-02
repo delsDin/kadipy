@@ -96,34 +96,47 @@ class Phenology:
             raise InsufficientData("Impossible de calculer la cessation : aucune donnée de précipitation disponible.")
             
         # Logique simplifiée pour la cessation
-        # On regarde depuis la fin de l'année vers le début
-        # (Dans un cas réel on chercherait le bilan hydrique)
-        current_year = self.rainfall_data.index[-1].year
-        year_data = self.rainfall_data.loc[str(current_year)]
+        # On parcourt les années disponibles de la plus récente à la plus ancienne
+        years = sorted(list(set(self.rainfall_data.index.year)), reverse=True)
         
-        # Filtre de la période potentielle de cessation (après août)
-        late_year = year_data.loc[f"{current_year}-09-01":]
-        
-        # Cumul à l'envers
-        reversed_cum = late_year[::-1].cumsum()
-        
-        # Trouve le jour où le cumul restant devient >= 20 mm, le jour précédent est la cessation
-        cessation_date = reversed_cum[reversed_cum >= 20.0].index.max()
-        
-        if pd.isna(cessation_date):
-            cessation_str = None
-            duration = 0
-        else:
-            cessation_str = cessation_date.strftime('%Y-%m-%d')
-            if self.onset_date:
-                duration = (cessation_date - self.onset_date).days
-            else:
-                duration = 0
+        for year in years:
+            year_data = self.rainfall_data.loc[str(year)]
+            
+            # Filtre de la période potentielle de cessation (après août)
+            try:
+                late_year = year_data.loc[f"{year}-09-01":]
+            except KeyError:
+                continue
                 
+            if late_year.empty:
+                continue
+            
+            # Cumul à l'envers
+            reversed_cum = late_year[::-1].cumsum()
+            
+            # Trouve le jour où le cumul restant devient >= 20 mm, le jour précédent est la cessation
+            valid_dates = reversed_cum[reversed_cum >= 20.0].index
+            
+            if len(valid_dates) > 0:
+                cessation_date = valid_dates.max()
+                cessation_str = cessation_date.strftime('%Y-%m-%d')
+                
+                duration = 0
+                if self.onset_date and self.onset_date.year == year:
+                    duration = (cessation_date - self.onset_date).days
+                    
+                return {
+                    'cessation_date': cessation_str,
+                    'duration_days': duration,
+                    'total_rainfall': float(year_data.sum()),
+                    'zone': self.location.zone
+                }
+                
+        # Si on n'a trouvé aucune cessation valide
         return {
-            'cessation_date': cessation_str,
-            'duration_days': duration,
-            'total_rainfall': float(year_data.sum()),
+            'cessation_date': None,
+            'duration_days': 0,
+            'total_rainfall': float(self.rainfall_data.sum()) if not self.rainfall_data.empty else 0.0,
             'zone': self.location.zone
         }
 
