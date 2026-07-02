@@ -2,5 +2,4 @@
 documents
 main.ipynb
 __pycache__
-*.ipynb
-!weather.ipynb
+.ipynb
