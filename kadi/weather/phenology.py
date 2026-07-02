@@ -120,10 +120,16 @@ class Phenology:
             if len(valid_dates) > 0:
                 cessation_date = valid_dates.max()
                 cessation_str = cessation_date.strftime('%Y-%m-%d')
-                
                 duration = 0
-                if self.onset_date and self.onset_date.year == year:
-                    duration = (cessation_date - self.onset_date).days
+                
+                # Calcul de l'onset spécifiquement pour l'année trouvée
+                if self.location.zone == 'Nord':
+                    year_onset = self._sivakumar(f"{year}-05-01")
+                else:
+                    year_onset = self._walter_anyadike(year, float(year_data.sum()))
+                    
+                if year_onset:
+                    duration = (cessation_date - year_onset).days
                     
                 return {
                     'cessation_date': cessation_str,
