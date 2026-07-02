@@ -41,7 +41,7 @@ class WeatherData:
         Récupère les prévisions météorologiques en vérifiant d'abord le cache SQLite.
         """
         today = datetime.now().date()
-        end_date = today + timedelta(days=days)
+        end_date = today + timedelta(days=days - 1)
         
         if not force_refresh:
             cached_data = self._get_from_cache(today.isoformat(), end_date.isoformat())
@@ -49,6 +49,7 @@ class WeatherData:
                 fetched_at = pd.to_datetime(cached_data['fetched_at']).max()
                 cache_ttl = timedelta(hours=CONFIG["weather"]["cache_ttl_forecast_hours"])
                 if datetime.now() - fetched_at < cache_ttl:
+                    cached_data = cached_data.head(days)
                     self.forecast_data = cached_data
                     self.data_source = 'cached'
                     return cached_data
@@ -59,11 +60,13 @@ class WeatherData:
             self._save_to_cache(df, "forecast")
         except Exception as e:
             if 'cached_data' in locals() and not cached_data.empty:
+                cached_data = cached_data.head(days)
                 self.forecast_data = cached_data
                 self.data_source = 'cached_offline'
                 return cached_data
             raise OfflineError(f"Impossible de récupérer les prévisions et aucun cache n'est disponible : {e}")
         
+        df = df.head(days)
         self.forecast_data = df
         self.data_source = 'open-meteo'
         return df
