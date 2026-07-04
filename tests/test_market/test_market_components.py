@@ -6,12 +6,14 @@ Logistics et DecisionSupport.
 
 import pytest
 import pandas as pd
+import responses
 
 from kadi.market import Market
 from kadi.market.pricing import MarketPricing
 from kadi.market.forecasting import MarketForecasting
 from kadi.market.logistics import MarketLogistics
 from kadi.market.decision_support import DecisionSupport
+from kadi.market.data_ingestion import WFPDataBridgesClient
 
 
 def test_pricing_normalize_units():
@@ -89,3 +91,35 @@ def test_market_facade():
     assert market.forecasting is not None
     assert market.logistics is not None
     assert market.decision_support is not None
+
+
+@responses.activate
+def test_wfp_client_fetch_prices():
+    """Teste la récupération de données via l'API WFP DataBridges."""
+    client = WFPDataBridgesClient()
+    # On force un token factice pour bypasser la vérification locale
+    client.token = "fake_token_for_test"
+    
+    # Mock de la réponse de l'API
+    responses.add(
+        responses.GET,
+        "https://api.wfp.org/vam-data-bridges/1.3.1/MarketPrices/alldata",
+        json={
+            "items": [
+                {"CommodityPriceDate": "2023-01-01T00:00:00", "ActualPrice": 250, "UnitName": "KG"},
+                {"CommodityPriceDate": "2023-01-02T00:00:00", "ActualPrice": 260, "UnitName": "KG"}
+            ]
+        },
+        status=200
+    )
+    
+    # Appel de la méthode
+    df = client.get_market_prices("savalou_market", "maize")
+    
+    # Vérifications
+    assert not df.empty
+    assert len(df) == 2
+    assert "date" in df.columns
+    assert "price" in df.columns
+    assert df.iloc[0]["price"] == 250
+

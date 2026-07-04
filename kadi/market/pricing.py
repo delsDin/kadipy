@@ -5,6 +5,7 @@ des données de marché, et de la détection d'anomalies.
 
 import pandas as pd
 import numpy as np
+import datetime
 
 
 class MarketPricing:
@@ -13,12 +14,15 @@ class MarketPricing:
     pour les données de prix de marché.
     """
 
-    def __init__(self):
+    def __init__(self, wfp_client=None):
         """
         Initialise le module de tarification.
+        
+        Args:
+            wfp_client: Instance de WFPDataBridgesClient pour récupérer les données.
         """
-        # Initialisation du module
-        pass
+        # Sauvegarde de l'instance du client WFP DataBridges
+        self.wfp_client = wfp_client
 
     def fetch_prices(self, crop: str, market: str, days_back: int = 365) -> pd.DataFrame:
         """
@@ -32,16 +36,25 @@ class MarketPricing:
         Returns:
             pd.DataFrame: Un DataFrame contenant les séries temporelles de prix.
         """
-        # Simulation d'une série temporelle de dates
-        dates = pd.date_range(end=pd.Timestamp.today(), periods=days_back, freq='D')
+        # Calcul de la plage de dates pour la requête
+        end_date = datetime.date.today()
+        start_date = end_date - datetime.timedelta(days=days_back)
+        time_range = (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
         
-        # Génération de prix aléatoires (distribution normale)
-        prix_aleatoires = np.random.normal(loc=300, scale=20, size=days_back)
+        if self.wfp_client is not None:
+            # Appel à l'API via le client configuré
+            df_prices = self.wfp_client.get_market_prices(market, crop, time_range)
+        else:
+            # Simulation d'une série temporelle si le client n'est pas fourni (fallback mode)
+            dates = pd.date_range(end=end_date, periods=days_back, freq='D')
+            
+            # Génération de prix aléatoires (distribution normale)
+            prix_aleatoires = np.random.normal(loc=300, scale=20, size=days_back)
+            
+            # Création du DataFrame avec dates et prix
+            df_prices = pd.DataFrame({'date': dates, 'price': prix_aleatoires})
         
-        # Création du DataFrame avec dates et prix
-        df_prices = pd.DataFrame({'date': dates, 'price': prix_aleatoires})
-        
-        # Retourne le DataFrame simulé
+        # Retourne le DataFrame contenant les prix
         return df_prices
 
     def normalize_units(self, value: float, unit_orig: str, crop: str) -> float:

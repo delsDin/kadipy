@@ -10,13 +10,16 @@ from .logistics import MarketLogistics
 from .decision_support import DecisionSupport
 
 
+from .data_ingestion import WFPDataBridgesClient
+
+
 class Market:
     """
     Façade principale pour le module d'économie agricole, combinant la tarification,
     la prévision, la logistique et l'aide à la décision stratégique.
     """
 
-    def __init__(self, lat: float, lon: float, location: str):
+    def __init__(self, lat: float, lon: float, location: str, env_file: str = '.env'):
         """
         Initialise le point central du marché avec les coordonnées d'une
         coopérative ou d'un nœud de marché.
@@ -25,14 +28,18 @@ class Market:
             lat (float): La latitude.
             lon (float): La longitude.
             location (str): Le nom du lieu (ex: 'Abomey').
+            env_file (str, optional): Fichier contenant les variables d'env (ex: clé API).
         """
         # Sauvegarde des coordonnées géographiques du lieu
         self.lat = lat
         self.lon = lon
         self.location = location
         
-        # Initialisation du module de tarification (ingestion, anomalies)
-        self.pricing = MarketPricing()
+        # Initialisation du client d'ingestion de données
+        self.data_client = WFPDataBridgesClient(env_file=env_file)
+        
+        # Initialisation du module de tarification avec le client d'ingestion
+        self.pricing = MarketPricing(wfp_client=self.data_client)
         
         # Initialisation du module de prévision (séries temporelles)
         self.forecasting = MarketForecasting()
