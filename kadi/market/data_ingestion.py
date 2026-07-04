@@ -60,7 +60,7 @@ class WFPDataBridgesClient:
             str: Le jeton (clé API) ou une chaîne vide.
         """
         # Vérification d'abord dans les variables d'environnement système
-        token = os.environ.get('WFP_API_KEY', '')
+        token = os.environ.get('WFP_API_Token', os.environ.get('WFP_API_KEY', ''))
         
         # S'il n'est pas dans l'environnement et que le fichier existe, on le lit
         if not token and os.path.isfile(env_file):
@@ -70,7 +70,7 @@ class WFPDataBridgesClient:
                         line = line.strip()
                         if line and not line.startswith('#'):
                             parts = line.split('=', 1)
-                            if len(parts) == 2 and parts[0].strip() == 'WFP_API_KEY':
+                            if len(parts) == 2 and parts[0].strip() in ('WFP_API_Token', 'WFP_API_KEY'):
                                 token = parts[1].strip().strip('\'"')
                                 break
             except Exception as e:
