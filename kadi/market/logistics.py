@@ -33,6 +33,7 @@ class MarketLogistics:
             "coords": {},
             "distances": {}
         }
+        self._cached_fuel_price = None
         self._load_cache()
 
     def _load_cache(self):
@@ -166,10 +167,43 @@ class MarketLogistics:
         
         return dist
 
-    def calculate_transfer_cost(self, origine: str, destination: str, prix_carburant: float = 650.0) -> dict:
+    def _fetch_fuel_price(self) -> float:
+        """
+        Récupère le prix du carburant depuis .env ou depuis le fichier distant GitHub.
+        """
+        # 1. Vérifier la variable d'environnement (priorité)
+        env_price = os.getenv("BENIN_FUEL_PRICE")
+        if env_price is not None:
+            try:
+                return float(env_price)
+            except ValueError:
+                logger.warning(f"Valeur BENIN_FUEL_PRICE invalide dans .env : {env_price}")
+
+        # 2. Vérifier le cache en mémoire
+        if self._cached_fuel_price is not None:
+            return self._cached_fuel_price
+
+        # 3. Requête HTTP vers la configuration en ligne
+        url = "https://raw.githubusercontent.com/delsDin/kadipy/main/config/fuel_prices.json"
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            price = float(data.get("benin", {}).get("essence", 680.0))
+            self._cached_fuel_price = price
+            return price
+        except Exception as e:
+            logger.warning(f"Impossible de récupérer le prix du carburant en ligne ({e}). Fallback à 680.0.")
+            self._cached_fuel_price = 680.0
+            return 680.0
+
+    def calculate_transfer_cost(self, origine: str, destination: str, prix_carburant: float = None) -> dict:
         """
         Calcule le coût total de transfert (C_transfer) d'un point A à un point B.
         """
+        if prix_carburant is None:
+            prix_carburant = self._fetch_fuel_price()
+
         d_ab = self.get_distance(origine, destination)
         
         c_info = 5000.0
