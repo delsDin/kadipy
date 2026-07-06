@@ -234,3 +234,47 @@ def test_wfp_client_fetch_ids_fallback():
     
     if os.path.exists(test_cache):
         os.remove(test_cache)
+
+
+@responses.activate
+def test_logistics_fuel_price_fetch_success(monkeypatch):
+    """Teste la récupération du prix du carburant via GitHub (mockée)."""
+    monkeypatch.delenv("BENIN_FUEL_PRICE", raising=False)
+    
+    logistics = MarketLogistics()
+    
+    responses.add(
+        responses.GET,
+        "https://raw.githubusercontent.com/delsDin/kadipy/main/config/fuel_prices.json",
+        json={"benin": {"essence": 750.0}},
+        status=200
+    )
+    
+    price = logistics._fetch_fuel_price()
+    assert price == 750.0
+
+
+@responses.activate
+def test_logistics_fuel_price_fetch_fallback(monkeypatch):
+    """Teste le fallback à 680.0 si GitHub échoue et .env vide."""
+    monkeypatch.delenv("BENIN_FUEL_PRICE", raising=False)
+    
+    logistics = MarketLogistics()
+    
+    responses.add(
+        responses.GET,
+        "https://raw.githubusercontent.com/delsDin/kadipy/main/config/fuel_prices.json",
+        status=404
+    )
+    
+    price = logistics._fetch_fuel_price()
+    assert price == 680.0
+
+
+def test_logistics_fuel_price_env(monkeypatch):
+    """Teste la priorité de la variable d'environnement pour le prix."""
+    monkeypatch.setenv("BENIN_FUEL_PRICE", "720.5")
+    
+    logistics = MarketLogistics()
+    price = logistics._fetch_fuel_price()
+    assert price == 720.5
