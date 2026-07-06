@@ -162,3 +162,73 @@ def test_wfp_client_fetch_prices():
     assert "price" in df.columns
     assert df.iloc[0]["price"] == 250
 
+
+@responses.activate
+def test_wfp_client_fetch_ids_success():
+    """Teste la récupération dynamique des IDs avec succès."""
+    import os
+    test_cache = ".test_wfp_cache.json"
+    if os.path.exists(test_cache):
+        os.remove(test_cache)
+        
+    client = WFPDataBridgesClient(cache_file=test_cache)
+    client.token = "fake_token"
+    
+    # Mock Commodities
+    responses.add(
+        responses.GET,
+        "https://api.wfp.org/vam-data-bridges/1.3.1/Commodities/List",
+        json={"items": [{"commodityID": 999, "commodityName": "Super Maize"}]},
+        status=200
+    )
+    
+    # Mock Markets
+    responses.add(
+        responses.GET,
+        "https://api.wfp.org/vam-data-bridges/1.3.1/Markets/List",
+        json={"items": [{"marketID": 888, "marketName": "Super Market"}]},
+        status=200,
+        match=[responses.matchers.query_param_matcher({"CountryCode": "BEN"})]
+    )
+    
+    c_id = client._get_commodity_id("super maize")
+    m_id = client._get_market_id("super market")
+    
+    assert c_id == 999
+    assert m_id == 888
+    
+    if os.path.exists(test_cache):
+        os.remove(test_cache)
+
+@responses.activate
+def test_wfp_client_fetch_ids_fallback():
+    """Teste le fallback sur les dictionnaires en dur quand l'API échoue (401)."""
+    import os
+    test_cache = ".test_wfp_cache.json"
+    if os.path.exists(test_cache):
+        os.remove(test_cache)
+        
+    client = WFPDataBridgesClient(cache_file=test_cache)
+    client.token = "fake_token"
+    
+    # Mock erreur 401
+    responses.add(
+        responses.GET,
+        "https://api.wfp.org/vam-data-bridges/1.3.1/Commodities/List",
+        status=401
+    )
+    responses.add(
+        responses.GET,
+        "https://api.wfp.org/vam-data-bridges/1.3.1/Markets/List",
+        status=401
+    )
+    
+    # Le système doit utiliser le mapping de secours
+    c_id = client._get_commodity_id("maize")
+    m_id = client._get_market_id("savalou")
+    
+    assert c_id == 51
+    assert m_id == 1234
+    
+    if os.path.exists(test_cache):
+        os.remove(test_cache)
