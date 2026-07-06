@@ -31,12 +31,14 @@ def test_pricing_normalize_units():
 def test_pricing_detect_anomalies():
     """Teste la détection d'anomalies par Z-score."""
     pricing = MarketPricing()
-    # Création d'une série avec une anomalie évidente (1000)
-    df = pd.DataFrame({'price': [100, 105, 95, 102, 98, 1000]})
+    # Création d'une série avec beaucoup de données normales pour que 
+    # le z-score ne soit pas trop biaisé par une seule valeur aberrante sur un petit échantillon
+    prices = [100, 105, 95, 102, 98] * 10 + [1000]
+    df = pd.DataFrame({'price': prices})
     df_result = pricing.detect_anomalies(df)
     
-    # Vérification que l'anomalie est bien détectée (index 5)
-    assert df_result.iloc[5]['is_anomaly'] == True
+    # Vérification que l'anomalie est bien détectée (à la fin, index 50)
+    assert df_result.iloc[50]['is_anomaly'] == True
     # Vérification qu'une valeur normale n'est pas détectée (index 0)
     assert df_result.iloc[0]['is_anomaly'] == False
 
