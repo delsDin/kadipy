@@ -55,16 +55,55 @@ def test_forecasting_predict_price():
     assert res['low_90'] <= res['predicted_price'] <= res['high_90']
 
 
-def test_logistics_transfer_cost():
-    """Teste le calcul des frais logistiques."""
-    logistics = MarketLogistics()
-    # On sait que la distance Cotonou-Parakou est de 263 km (défini dans logistics.py)
+@responses.activate
+def test_logistics_transfer_cost_and_distance():
+    """Teste la récupération dynamique de la distance via OSRM et les coûts."""
+    import os
+    test_cache_file = ".test_osrm_cache.json"
+    if os.path.exists(test_cache_file):
+        os.remove(test_cache_file)
+        
+    logistics = MarketLogistics(cache_file=test_cache_file)
+    
+    # Mock Nominatim
+    responses.add(
+        responses.GET,
+        "https://nominatim.openstreetmap.org/search",
+        json=[{"lon": "2.433", "lat": "6.366"}],
+        status=200,
+        match=[responses.matchers.query_param_matcher({"q": "Cotonou, Benin", "format": "json", "limit": "1"})]
+    )
+    responses.add(
+        responses.GET,
+        "https://nominatim.openstreetmap.org/search",
+        json=[{"lon": "2.633", "lat": "9.333"}],
+        status=200,
+        match=[responses.matchers.query_param_matcher({"q": "Parakou, Benin", "format": "json", "limit": "1"})]
+    )
+    
+    # Mock OSRM
+    responses.add(
+        responses.GET,
+        "http://router.project-osrm.org/route/v1/driving/2.433,6.366;2.633,9.333",
+        json={
+            "code": "Ok",
+            "routes": [{"distance": 263000}]
+        },
+        status=200,
+        match=[responses.matchers.query_param_matcher({"overview": "false"})]
+    )
+    
+    # Test
     res = logistics.calculate_transfer_cost("Cotonou", "Parakou")
     
     # Vérifie la distance
     assert res['details']['distance_km'] == 263.0
     # Vérifie que le coût total est calculé
     assert res['total_cost_cfa'] > 0
+    
+    # Nettoyage
+    if os.path.exists(test_cache_file):
+        os.remove(test_cache_file)
 
 
 def test_decision_support_arbitrage():
