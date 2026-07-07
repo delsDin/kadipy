@@ -136,8 +136,8 @@ class NetCDFDataSource(DataSource):
         # Chargement du dataset (depuis le cache ou le disque)
         ds = self._charger_dataset()
 
-        # Extraction des dimensions du dataset
-        dimensions = {dim: int(taille) for dim, taille in ds.dims.items()}
+        # Extraction des dimensions du dataset via ds.sizes (compatible xarray futur)
+        dimensions = {dim: int(taille) for dim, taille in ds.sizes.items()}
         logger.debug(
             "Dimensions du fichier '%s' : %s.", self.file_path, dimensions
         )
@@ -180,8 +180,8 @@ class NetCDFDataSource(DataSource):
         try:
             # Détection des noms de variables lat/lon dans le dataset
             # (peuvent s'appeler 'lat', 'latitude', 'y', etc.)
-            noms_lat = [d for d in ds.dims if "lat" in d.lower()]
-            noms_lon = [d for d in ds.dims if "lon" in d.lower() or d.lower() == "x"]
+            noms_lat = [d for d in ds.sizes if "lat" in d.lower()]
+            noms_lon = [d for d in ds.sizes if "lon" in d.lower() or d.lower() == "x"]
 
             nom_lat = noms_lat[0] if noms_lat else "lat"
             nom_lon = noms_lon[0] if noms_lon else "lon"
@@ -200,7 +200,7 @@ class NetCDFDataSource(DataSource):
 
             # Extraction du sous-ensemble temporel si spécifié
             if time_bounds is not None:
-                noms_time = [d for d in ds.dims if "time" in d.lower()]
+                noms_time = [d for d in ds.sizes if "time" in d.lower()]
                 nom_time = noms_time[0] if noms_time else "time"
                 da = da.sel(
                     {nom_time: slice(time_bounds[0], time_bounds[1])}
