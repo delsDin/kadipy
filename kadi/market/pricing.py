@@ -58,7 +58,7 @@ class MarketPricing:
         time_range = (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))
 
         if self.wfp_client is not None:
-            # Appel au client WFP (qui gère lui-même le retry et le fallback)
+            # Appel au client WFP (qui gère lui-même le retry, le cache et le fallback)
             df_prices = self.wfp_client.get_market_prices(market, crop, time_range)
         else:
             # Pas de client configuré : on génère des données de simulation
@@ -68,12 +68,17 @@ class MarketPricing:
             )
             dates = pd.date_range(end=end_date, periods=days_back, freq="D")
             prix_aleatoires = np.random.normal(loc=300, scale=20, size=days_back)
+            maintenant = datetime.datetime.now(datetime.timezone.utc).isoformat()
             df_prices = pd.DataFrame(
                 {
                     "date": dates,
                     "price": prix_aleatoires,
                     "unit": "XOF/kg",
+                    # Champs standards attendus par le reste du module
                     "is_simulated": True,
+                    "source": "simulated",
+                    "fetched_at": maintenant,
+                    "confidence_score": 0.1,
                 }
             )
 
