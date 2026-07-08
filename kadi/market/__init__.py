@@ -6,13 +6,15 @@ Contient la classe principale Market qui agrège toutes les fonctionnalités
 d'entrée avant d'initialiser les sous-modules.
 """
 
+import pandas as pd
+
 from .pricing import MarketPricing
 from .forecasting import MarketForecasting
 from .logistics import MarketLogistics
 from .decision_support import DecisionSupport
 from .data_ingestion import WFPDataBridgesClient
 
-# Borne géographique approximative du Bénin (± marge de 2 degrés pour les zones frontalières)
+# Bornes géographiques du Bénin (avec marge de ~2° pour les zones frontalières)
 _LAT_MIN = 6.0
 _LAT_MAX = 12.5
 _LON_MIN = 0.5
@@ -32,24 +34,32 @@ def _valider_coordonnees(lat: float, lon: float, location: str):
         TypeError: Si lat ou lon ne sont pas des nombres.
         ValueError: Si les coordonnées sont hors de la zone du Bénin.
     """
-    # Vérification des types
+    # Vérification du type de la latitude
     if not isinstance(lat, (int, float)):
         raise TypeError(
-            f"La latitude doit être un nombre. Reçu : {type(lat).__name__} ('{lat}')."
-        )
-    if not isinstance(lon, (int, float)):
-        raise TypeError(
-            f"La longitude doit être un nombre. Reçu : {type(lon).__name__} ('{lon}')."
+            f"La latitude doit être un nombre. "
+            f"Reçu : {type(lat).__name__} ('{lat}')."
         )
 
-    # Vérification de la plage valide pour le Bénin
+    # Vérification du type de la longitude
+    if not isinstance(lon, (int, float)):
+        raise TypeError(
+            f"La longitude doit être un nombre. "
+            f"Reçu : {type(lon).__name__} ('{lon}')."
+        )
+
+    # Vérification des bornes de la latitude
     if not (_LAT_MIN <= lat <= _LAT_MAX):
         raise ValueError(
-            f"Latitude '{lat}' hors de la zone Bénin (attendu entre {_LAT_MIN} et {_LAT_MAX})."
+            f"Latitude '{lat}' hors de la zone Bénin "
+            f"(attendu entre {_LAT_MIN} et {_LAT_MAX})."
         )
+
+    # Vérification des bornes de la longitude
     if not (_LON_MIN <= lon <= _LON_MAX):
         raise ValueError(
-            f"Longitude '{lon}' hors de la zone Bénin (attendu entre {_LON_MIN} et {_LON_MAX})."
+            f"Longitude '{lon}' hors de la zone Bénin "
+            f"(attendu entre {_LON_MIN} et {_LON_MAX})."
         )
 
 
@@ -66,7 +76,8 @@ def _valider_location(location: str):
     """
     if not isinstance(location, str):
         raise TypeError(
-            f"Le nom du lieu doit être une chaîne. Reçu : {type(location).__name__}."
+            f"Le nom du lieu doit être une chaîne. "
+            f"Reçu : {type(location).__name__}."
         )
     if not location.strip():
         raise ValueError("Le nom du lieu ne peut pas être vide.")
@@ -76,31 +87,31 @@ class Market:
     """
     Façade principale pour le module d'économie agricole de KadiPy.
 
-    Combine la tarification, la prévision, la logistique et l'aide à la
-    décision stratégique dans une interface unique. Toutes les entrées sont
-    validées à l'initialisation pour éviter des erreurs silencieuses
-    dans les sous-modules.
+    Agrège la tarification, la prévision, la logistique et l'aide à la
+    décision dans une interface unique. Toutes les entrées sont validées
+    à l'initialisation pour éviter des erreurs silencieuses dans les
+    sous-modules.
 
-    Note sur la zone géographique :
+    Fonctionnement sans clé API WFP :
+        Toutes les méthodes sont utilisables même sans token WFP configuré.
+        Les données retournées seront simulées (is_simulated=True,
+        confidence_score=0.1). Cette configuration est normale pendant
+        la phase de développement.
+
+    Zone géographique :
         Ce module est conçu pour le Bénin uniquement (V1.0.0).
-        Le support d'autres pays sera ajouté dans une version future.
     """
 
     def __init__(self, lat: float, lon: float, location: str, env_file: str = ".env"):
         """
-        Initialise le point central du marché avec les coordonnées d'une
-        coopérative ou d'un nœud de marché au Bénin.
+        Initialise le point central du marché pour un lieu au Bénin.
 
         Args:
-            lat (float): La latitude du lieu (doit être dans la zone Bénin :
-                entre 6.0 et 12.5 degrés nord).
-            lon (float): La longitude du lieu (doit être dans la zone Bénin :
-                entre 0.5 et 3.9 degrés est).
-            location (str): Le nom du lieu (ex: 'Abomey', 'Parakou').
-                Ne peut pas être vide.
+            lat (float): Latitude du lieu (entre 6.0 et 12.5 degrés nord).
+            lon (float): Longitude du lieu (entre 0.5 et 3.9 degrés est).
+            location (str): Nom du lieu (ex: 'Abomey', 'Parakou'). Non vide.
             env_file (str, optional): Chemin vers le fichier .env contenant
-                les variables d'environnement (ex: clé API WFP).
-                Défaut à '.env'.
+                les variables d'environnement (ex: WFP_API_Token). Défaut : '.env'.
 
         Raises:
             TypeError: Si lat, lon ou location ne sont pas du bon type.
@@ -115,25 +126,127 @@ class Market:
         _valider_coordonnees(lat, lon, location)
         _valider_location(location)
 
-        # Sauvegarde des coordonnées géographiques du lieu
+        # Coordonnées et nom du lieu de référence
         self.lat = lat
         self.lon = lon
         self.location = location.strip()
 
-        # Initialisation du client d'ingestion de données WFP
+        # Client d'ingestion des données de marché (WFP DataBridges + cache SQLite)
         self.data_client = WFPDataBridgesClient(env_file=env_file)
 
-        # Initialisation du module de tarification (normalisation + détection anomalies)
+        # Module de tarification : normalisation, anomalies, agrégation
         self.pricing = MarketPricing(wfp_client=self.data_client)
 
-        # Initialisation du module de prévision (séries temporelles)
+        # Module de prévision des prix (séries temporelles)
         self.forecasting = MarketForecasting()
 
-        # Initialisation du module logistique (distances, coûts de transport)
+        # Module logistique : distances, coûts de transport
         self.logistics = MarketLogistics()
 
-        # Initialisation de l'aide à la décision (couplée avec forecasting + logistics)
+        # Module d'aide à la décision, connecté au pricing réel
         self.decision_support = DecisionSupport(
             forecasting_module=self.forecasting,
             logistics_module=self.logistics,
+            pricing_module=self.pricing,  # Injection des vrais prix
         )
+
+    def price_crop(
+        self,
+        crop: str,
+        days_back: int = 90,
+        normalize_to_xof_kg: bool = True,
+    ) -> dict:
+        """
+        API de haut niveau : récupère, normalise et résume les prix d'une culture.
+
+        Effectue le pipeline complet en une seule méthode :
+        1. Récupération des prix (cache SQLite ou API WFP)
+        2. Normalisation vers XOF/kg
+        3. Détection des anomalies
+        4. Calcul des statistiques descriptives
+
+        Args:
+            crop (str): Code de la culture (ex: 'maize', 'rice', 'cowpea').
+            days_back (int, optional): Nombre de jours d'historique à récupérer.
+                Défaut : 90 jours.
+            normalize_to_xof_kg (bool, optional): Si True, normalise les prix
+                vers XOF/kg. Défaut : True.
+
+        Returns:
+            dict: Dictionnaire contenant :
+                - 'crop'            : code de la culture
+                - 'market'          : nom du lieu de référence
+                - 'prix_median'     : prix médian en XOF/kg
+                - 'prix_min'        : prix minimum observé
+                - 'prix_max'        : prix maximum observé
+                - 'prix_moyen'      : prix moyen
+                - 'nb_observations' : nombre de points de données
+                - 'nb_anomalies'    : nombre d'anomalies détectées
+                - 'is_simulated'    : True si les données sont fictives
+                - 'confidence_score': score de confiance 0.0 à 1.0
+                - 'source'          : source des données
+                - 'donnees'         : DataFrame complet avec toutes les colonnes
+        """
+        # Récupération des données via le module pricing (qui gère cache + API)
+        df = self.pricing.fetch_prices(crop, self.location, days_back=days_back)
+
+        if df.empty:
+            return {
+                "crop": crop,
+                "market": self.location,
+                "prix_median": None,
+                "prix_min": None,
+                "prix_max": None,
+                "prix_moyen": None,
+                "nb_observations": 0,
+                "nb_anomalies": 0,
+                "is_simulated": True,
+                "confidence_score": 0.0,
+                "source": "none",
+                "donnees": df,
+            }
+
+        # Normalisation vers XOF/kg si demandée
+        if normalize_to_xof_kg and "unit" in df.columns:
+            df["price"] = df.apply(
+                lambda row: self.pricing.normalize_units(
+                    row["price"],
+                    row.get("unit", "XOF/kg"),
+                    crop=crop,
+                ),
+                axis=1,
+            )
+
+        # Détection des anomalies de prix
+        df = self.pricing.detect_anomalies(df)
+
+        # Comblage des valeurs manquantes par interpolation linéaire
+        df = self.pricing.interpolate_gaps(df)
+
+        # Extraction des statistiques descriptives
+        prix = df["price"].dropna()
+        nb_anomalies = int(df["is_anomaly"].sum()) if "is_anomaly" in df.columns else 0
+
+        # Source et score de confiance
+        source = df["source"].iloc[-1] if "source" in df.columns else "unknown"
+        confidence = (
+            float(df["confidence_score"].iloc[-1])
+            if "confidence_score" in df.columns
+            else 0.0
+        )
+        est_simule = bool(df["is_simulated"].any()) if "is_simulated" in df.columns else True
+
+        return {
+            "crop": crop,
+            "market": self.location,
+            "prix_median": round(float(prix.median()), 2),
+            "prix_min": round(float(prix.min()), 2),
+            "prix_max": round(float(prix.max()), 2),
+            "prix_moyen": round(float(prix.mean()), 2),
+            "nb_observations": len(prix),
+            "nb_anomalies": nb_anomalies,
+            "is_simulated": est_simule,
+            "confidence_score": round(confidence, 3),
+            "source": source,
+            "donnees": df,
+        }
