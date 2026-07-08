@@ -58,3 +58,24 @@ mkdocs-material>=8.0
 # Construction du paquet (pyproject.toml)
 setuptools>=60
 wheel>=0.37
+
+# Lecture et traitement NetCDF
+xarray>=2023.1
+netCDF4>=1.6
+dask>=2023.1
+
+# Détection d'encodage
+chardet>=5.0
+
+# ==========================
+# Dépendances du module kidas
+# ==========================
+
+# Calculs statistiques (Z-score, MAD) pour DataCleaner et DataValidator
+scipy>=1.9
+
+# Création de géométries GPS (points shapely) pour DataNormalizer
+shapely>=2.0
+
+# Suppression des accents unicode pour DataCleaner et DataNormalizer
+Unidecode>=1.3
