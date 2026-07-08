@@ -1,176 +1,295 @@
 """
 Module d'aide à la décision stratégique pour l'arbitrage spatial,
 le stockage temporel et l'optimisation de portefeuille de cultures.
+
+Ce module utilise les données de prix réelles fournies par pricing_module
+pour calculer des recommandations financièrement fondées. En l'absence
+de données API (pas de clé WFP), il fonctionne avec les prix simulés.
 """
+
+import logging
+
+from kadi.config import CONFIG
+
+logger = logging.getLogger(__name__)
+
+# Lecture du seuil de rentabilité depuis la configuration logistique
+_SEUIL_RENTABILITE = CONFIG.get("logistics", {}).get("seuil_rentabilite_pct", 10.0)
 
 
 class DecisionSupport:
     """
-    Classe convertissant les prévisions de prix et de climat en recommandations
-    opérationnelles : stockage, arbitrage spatial, choix de cultures.
+    Classe convertissant les prévisions de prix et les données de marché
+    en recommandations opérationnelles : arbitrage spatial, stockage,
+    et optimisation de portefeuille de cultures.
+
+    Tous les calculs utilisent les données réelles fournies par le module
+    pricing (via pricing_module). En mode sans-API, les données simulées
+    sont utilisées de façon transparente.
     """
 
-    def __init__(self, forecasting_module=None, logistics_module=None):
+    def __init__(
+        self,
+        forecasting_module=None,
+        logistics_module=None,
+        pricing_module=None,
+    ):
         """
         Initialise le module d'aide à la décision.
 
         Args:
-            forecasting_module: Instance de MarketForecasting pour obtenir les prix futurs.
-            logistics_module: Instance de MarketLogistics pour calculer les frais.
+            forecasting_module: Instance de MarketForecasting pour les prévisions.
+            logistics_module: Instance de MarketLogistics pour les coûts de transport.
+            pricing_module: Instance de MarketPricing pour les prix réels du marché.
+                Si None, les méthodes utiliseront des prix estimés par défaut.
         """
-        # Références vers les autres sous-modules pour enrichir la décision
+        # Références vers les sous-modules
         self.forecasting = forecasting_module
         self.logistics = logistics_module
+        self.pricing = pricing_module
 
-    def arbitrage_decision(self, crop: str, market_from: str, market_to: str, qty_tons: float) -> dict:
+    def _obtenir_prix_marche(self, crop: str, market: str) -> tuple:
+        """
+        Récupère le prix actuel médian pour une culture sur un marché donné.
+
+        Utilise le module pricing pour obtenir les données réelles (ou simulées).
+        Retourne également un flag indiquant si les données sont simulées.
+
+        Args:
+            crop (str): Code de la culture (ex: 'maize').
+            market (str): Nom normalisé du marché (ex: 'cotonou').
+
+        Returns:
+            tuple: (prix_median_xof_kg: float, is_simulated: bool)
+                Le prix médian en XOF/kg et le flag de simulation.
+        """
+        if self.pricing is None:
+            # Pas de module pricing : on retourne un prix de repli
+            logger.warning(
+                f"Pas de pricing_module disponible pour {crop}/{market}. "
+                "Prix de repli utilisé (300 XOF/kg)."
+            )
+            return 300.0, True
+
+        try:
+            # Récupération des 30 derniers jours de données
+            df = self.pricing.fetch_prices(crop, market, days_back=30)
+
+            if df.empty or "price" not in df.columns:
+                return 300.0, True
+
+            # Calcul du prix médian pour éviter les outliers
+            prix_median = float(df["price"].median())
+            est_simule = bool(df["is_simulated"].any()) if "is_simulated" in df.columns else True
+
+            return prix_median, est_simule
+
+        except Exception as e:
+            logger.warning(
+                f"Erreur lors de la récupération du prix {crop}/{market}: {e}. "
+                "Prix de repli utilisé."
+            )
+            return 300.0, True
+
+    def arbitrage_decision(
+        self,
+        crop: str,
+        market_from: str,
+        market_to: str,
+        qty_tons: float,
+    ) -> dict:
         """
         Évalue la rentabilité d'un transfert physique de marchandises entre deux marchés.
 
+        Utilise les prix réels du marché (via pricing_module) pour calculer
+        la marge brute. Les coûts logistiques sont calculés par le module logistics.
+
+        Formule :
+            Gain net = (prix_destination - prix_origine) * 1000 * qty - cout_transport
+
         Args:
-            crop (str): La culture concernée.
-            market_from (str): Le marché d'origine.
-            market_to (str): Le marché de destination.
-            qty_tons (float): La quantité à transporter en tonnes.
+            crop (str): La culture concernée (ex: 'maize').
+            market_from (str): Le marché d'achat (ex: 'Parakou').
+            market_to (str): Le marché de vente (ex: 'Cotonou').
+            qty_tons (float): La quantité à transporter en tonnes métriques.
 
         Returns:
-            dict: Les détails de la décision d'arbitrage (gain net, recommandation).
+            dict: Dictionnaire contenant :
+                - 'recommandation' : 'TRANSPORTER' ou 'NE PAS TRANSPORTER'
+                - 'gain_net_total_cfa' : gain net en XOF sur toute la quantité
+                - 'gain_net_percent' : gain net en % du capital investi
+                - 'frais_logistiques_total' : coûts de transport totaux en XOF
+                - 'prix_origine_xof_kg' : prix au marché d'achat
+                - 'prix_destination_xof_kg' : prix au marché de vente
+                - 'is_simulated' : True si les prix utilisés sont fictifs
         """
-        # Prix de vente simulé au marché de destination
-        prix_destination_kg = 350.0 
-        
-        # Prix d'achat simulé au marché d'origine
-        prix_origine_kg = 250.0
-        
-        # Marge brute par tonne
-        marge_brute_tonne = (prix_destination_kg - prix_origine_kg) * 1000
-        
-        # Récupération des coûts logistiques si le module est présent
-        frais_logistiques_tonne = 0
-        if self.logistics:
-            # Appel au calcul du coût de transfert
-            res_logistics = self.logistics.calculate_transfer_cost(market_from, market_to)
-            frais_logistiques_tonne = res_logistics['total_cost_cfa']
-        else:
-            # Valeur par défaut si non fourni
-            frais_logistiques_tonne = 30000.0
-            
-        # Gain net par tonne après déduction des frais logistiques
-        gain_net_tonne = marge_brute_tonne - frais_logistiques_tonne
-        
-        # Gain net total sur la quantité transportée
-        gain_net_total = gain_net_tonne * qty_tons
-        
-        # Calcul du gain net en pourcentage par rapport au coût total (achat + transport)
-        cout_total_investissement = (prix_origine_kg * 1000 + frais_logistiques_tonne) * qty_tons
-        gain_net_percent = (gain_net_total / cout_total_investissement) * 100 if cout_total_investissement > 0 else 0
-        
-        # La recommandation est de transporter si le gain dépasse 10%
-        recommandation = 'TRANSPORTER' if gain_net_percent >= 10.0 else 'NE PAS TRANSPORTER'
-        
-        # Construction du dictionnaire de résultats
-        resultat = {
-            'recommandation': recommandation,
-            'gain_net_total_cfa': round(gain_net_total, 2),
-            'gain_net_percent': round(gain_net_percent, 2),
-            'frais_logistiques_total': round(frais_logistiques_tonne * qty_tons, 2)
-        }
-        
-        # Retour des résultats de l'arbitrage
-        return resultat
+        # Récupération des prix réels (ou simulés) pour les deux marchés
+        prix_origine_kg, simule_origine = self._obtenir_prix_marche(crop, market_from)
+        prix_destination_kg, simule_destination = self._obtenir_prix_marche(crop, market_to)
 
-    def storage_vs_sell_now(self, crop: str, market: str, current_price: float, qty_tons: float) -> dict:
+        # Les données sont simulées si l'une des deux sources l'est
+        est_simule = simule_origine or simule_destination
+
+        # Marge brute par tonne (conversion kg -> tonne : *1000)
+        marge_brute_tonne = (prix_destination_kg - prix_origine_kg) * 1000
+
+        # Calcul des frais logistiques via le module dédié
+        if self.logistics:
+            res_logistics = self.logistics.calculate_transfer_cost(market_from, market_to)
+            frais_logistiques_tonne = res_logistics["total_cost_cfa"]
+        else:
+            # Valeur de repli si le module logistics n'est pas disponible
+            frais_logistiques_tonne = 30000.0
+            logger.warning(
+                "Pas de logistics_module. Frais de transport de repli : 30 000 XOF/tonne."
+            )
+
+        # Gain net par tonne et total sur la quantité transportée
+        gain_net_tonne = marge_brute_tonne - frais_logistiques_tonne
+        gain_net_total = gain_net_tonne * qty_tons
+
+        # Gain net en % du capital investi (achat + transport)
+        cout_total = (prix_origine_kg * 1000 + frais_logistiques_tonne) * qty_tons
+        gain_net_pct = (gain_net_total / cout_total * 100) if cout_total > 0 else 0.0
+
+        # Recommandation basée sur le seuil de rentabilité configuré
+        recommandation = (
+            "TRANSPORTER" if gain_net_pct >= _SEUIL_RENTABILITE else "NE PAS TRANSPORTER"
+        )
+
+        return {
+            "recommandation": recommandation,
+            "gain_net_total_cfa": round(gain_net_total, 2),
+            "gain_net_percent": round(gain_net_pct, 2),
+            "frais_logistiques_total": round(frais_logistiques_tonne * qty_tons, 2),
+            "prix_origine_xof_kg": round(prix_origine_kg, 2),
+            "prix_destination_xof_kg": round(prix_destination_kg, 2),
+            "is_simulated": est_simule,
+        }
+
+    def storage_vs_sell_now(
+        self,
+        crop: str,
+        market: str,
+        current_price: float,
+        qty_tons: float,
+    ) -> dict:
         """
-        Évalue s'il est plus rentable de stocker la production ou de la vendre immédiatement.
-        Formule : E = E[P_t+n | F_t] - P_t - C_storage(n) - C_opportunity(n) - θ*Var(P)
+        Évalue s'il est plus rentable de stocker ou de vendre immédiatement.
+
+        Formule :
+            E = E[P_{t+n}] - P_t - C_stockage(n) - C_opportunite(n) - theta * Var(P)
 
         Args:
             crop (str): La culture concernée.
             market (str): Le marché de référence.
-            current_price (float): Le prix actuel à la récolte par tonne.
-            qty_tons (float): La quantité récoltée en tonnes.
+            current_price (float): Prix actuel en XOF par tonne.
+            qty_tons (float): Quantité récoltée en tonnes.
 
         Returns:
-            dict: Recommandation binaire et détails financiers.
+            dict: Dictionnaire contenant :
+                - 'recommandation_binaire' : 'STOCKER' ou 'VENDRE IMMÉDIATEMENT'
+                - 'marge_nette_cfa' : espérance de gain en XOF sur la quantité totale
+                - 'marge_nette_par_tonne' : espérance de gain par tonne
+                - 'prix_futur_estime' : prix prévu dans 3 mois (en XOF/tonne)
+                - 'is_simulated' : True si les prévisions sont simulées
         """
-        # Horizon de stockage par défaut (3 mois)
+        # Horizon de stockage standard (3 mois)
         mois_stockage = 3
         jours_stockage = mois_stockage * 30
-        
-        # Obtention du prix futur estimé
-        future_price_estim = current_price * 1.15  # Par défaut, hausse de 15%
-        variance = current_price * 0.05
-        
-        # Utilisation du module forecasting si disponible
+
+        est_simule = True
+
+        # Récupération du prix futur estimé via le module de prévision
         if self.forecasting:
-            # Appel pour la prédiction
-            prevision = self.forecasting.predict_price(crop, market, days_ahead=jours_stockage)
-            future_price_estim = prevision['predicted_price'] * 1000  # conversion en tonne
-            variance = prevision['rmse'] * 1000
-            
-        # Coûts de stockage (C_storage) mensuel par tonne (frais de gardiennage, pertes)
+            try:
+                prevision = self.forecasting.predict_price(
+                    crop, market, days_ahead=jours_stockage
+                )
+                # La prévision est en XOF/kg, on convertit en XOF/tonne
+                prix_futur_tonne = prevision["predicted_price"] * 1000
+                variance = prevision.get("rmse", prevision["predicted_price"] * 0.05) * 1000
+                est_simule = True  # Le module forecasting V1 est encore un stub
+            except Exception as e:
+                logger.warning(
+                    f"Erreur lors de la prévision {crop}/{market}: {e}. "
+                    "Hypothèse de hausse de 15%."
+                )
+                prix_futur_tonne = current_price * 1.15
+                variance = current_price * 0.05
+        else:
+            # Sans module de prévision : hypothèse conservative de hausse de 15%
+            prix_futur_tonne = current_price * 1.15
+            variance = current_price * 0.05
+
+        # Coûts de stockage : gardiennage, pertes, sacs (par mois par tonne)
         cout_stockage_mensuel_tonne = 3200.0
-        c_storage = cout_stockage_mensuel_tonne * mois_stockage
-        
-        # Coût d'opportunité d'immobilisation de la trésorerie (ex: 1.5% / mois)
+        c_stockage = cout_stockage_mensuel_tonne * mois_stockage
+
+        # Coût d'opportunité : immobilisation de la trésorerie à 1.5%/mois
         taux_opportunite_mensuel = 0.015
-        c_opportunity = current_price * (taux_opportunite_mensuel * mois_stockage)
-        
-        # Aversion au risque du producteur (théta)
+        c_opportunite = current_price * (taux_opportunite_mensuel * mois_stockage)
+
+        # Pénalité de risque (aversion au risque theta)
         theta_risque = 0.04
         penalite_risque = theta_risque * variance
-        
-        # Espérance de gain net par tonne (E)
-        esperance_gain_net = future_price_estim - current_price - c_storage - c_opportunity - penalite_risque
-        
-        # Gain total attendu
-        marge_nette_totale = esperance_gain_net * qty_tons
-        
-        # Décision : si l'espérance est positive, on stocke, sinon on vend
-        recommandation = 'STOCKER' if esperance_gain_net > 0 else 'VENDRE IMMÉDIATEMENT'
-        
-        # Formatage des résultats
-        resultat = {
-            'recommandation_binaire': recommandation,
-            'marge_nette_cfa': round(marge_nette_totale, 2),
-            'marge_nette_par_tonne': round(esperance_gain_net, 2)
-        }
-        
-        # Retourne les recommandations de stockage
-        return resultat
 
-    def portfolio_optimization(self, available_land_ha: float, climate_forecast: dict, market_forecast: dict) -> dict:
+        # Espérance de gain net par tonne
+        esperance_gain = (
+            prix_futur_tonne - current_price - c_stockage - c_opportunite - penalite_risque
+        )
+
+        recommandation = "STOCKER" if esperance_gain > 0 else "VENDRE IMMÉDIATEMENT"
+
+        return {
+            "recommandation_binaire": recommandation,
+            "marge_nette_cfa": round(esperance_gain * qty_tons, 2),
+            "marge_nette_par_tonne": round(esperance_gain, 2),
+            "prix_futur_estime": round(prix_futur_tonne, 2),
+            "is_simulated": est_simule,
+        }
+
+    def portfolio_optimization(
+        self,
+        available_land_ha: float,
+        climate_forecast: dict,
+        market_forecast: dict,
+    ) -> dict:
         """
-        Optimise la répartition des cultures sur la surface disponible en fonction
-        des prévisions climatiques (kadi.weather) et de prix (kadi.market).
+        Optimise la répartition des cultures sur la surface disponible.
+
+        Basée sur les prévisions climatiques (kadi.weather, Phase 4) et de
+        prix (kadi.market). En V1, utilise des règles heuristiques simples.
 
         Args:
             available_land_ha (float): Surface arable disponible en hectares.
-            climate_forecast (dict): Prévisions météorologiques et stress hydrique.
-            market_forecast (dict): Prévisions de prix pour différentes cultures.
+            climate_forecast (dict): Prévisions météo (clé: 'secheresse_anticipee').
+            market_forecast (dict): Prévisions de prix par culture.
 
         Returns:
-            dict: La répartition optimale en pourcentages et surfaces.
+            dict: La répartition optimale en hectares par culture et le revenu attendu.
         """
-        # Répartition simulée en fonction du stress hydrique
+        # Répartition par défaut : maïs 50%, soja 30%, niébé 20%
         repartition = {
-            'maïs': 0.5 * available_land_ha,
-            'soja': 0.3 * available_land_ha,
-            'niébé': 0.2 * available_land_ha
+            "maïs": 0.5 * available_land_ha,
+            "soja": 0.3 * available_land_ha,
+            "niébé": 0.2 * available_land_ha,
         }
-        
-        # Ajustement simplifié : si sécheresse anticipée, on favorise le niébé (plus résistant)
-        if climate_forecast.get('secheresse_anticipee', False):
-            repartition['maïs'] = 0.3 * available_land_ha
-            repartition['soja'] = 0.3 * available_land_ha
-            repartition['niébé'] = 0.4 * available_land_ha
-            
-        # Construction de la réponse
-        resultat = {
-            'repartition_hectares': repartition,
-            'revenu_attendu_cfa': 1500000.0,  # Valeur fictive
-            'recommandation': 'Privilégier les cultures résistantes à la sécheresse.' 
-                              if climate_forecast.get('secheresse_anticipee', False) else 'Répartition équilibrée.'
+
+        # Ajustement si sécheresse anticipée : favoriser le niébé (plus résistant)
+        if climate_forecast.get("secheresse_anticipee", False):
+            repartition["maïs"] = 0.3 * available_land_ha
+            repartition["soja"] = 0.3 * available_land_ha
+            repartition["niébé"] = 0.4 * available_land_ha
+
+        recommandation_texte = (
+            "Sécheresse anticipée : privilégier le niébé, culture résistante."
+            if climate_forecast.get("secheresse_anticipee", False)
+            else "Conditions normales : répartition équilibrée recommandée."
+        )
+
+        return {
+            "repartition_hectares": repartition,
+            "revenu_attendu_cfa": 1_500_000.0,  # Stub V1 : valeur à calculer en Phase 3
+            "recommandation": recommandation_texte,
         }
-        
-        # Retourne l'optimisation
-        return resultat
