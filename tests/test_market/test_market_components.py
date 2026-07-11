@@ -6,6 +6,7 @@ de la Phase 1 (validation, normalisation, retry, is_simulated).
 """
 
 import pytest
+import numpy as np
 import pandas as pd
 import responses
 
@@ -579,3 +580,287 @@ def test_poids_contenant_totalement_inconnu():
     """Teste le fallback à 80 kg si le contenant est complètement inconnu."""
     poids = get_container_weight_kg("contenant_bizarre")
     assert poids == 80.0
+
+
+# ==========================================================================
+# Tests Phase 3 : predict_price() avec historique réel
+# ==========================================================================
+
+def _creer_historique_reel(nb_jours: int = 120, is_simulated: bool = False) -> pd.DataFrame:
+    """
+    Crée un DataFrame d'historique de prix synthétique mais réaliste
+    pour les tests de forecasting.
+
+    Les prix suivent une tendance légère haussière avec une composante
+    saisonnière sinusoïdale, ce qui permet de valider que le modèle
+    capture correctement la structure des données.
+
+    Args:
+        nb_jours (int): Nombre de jours d'historique à générer.
+        is_simulated (bool): Valeur du flag is_simulated dans le DataFrame.
+
+    Returns:
+        pd.DataFrame: Historique synthétique avec colonnes 'date', 'price',
+            'unit', 'is_simulated', 'source'.
+    """
+    # Génération de la plage de dates (du plus ancien au plus récent)
+    dates = pd.date_range(end=pd.Timestamp.today(), periods=nb_jours, freq="D")
+
+    # Génération de prix avec tendance + saisonnalité + bruit
+    t = np.arange(nb_jours, dtype=float)
+    prix = (
+        280.0                           # Prix de base
+        + 0.05 * t                      # Tendance haussière légère
+        + 15.0 * np.sin(2 * np.pi * t / 365)  # Saisonnalité annuelle
+        + np.random.default_rng(42).normal(0, 5, nb_jours)  # Bruit
+    )
+
+    return pd.DataFrame({
+        "date": dates,
+        "price": prix,
+        "unit": "XOF/kg",
+        "is_simulated": is_simulated,
+        "source": "simulated" if is_simulated else "wfp-vam",
+    })
+
+
+def test_predict_price_avec_historique_reel():
+    """Teste que predict_price() retourne is_simulated=False avec un historique réel."""
+    forecaster = MarketForecasting()
+    historique = _creer_historique_reel(nb_jours=120, is_simulated=False)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique,
+    )
+
+    # Avec un historique réel (is_simulated=False), la prévision doit être non simulée
+    assert res["is_simulated"] is False
+
+
+def test_predict_price_sans_historique_active_fallback():
+    """Teste que predict_price() sans historique active le fallback simulé."""
+    forecaster = MarketForecasting()
+
+    # Appel sans historique : doit basculer sur le fallback
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=None,
+    )
+
+    # Le fallback doit être clairement signalé
+    assert res["is_simulated"] is True
+    assert res["confidence_score"] == 0.0
+    assert res["model_used"] == "fallback_simule"
+
+
+def test_predict_price_historique_insuffisant():
+    """Teste que predict_price() bascule sur le fallback si l'historique est trop court."""
+    forecaster = MarketForecasting()
+
+    # Historique trop court (5 points < seuil de 20)
+    historique_court = _creer_historique_reel(nb_jours=5, is_simulated=False)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique_court,
+    )
+
+    # Fallback activé faute d'assez de données
+    assert res["is_simulated"] is True
+    assert res["nb_history_pts"] == 0
+
+
+def test_predict_price_structure_retour_complete():
+    """Teste que le dictionnaire de retour contient tous les champs attendus."""
+    forecaster = MarketForecasting()
+    historique = _creer_historique_reel(nb_jours=120)
+
+    res = forecaster.predict_price(
+        crop="rice",
+        market="parakou",
+        days_ahead=14,
+        historique=historique,
+    )
+
+    # Toutes les clés attendues doivent être présentes
+    cles_attendues = {
+        "predicted_price", "low_90", "high_90", "confidence",
+        "model_used", "rmse", "is_simulated", "confidence_score",
+        "nb_history_pts", "days_ahead",
+    }
+    assert cles_attendues.issubset(set(res.keys()))
+
+
+def test_predict_price_intervalles_coherents():
+    """Teste que low_90 <= predicted_price <= high_90."""
+    forecaster = MarketForecasting()
+    historique = _creer_historique_reel(nb_jours=120)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique,
+    )
+
+    # Les bornes doivent encadrer le prix prédit
+    assert res["low_90"] <= res["predicted_price"] <= res["high_90"]
+
+
+def test_predict_price_rmse_reel_positif():
+    """Teste que le RMSE calculé par validation croisée est un float positif."""
+    forecaster = MarketForecasting()
+
+    # Historique suffisamment long pour la cross-validation (3 folds * 2 minimum)
+    historique = _creer_historique_reel(nb_jours=120)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique,
+    )
+
+    # Le RMSE doit être un nombre positif (non None, non NaN)
+    assert res["rmse"] is not None
+    assert res["rmse"] > 0.0
+
+
+def test_predict_price_prix_positif():
+    """Teste que le prix prédit est toujours positif."""
+    forecaster = MarketForecasting()
+    historique = _creer_historique_reel(nb_jours=120)
+
+    for horizon in [7, 14, 30]:
+        res = forecaster.predict_price(
+            crop="maize",
+            market="cotonou",
+            days_ahead=horizon,
+            historique=historique,
+        )
+        assert res["predicted_price"] >= 0.0, (
+            f"Le prix prédit pour {horizon} jours est négatif : {res['predicted_price']}"
+        )
+
+
+def test_predict_price_propagation_is_simulated():
+    """Teste que is_simulated=True se propage depuis l'historique simulé."""
+    forecaster = MarketForecasting()
+
+    # Historique marqué comme simulé
+    historique_simule = _creer_historique_reel(nb_jours=120, is_simulated=True)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique_simule,
+    )
+
+    # Le flag doit se propager même si les données sont structurellement correctes
+    assert res["is_simulated"] is True
+
+
+def test_predict_price_modele_identifie():
+    """Teste que le modèle est bien identifié comme linear_regression_fourier."""
+    forecaster = MarketForecasting()
+    historique = _creer_historique_reel(nb_jours=120)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique,
+    )
+
+    assert res["model_used"] == "linear_regression_fourier"
+
+
+def test_predict_price_nb_history_pts_correct():
+    """Teste que nb_history_pts reflète le nombre réel de points utilisés."""
+    forecaster = MarketForecasting()
+    nb_jours = 80
+    historique = _creer_historique_reel(nb_jours=nb_jours)
+
+    res = forecaster.predict_price(
+        crop="maize",
+        market="cotonou",
+        days_ahead=7,
+        historique=historique,
+    )
+
+    # Le nombre de points doit correspondre à l'historique fourni
+    assert res["nb_history_pts"] == nb_jours
+
+
+def test_sauvegarder_et_recuperer_prediction():
+    """Teste la sauvegarde et la lecture d'une prévision dans SQLite."""
+    import tempfile
+    from pathlib import Path
+    from kadi.market._cache import sauvegarder_prediction, recuperer_predictions
+
+    # Base SQLite temporaire isolée des données de production
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+        db_tmp = Path(tmp.name)
+
+    try:
+        # Prévision factice à sauvegarder
+        prediction_test = {
+            "predicted_price": 325.0,
+            "low_90": 295.0,
+            "high_90": 355.0,
+            "confidence": 0.9,
+            "model_used": "linear_regression_fourier",
+            "rmse": 18.5,
+            "is_simulated": False,
+            "confidence_score": 0.72,
+            "nb_history_pts": 90,
+            "days_ahead": 7,
+        }
+
+        rowid = sauvegarder_prediction("cotonou", "maize", prediction_test, db_path=db_tmp)
+
+        # La sauvegarde doit retourner un identifiant valide
+        assert rowid > 0
+
+        # La relecture doit retrouver la prévision sauvegardée
+        df_pred = recuperer_predictions("cotonou", "maize", max_age_jours=1, db_path=db_tmp)
+
+        assert df_pred is not None
+        assert not df_pred.empty
+        assert df_pred.iloc[0]["predicted_price"] == 325.0
+        assert df_pred.iloc[0]["is_simulated"] is False
+
+    finally:
+        # Nettoyage de la base temporaire
+        if db_tmp.exists():
+            db_tmp.unlink()
+
+
+def test_facade_market_predict_price():
+    """Teste la méthode predict_price() de la façade Market (pipeline complet)."""
+    marche = Market(6.36, 2.41, "Cotonou")
+
+    # En mode sans token WFP, les données seront simulées mais la méthode
+    # doit s'exécuter sans erreur et retourner la structure complète
+    res = marche.predict_price(crop="maize", days_ahead=7)
+
+    # La structure de retour doit être complète
+    assert "predicted_price" in res
+    assert "is_simulated" in res
+    assert "crop" in res
+    assert "market" in res
+
+    # Le crop et le marché doivent correspondre aux paramètres
+    assert res["crop"] == "maize"
+    assert res["market"] == "Cotonou"
+
+    # Le prix prédit doit toujours être positif
+    assert res["predicted_price"] >= 0.0
