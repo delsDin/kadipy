@@ -62,6 +62,11 @@ def initialiser_base(db_path: Path = MARKET_DB_PATH) -> None:
     Idempotente : peut être appelée plusieurs fois sans erreur.
     Appelée automatiquement par les autres fonctions du module.
 
+    Tables créées :
+        - market_prices    : une ligne par observation de prix
+        - cache_meta       : métadonnées de la dernière mise à jour
+        - price_predictions: prévisions générées par le module forecasting
+
     Args:
         db_path (Path): Chemin vers le fichier SQLite. Utilise MARKET_DB_PATH par défaut.
     """
@@ -106,6 +111,34 @@ def initialiser_base(db_path: Path = MARKET_DB_PATH) -> None:
                 nb_records INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY (market, crop)
             );
+        """)
+
+        # Table des prévisions : une ligne par prévision générée.
+        # Permet le backtesting futur (Phase 5) en comparant predicted_price
+        # aux observations réelles de la table market_prices.
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS price_predictions (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                market          TEXT    NOT NULL,
+                crop            TEXT    NOT NULL,
+                generated_at    TEXT    NOT NULL,
+                target_date     TEXT    NOT NULL,
+                days_ahead      INTEGER NOT NULL,
+                predicted_price REAL    NOT NULL,
+                low_bound       REAL    NOT NULL,
+                high_bound      REAL    NOT NULL,
+                confidence      REAL    NOT NULL,
+                rmse            REAL,
+                model_used      TEXT    NOT NULL DEFAULT 'linear_regression',
+                is_simulated    INTEGER NOT NULL DEFAULT 0,
+                nb_history_pts  INTEGER NOT NULL DEFAULT 0
+            );
+        """)
+
+        # Index pour retrouver rapidement les prévisions par (marché, culture)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_pred_market_crop
+            ON price_predictions (market, crop);
         """)
 
         conn.commit()
@@ -447,3 +480,124 @@ def vider_cache(
         conn.commit()
 
     return nb
+
+
+def sauvegarder_prediction(
+    market: str,
+    crop: str,
+    prediction: dict,
+    db_path: Path = MARKET_DB_PATH,
+) -> int:
+    """
+    Sauvegarde une prévision de prix dans la table price_predictions.
+
+    Cette table permet de comparer ultérieurement (Phase 5) les prévisions
+    passées aux prix réels observés (backtesting).
+
+    Args:
+        market (str): Nom normalisé du marché (ex: 'cotonou').
+        crop (str): Code de la culture (ex: 'maize').
+        prediction (dict): Dictionnaire retourné par MarketForecasting.predict_price().
+            Doit contenir au minimum : 'predicted_price', 'low_90', 'high_90',
+            'confidence', 'rmse', 'model_used', 'is_simulated', 'days_ahead'.
+        db_path (Path): Chemin vers le fichier SQLite.
+
+    Returns:
+        int: L'identifiant (rowid) de la prévision insérée, ou -1 en cas d'échec.
+    """
+    # Initialisation de la base si nécessaire
+    initialiser_base(db_path)
+
+    # Horodatage de la génération de la prévision (UTC)
+    maintenant = datetime.now(timezone.utc).isoformat()
+
+    # Calcul de la date cible à partir du nombre de jours
+    # timedelta est déjà importé en tête du module depuis datetime
+    days_ahead = int(prediction.get("days_ahead", 7))
+    date_cible = (datetime.now(timezone.utc) + timedelta(days=days_ahead)).date().isoformat()
+
+    with _connexion(db_path) as conn:
+        curseur = conn.execute(
+            """
+            INSERT INTO price_predictions
+                (market, crop, generated_at, target_date, days_ahead,
+                 predicted_price, low_bound, high_bound, confidence,
+                 rmse, model_used, is_simulated, nb_history_pts)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                market,
+                crop,
+                maintenant,
+                date_cible,
+                days_ahead,
+                float(prediction.get("predicted_price", 0.0)),
+                float(prediction.get("low_90", 0.0)),
+                float(prediction.get("high_90", 0.0)),
+                float(prediction.get("confidence", 0.0)),
+                float(prediction["rmse"]) if prediction.get("rmse") is not None else None,
+                str(prediction.get("model_used", "linear_regression")),
+                int(bool(prediction.get("is_simulated", False))),
+                int(prediction.get("nb_history_pts", 0)),
+            ),
+        )
+        rowid = curseur.lastrowid
+        conn.commit()
+
+    logger.debug(
+        f"Prévision sauvegardée pour {market}/{crop} "
+        f"(target: {date_cible}, prix: {prediction.get('predicted_price')})."
+    )
+    return rowid
+
+
+def recuperer_predictions(
+    market: str,
+    crop: str,
+    max_age_jours: int = 1,
+    db_path: Path = MARKET_DB_PATH,
+) -> Optional[pd.DataFrame]:
+    """
+    Récupère les prévisions récentes depuis la table price_predictions.
+
+    Utilisé pour éviter de recalculer une prévision déjà fraîche, et
+    pour alimenter le backtesting (Phase 5).
+
+    Args:
+        market (str): Nom normalisé du marché.
+        crop (str): Code de la culture.
+        max_age_jours (int): Âge maximum en jours des prévisions à retourner.
+            Défaut : 1 (prévisions du jour uniquement).
+        db_path (Path): Chemin vers le fichier SQLite.
+
+    Returns:
+        pd.DataFrame: Prévisions récentes triées par date de génération décroissante.
+        None: Si aucune prévision récente n'existe.
+    """
+    initialiser_base(db_path)
+
+    # Calcul de la date minimale acceptable (UTC)
+    date_limite = (
+        datetime.now(timezone.utc) - timedelta(days=max_age_jours)
+    ).isoformat()
+
+    with _connexion(db_path) as conn:
+        df = pd.read_sql_query(
+            """
+            SELECT *
+            FROM price_predictions
+            WHERE market = ? AND crop = ?
+              AND generated_at >= ?
+            ORDER BY generated_at DESC
+            """,
+            conn,
+            params=(market, crop, date_limite),
+        )
+
+    if df.empty:
+        return None
+
+    # Conversion du flag is_simulated en booléen Python
+    df["is_simulated"] = df["is_simulated"].astype(bool)
+
+    return df
