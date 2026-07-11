@@ -250,3 +250,90 @@ class Market:
             "source": source,
             "donnees": df,
         }
+
+    def predict_price(
+        self,
+        crop: str,
+        days_ahead: int = 7,
+        confidence_interval: float = 0.9,
+        days_back: int = 365,
+    ) -> dict:
+        """
+        API de haut niveau : prédit le prix futur d'une culture sur ce marché.
+
+        Cette méthode orchestre le pipeline complet en un seul appel :
+        1. Récupération de l'historique de prix (cache SQLite ou API WFP)
+        2. Normalisation vers XOF/kg
+        3. Prévision par régression linéaire avec features saisonnières
+        4. Sauvegarde de la prévision dans la table SQLite price_predictions
+
+        Args:
+            crop (str): Code de la culture (ex: 'maize', 'rice', 'cowpea').
+            days_ahead (int, optional): Horizon de prévision en jours.
+                Défaut : 7 jours. La précision décroît avec l'horizon.
+            confidence_interval (float, optional): Niveau de confiance pour
+                l'intervalle de prévision (0.9 ou 0.95). Défaut : 0.9.
+            days_back (int, optional): Nombre de jours d'historique à utiliser
+                pour entraîner le modèle. Défaut : 365 jours.
+
+        Returns:
+            dict: Dictionnaire contenant :
+                - 'crop'             : code de la culture
+                - 'market'           : nom du marché de référence
+                - 'predicted_price'  : prix prédit en XOF/kg
+                - 'low_90'           : borne inférieure de l'intervalle
+                - 'high_90'          : borne supérieure de l'intervalle
+                - 'confidence'       : niveau de confiance (0.9 ou 0.95)
+                - 'model_used'       : identifiant du modèle
+                - 'rmse'             : RMSE réel en XOF/kg (None si simulé)
+                - 'is_simulated'     : True si les données source sont simulées
+                - 'confidence_score' : score de fiabilité 0.0 à 1.0
+                - 'nb_history_pts'   : nombre de points d'historique utilisés
+                - 'days_ahead'       : horizon de prévision utilisé
+        """
+        # --- Étape 1 : récupération de l'historique de prix ---
+        df_historique = self.pricing.fetch_prices(
+            crop, self.location, days_back=days_back
+        )
+
+        # Normalisation vers XOF/kg si les données sont disponibles
+        if not df_historique.empty and "unit" in df_historique.columns:
+            df_historique["price"] = df_historique.apply(
+                lambda row: self.pricing.normalize_units(
+                    row["price"],
+                    row.get("unit", "XOF/kg"),
+                    crop=crop,
+                ),
+                axis=1,
+            )
+
+        # --- Étape 2 : prévision par le module forecasting ---
+        prediction = self.forecasting.predict_price(
+            crop=crop,
+            market=self.location,
+            days_ahead=days_ahead,
+            confidence_interval=confidence_interval,
+            historique=df_historique if not df_historique.empty else None,
+        )
+
+        # --- Étape 3 : sauvegarde dans la table SQLite price_predictions ---
+        try:
+            from kadi.market._cache import sauvegarder_prediction
+            sauvegarder_prediction(
+                market=self.location.lower(),
+                crop=crop,
+                prediction=prediction,
+            )
+        except Exception as exc:
+            # L'échec de la sauvegarde ne bloque pas le retour de la prévision
+            import logging
+            logging.getLogger(__name__).warning(
+                f"Impossible de sauvegarder la prévision en cache SQLite : {exc}"
+            )
+
+        # --- Étape 4 : enrichissement du résultat avec le contexte ---
+        prediction["crop"] = crop
+        prediction["market"] = self.location
+
+        return prediction
+
