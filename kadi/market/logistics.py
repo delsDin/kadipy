@@ -2,12 +2,12 @@
 Module gérant les coûts de logistique, de transport et les frictions
 sur les corridors commerciaux au Bénin (V1).
 
-Note sur les intégrations futures :
-    La plan de développement prévoit de connecter ce module
-    à kadi.weather pour ajuster automatiquement le coefficient d'état
-    des routes (gamma_route) selon la saison des pluies, et pour
-    augmenter la perte de qualité des produits frais en période humide.
-    Dans le V1, ces ajustements sont laissés à la configuration manuelle.
+Phase 4 : ce module intègre kadi.weather pour ajuster automatiquement :
+- Le coefficient gamma_route selon la probabilité de pluie (route dégradée).
+- La perte de qualité selon la culture, la distance et la météo du trajet.
+
+Si aucun weather_session n'est fourni, le module fonctionne exactement
+comme avant (comportement V1 inchangé).
 """
 
 import os
@@ -33,6 +33,19 @@ _NOMINATIM_DELAY_SEC = _MARKET_CONFIG.get("nominatim_delay_sec", 1.1)
 # Timestamp de la dernière requête Nominatim (pour respecter le rate-limit)
 _derniere_requete_nominatim: float = 0.0
 
+# Facteur de perte de qualité par culture (XOF / km / tonne)
+# Chargé depuis la configuration ; la clé "_default" couvre les cultures inconnues.
+_QUALITE_FACTEUR = _LOGISTICS_CONFIG.get(
+    "qualite_facteur_par_culture",
+    {
+        "maize": 5.0, "sorghum": 5.0, "millet": 5.0,
+        "rice": 6.0, "cowpea": 7.0, "soybean": 7.0,
+        "yam": 12.0, "cassava": 10.0,
+        "tomato": 25.0, "onion": 20.0,
+        "_default": 8.0,
+    }
+)
+
 
 def _respecter_rate_limit_nominatim():
     """
@@ -55,18 +68,108 @@ def _respecter_rate_limit_nominatim():
     _derniere_requete_nominatim = time.time()
 
 
+def _obtenir_prob_pluie(weather_session) -> float:
+    """
+    Interroge le module météo pour obtenir la probabilité de pluie demain.
+
+    En cas d'erreur (module indisponible, pas de données), retourne 0.0
+    (pas de pluie prévue = comportement conservateur sans majoration).
+
+    Args:
+        weather_session: Instance de kadi.weather.WeatherSession, ou None.
+
+    Returns:
+        float: Probabilité de pluie entre 0.0 et 1.0. Retourne 0.0 si
+            weather_session est None ou si l'appel échoue.
+    """
+    if weather_session is None:
+        return 0.0
+
+    try:
+        # Horizon de prévision météo configuré pour la logistique
+        days_ahead = _LOGISTICS_CONFIG.get("days_ahead_weather", 1)
+        resultat = weather_session.rain_probability(days_ahead=days_ahead)
+
+        # La clé 'tomorrow' correspond au J+1 (premier jour de la prévision)
+        prob = float(resultat.get("tomorrow", 0.0))
+        return max(0.0, min(1.0, prob))
+
+    except Exception as e:
+        logger.warning(
+            f"Impossible d'obtenir la probabilité de pluie depuis weather_session : {e}. "
+            "Valeur de repli 0.0 utilisée."
+        )
+        return 0.0
+
+
+def _calculer_gamma_effectif(gamma_base: float, prob_pluie: float) -> float:
+    """
+    Calcule le coefficient gamma_route effectif en tenant compte de la pluie.
+
+    Formule :
+        gamma_effectif = gamma_base * (1 + alpha_pluie * prob_pluie)
+
+    Args:
+        gamma_base (float): Coefficient de base (depuis config.py, ex: 1.2).
+        prob_pluie (float): Probabilité de pluie entre 0.0 et 1.0.
+
+    Returns:
+        float: Coefficient effectif (toujours >= gamma_base).
+    """
+    # Coefficient de majoration météo depuis la configuration
+    alpha = _LOGISTICS_CONFIG.get("alpha_pluie", 0.25)
+    return gamma_base * (1.0 + alpha * prob_pluie)
+
+
+def _calculer_perte_qualite(
+    crop: Optional[str],
+    distance_km: float,
+    prob_pluie: float,
+) -> float:
+    """
+    Calcule la perte de qualité marchande en fonction de la culture,
+    de la distance et de la météo du trajet.
+
+    Formule :
+        C_qualite = facteur_culture * distance_km * (1 + beta_pluie * prob_pluie)
+
+    En l'absence de culture spécifiée, utilise le facteur par défaut.
+
+    Args:
+        crop (str, optional): Code de la culture (ex: 'maize', 'tomato').
+            Utilise '_default' si None ou inconnu.
+        distance_km (float): Distance du trajet en kilomètres.
+        prob_pluie (float): Probabilité de pluie entre 0.0 et 1.0.
+
+    Returns:
+        float: Perte de qualité estimée en XOF.
+    """
+    # Récupération du facteur propre à la culture (ou valeur par défaut)
+    cle = (crop or "").lower()
+    facteur = _QUALITE_FACTEUR.get(cle, _QUALITE_FACTEUR.get("_default", 8.0))
+
+    # Coefficient de majoration sous la pluie (beta_pluie depuis config)
+    beta = _LOGISTICS_CONFIG.get("beta_pluie_qualite", 0.5)
+
+    # Calcul de la perte totale
+    c_qualite = facteur * distance_km * (1.0 + beta * prob_pluie)
+    return round(c_qualite, 2)
+
+
 class MarketLogistics:
     """
     Classe modélisant les frictions logistiques réelles au Bénin :
     coûts de transport, tracasseries aux postes de contrôle,
     et dégradation de la qualité des marchandises.
 
-    Les coefficients utilisés dans les formules de coût sont lus
-    depuis la configuration centrale (config.py) pour être ajustables
-    sans modifier le code source.
+    Phase 4 - Intégration météo :
+        Si un weather_session est fourni à l'initialisation, le calcul
+        des coûts de transfert utilise la probabilité de pluie du lendemain
+        pour ajuster gamma_route (état des routes) et la perte de qualité.
+        En l'absence de weather_session, le comportement est identique à la V1.
     """
 
-    def __init__(self, cache_file: str = None):
+    def __init__(self, cache_file: str = None, weather_session=None):
         """
         Initialise le module logistique.
 
@@ -76,7 +179,13 @@ class MarketLogistics:
         Args:
             cache_file (str, optional): Chemin vers le fichier de cache JSON.
                 Si None, utilise ``~/.kadi/osrm_cache.json``.
+            weather_session (WeatherSession, optional): Session météo
+                (kadi.weather.WeatherSession) pour ajuster les coûts selon
+                la météo prévue. Si None, pas d'ajustement climatique.
         """
+        # Session météo optionnelle (intégration Phase 4)
+        self.weather_session = weather_session
+
         # Initialisation du chemin du fichier de cache
         if cache_file is None:
             cache_dir = os.path.expanduser("~/.kadi")
@@ -90,6 +199,9 @@ class MarketLogistics:
 
         # Cache en mémoire pour le prix du carburant (évite les appels répétés)
         self._cached_fuel_price: Optional[float] = None
+
+        # Cache en mémoire pour la probabilité de pluie (une seule requête par session)
+        self._cached_prob_pluie: Optional[float] = None
 
         # Chargement du cache depuis le disque
         self._load_cache()
@@ -112,6 +224,20 @@ class MarketLogistics:
                 json.dump(self.cache, f, indent=4)
         except Exception as e:
             logger.warning(f"Impossible de sauvegarder le cache {self.cache_file}: {e}")
+
+    def _get_prob_pluie(self) -> float:
+        """
+        Retourne la probabilité de pluie, mise en cache pour la durée de la session.
+
+        La probabilité est calculée une seule fois par session logistique pour
+        éviter des appels répétés au module météo.
+
+        Returns:
+            float: Probabilité de pluie entre 0.0 et 1.0.
+        """
+        if self._cached_prob_pluie is None:
+            self._cached_prob_pluie = _obtenir_prob_pluie(self.weather_session)
+        return self._cached_prob_pluie
 
     def _haversine_distance(
         self, lon1: float, lat1: float, lon2: float, lat2: float
@@ -358,28 +484,43 @@ class MarketLogistics:
         origine: str,
         destination: str,
         prix_carburant: float = None,
+        crop: str = None,
     ) -> dict:
         """
         Calcule le coût total de transfert d'un point A vers un point B.
 
-        Formule appliquée :
-            C_transfer = C_info + (Distance * (gamma_route * P_carburant / 100 + mu_checkpoints)) + C_qualite
+        Phase 4 - Intégration météo :
+            Si un weather_session a été fourni à l'initialisation, le calcul
+            ajuste automatiquement :
+            - gamma_route selon la probabilité de pluie prévue demain.
+            - La perte de qualité selon la culture et la météo.
+
+        Formule :
+            C_transfer = C_info
+                       + Distance * (gamma_effectif * P_carburant / 100 + mu_checkpoints)
+                       + C_qualite(culture, distance, pluie)
 
         Où :
-        - C_info = coût fixe de recherche d'informations (appels, déplacements préalables)
-        - gamma_route = coefficient d'état des routes (configurable)
+        - C_info = coût fixe de recherche d'informations (appels, déplacements)
+        - gamma_effectif = gamma_route * (1 + alpha_pluie * prob_pluie)
         - P_carburant = prix du litre d'essence en XOF
         - mu_checkpoints = coût moyen des tracasseries par km
-        - C_qualite = perte de valeur marchande due au transport
+        - C_qualite = perte de valeur marchande (variable par culture et météo)
 
         Args:
             origine (str): Ville de départ (ex: 'Parakou').
             destination (str): Ville de destination (ex: 'Cotonou').
             prix_carburant (float, optional): Prix du litre d'essence en XOF.
                 Si None, récupéré automatiquement depuis les sources configurées.
+            crop (str, optional): Code de la culture transportée (ex: 'maize').
+                Influence la perte de qualité. Si None, utilise le facteur par défaut.
 
         Returns:
-            dict: Dictionnaire contenant le coût total et le détail par poste.
+            dict: Dictionnaire contenant le coût total et le détail par poste :
+                - 'total_cost_cfa' : coût total du transfert en XOF
+                - 'details'        : sous-dictionnaire avec chaque composante
+                - 'prob_pluie'     : probabilité de pluie utilisée (0 si pas de météo)
+                - 'gamma_effectif' : gamma_route réellement appliqué
         """
         # Récupération du prix du carburant si non fourni
         if prix_carburant is None:
@@ -387,29 +528,42 @@ class MarketLogistics:
 
         # Récupération des coefficients depuis la configuration centrale
         c_info = _LOGISTICS_CONFIG.get("c_info_xof", 5000.0)
-        gamma_route = _LOGISTICS_CONFIG.get("gamma_route", 1.2)
+        gamma_route_base = _LOGISTICS_CONFIG.get("gamma_route", 1.2)
         mu_checkpoints = _LOGISTICS_CONFIG.get("mu_checkpoints_xof_per_km", 15.0)
-        c_qualite_loss = _LOGISTICS_CONFIG.get("c_qualite_loss_xof", 2500.0)
+
+        # Probabilité de pluie (0.0 si pas de module météo disponible)
+        prob_pluie = self._get_prob_pluie()
+
+        # Coefficient de route effectif, ajusté selon la météo
+        gamma_effectif = _calculer_gamma_effectif(gamma_route_base, prob_pluie)
 
         # Calcul de la distance routière entre les deux villes
         d_ab = self.get_distance(origine, destination)
 
         # Calcul du coût lié à la distance (carburant + tracasseries)
-        cout_distance = d_ab * ((gamma_route * prix_carburant / 100.0) + mu_checkpoints)
+        cout_distance = d_ab * ((gamma_effectif * prix_carburant / 100.0) + mu_checkpoints)
+
+        # Perte de qualité dynamique (par culture, distance et météo)
+        c_qualite = _calculer_perte_qualite(crop, d_ab, prob_pluie)
 
         # Coût de transfert total
-        c_transfer = c_info + cout_distance + c_qualite_loss
+        c_transfer = c_info + cout_distance + c_qualite
 
         # Construction du résultat détaillé
         resultat = {
             "total_cost_cfa": round(c_transfer, 2),
+            "prob_pluie": round(prob_pluie, 3),
+            "gamma_effectif": round(gamma_effectif, 4),
             "details": {
                 "distance_km": round(d_ab, 2),
                 "search_costs": c_info,
                 "transport_costs": round(cout_distance, 2),
-                "quality_loss": c_qualite_loss,
+                "quality_loss": c_qualite,
                 "fuel_price_used": prix_carburant,
-                "gamma_route": gamma_route,
+                "gamma_route_base": gamma_route_base,
+                "gamma_effectif": round(gamma_effectif, 4),
+                "prob_pluie": round(prob_pluie, 3),
+                "crop": crop or "_default",
             },
         }
 
