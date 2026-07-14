@@ -240,3 +240,204 @@ class MarketPricing:
 
         # Par défaut, on suppose WFP VAM (source primaire du V1)
         return "wfp-vam"
+
+    def seasonality(
+        self,
+        historique: pd.DataFrame,
+        min_observations_par_mois: int = 2,
+    ) -> dict:
+        """
+        Calcule l'indice saisonnier mensuel des prix agricoles.
+
+        La méthode utilise la décomposition par ratios : pour chaque mois,
+        l'indice est le rapport entre le prix moyen de ce mois et le prix
+        moyen global sur toute la période. Un indice supérieur à 1 indique
+        un mois de prix élevés (pénurie), inférieur à 1 un mois bon marché
+        (période post-récolte).
+
+        L'historique doit couvrir au moins 12 mois pour que les indices
+        soient fiables. En dessous de ce seuil, les indices sont calculés
+        mais le champ ``confiance`` sera faible.
+
+        Args:
+            historique (pd.DataFrame): DataFrame avec au minimum les colonnes
+                'date' (datetime ou str) et 'price' (float, en XOF/kg).
+                Typiquement retourné par ``fetch_prices()``.
+            min_observations_par_mois (int, optional): Nombre minimal
+                d'observations pour qu'un mois soit inclus dans le calcul.
+                Les mois en dessous de ce seuil sont marqués NaN.
+                Défaut : 2.
+
+        Returns:
+            dict: Dictionnaire contenant les champs suivants :
+
+                - ``indices`` (dict[int, float | None]) : dictionnaire des
+                  12 indices saisonniers, indexé par numéro de mois (1 à 12).
+                  La valeur est None si le mois a moins de
+                  ``min_observations_par_mois`` entrées.
+                - ``mois_pic`` (list[int]) : liste des mois où l'indice
+                  dépasse 1.05 (5% au-dessus de la moyenne), triés par
+                  indice décroissant.
+                - ``mois_creux`` (list[int]) : liste des mois où l'indice
+                  est en dessous de 0.95, triés par indice croissant.
+                - ``prix_moyen_global`` (float) : prix moyen sur toute la
+                  période historique, en XOF/kg.
+                - ``prix_moyen_par_mois`` (dict[int, float | None]) :
+                  prix moyen brut par mois, avant normalisation.
+                - ``nb_observations`` (int) : nombre total d'observations
+                  valides utilisées pour le calcul.
+                - ``nb_mois_couverts`` (int) : nombre de mois avec au moins
+                  ``min_observations_par_mois`` entrées.
+                - ``confiance`` (float) : score de confiance de 0 à 1.
+                  Reflète la densité des données (1.0 = 2+ ans de données
+                  hebdomadaires, 0.0 = moins d'un mois de données).
+                - ``is_simulated`` (bool) : True si l'historique source
+                  contient des données simulées.
+                - ``message`` (str | None) : avertissement si les données
+                  sont insuffisantes pour un calcul fiable. None sinon.
+
+        Raises:
+            ValueError: Si l'historique est vide ou ne contient pas les
+                colonnes 'date' et 'price'.
+        """
+        # --- Validation des entrées ---
+        if historique is None or historique.empty:
+            raise ValueError(
+                "L'historique fourni est vide. "
+                "Utilisez fetch_prices() pour obtenir des données avant "
+                "d'appeler seasonality()."
+            )
+
+        colonnes_requises = {"date", "price"}
+        if not colonnes_requises.issubset(historique.columns):
+            raise ValueError(
+                f"L'historique doit contenir les colonnes {colonnes_requises}. "
+                f"Colonnes reçues : {set(historique.columns)}."
+            )
+
+        # --- Préparation du DataFrame ---
+        # Copie pour ne pas modifier le DataFrame d'entrée
+        df = historique[["date", "price"]].copy()
+
+        # Conversion de la colonne date en datetime si nécessaire
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+        # Suppression des lignes avec date ou prix manquants ou invalides
+        df = df.dropna(subset=["date", "price"])
+        df = df[df["price"] > 0]
+
+        if df.empty:
+            raise ValueError(
+                "Aucune observation valide après nettoyage de l'historique "
+                "(vérifiez les colonnes 'date' et 'price')."
+            )
+
+        # Extraction du numéro de mois (1 = janvier, 12 = décembre)
+        df["mois"] = df["date"].dt.month
+
+        # --- Calcul des statistiques par mois ---
+        # Comptage des observations disponibles par mois
+        compte_par_mois = df.groupby("mois")["price"].count()
+
+        # Prix moyen brut par mois (tous mois confondus)
+        moyenne_par_mois = df.groupby("mois")["price"].mean()
+
+        # Prix moyen global sur toute la période (référence de normalisation)
+        prix_moyen_global = float(df["price"].mean())
+
+        # Noms des mois en français pour les messages lisibles
+        _NOMS_MOIS = {
+            1: "janvier", 2: "février", 3: "mars", 4: "avril",
+            5: "mai", 6: "juin", 7: "juillet", 8: "août",
+            9: "septembre", 10: "octobre", 11: "novembre", 12: "décembre",
+        }
+
+        # --- Construction des indices saisonniers ---
+        indices = {}
+        prix_moyen_par_mois = {}
+
+        for mois in range(1, 13):
+            nb_obs = int(compte_par_mois.get(mois, 0))
+            prix_moyen_par_mois[mois] = (
+                round(float(moyenne_par_mois[mois]), 2)
+                if mois in moyenne_par_mois.index
+                else None
+            )
+
+            if nb_obs >= min_observations_par_mois and prix_moyen_global > 0:
+                # Indice = ratio entre prix moyen du mois et prix moyen global
+                # Indice > 1 : mois cher, < 1 : mois bon marché
+                indice = float(moyenne_par_mois[mois]) / prix_moyen_global
+                indices[mois] = round(indice, 4)
+            else:
+                # Données insuffisantes pour ce mois
+                indices[mois] = None
+
+        # --- Identification des mois de pic et de creux ---
+        # Seuil de 5% au-dessus/en dessous de la moyenne pour éviter le bruit
+        _SEUIL_PIC = 1.05
+        _SEUIL_CREUX = 0.95
+
+        mois_pic = sorted(
+            [m for m, idx in indices.items() if idx is not None and idx >= _SEUIL_PIC],
+            key=lambda m: indices[m],
+            reverse=True,
+        )
+        mois_creux = sorted(
+            [m for m, idx in indices.items() if idx is not None and idx <= _SEUIL_CREUX],
+            key=lambda m: indices[m],
+        )
+
+        # --- Calcul du score de confiance ---
+        nb_mois_couverts = sum(1 for v in indices.values() if v is not None)
+        nb_observations = len(df)
+
+        # La confiance dépend de deux facteurs :
+        # 1. La couverture mensuelle : 12 mois = 1.0, 0 mois = 0.0
+        facteur_couverture = nb_mois_couverts / 12.0
+        # 2. La densité des données : on considère 104 obs (2 ans hebdo) comme optimal
+        facteur_densite = min(1.0, nb_observations / 104.0)
+        confiance = round((facteur_couverture + facteur_densite) / 2.0, 3)
+
+        # --- Propagation du flag is_simulated depuis la source ---
+        est_simule = False
+        if "is_simulated" in historique.columns:
+            est_simule = bool(historique["is_simulated"].any())
+
+        # --- Message d'avertissement si données insuffisantes ---
+        message = None
+        if nb_mois_couverts < 6:
+            message = (
+                f"Seulement {nb_mois_couverts} mois couverts sur 12. "
+                "Les indices saisonniers calculés sont peu fiables. "
+                "Il est recommandé d'avoir au moins 12 mois d'historique."
+            )
+        elif nb_mois_couverts < 12:
+            manquants = [_NOMS_MOIS[m] for m in range(1, 13) if indices[m] is None]
+            message = (
+                f"Données manquantes pour : {', '.join(manquants)}. "
+                "L'indice saisonnier est None pour ces mois."
+            )
+
+        if est_simule:
+            avert_simul = "Attention : l'historique est simulé. Les indices ne reflètent pas la réalité du marché."
+            message = f"{avert_simul} {message}" if message else avert_simul
+
+        logger.info(
+            f"Saisonnalité calculée : {nb_mois_couverts}/12 mois couverts, "
+            f"{nb_observations} observations, confiance={confiance}, "
+            f"pic={mois_pic}, creux={mois_creux}."
+        )
+
+        return {
+            "indices": indices,
+            "mois_pic": mois_pic,
+            "mois_creux": mois_creux,
+            "prix_moyen_global": round(prix_moyen_global, 2),
+            "prix_moyen_par_mois": prix_moyen_par_mois,
+            "nb_observations": nb_observations,
+            "nb_mois_couverts": nb_mois_couverts,
+            "confiance": confiance,
+            "is_simulated": est_simule,
+            "message": message,
+        }
