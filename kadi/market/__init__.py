@@ -4,6 +4,10 @@ Point d'entrée du module kadi.market.
 Contient la classe principale Market qui agrège toutes les fonctionnalités
 (pricing, forecasting, logistics, decision_support) et valide les paramètres
 d'entrée avant d'initialiser les sous-modules.
+
+Phase 4 : La façade Market accepte maintenant un paramètre optionnel
+weather_session (kadi.weather.WeatherSession) pour activer l'ajustement
+climatique dans la logistique et l'aide à la décision.
 """
 
 import pandas as pd
@@ -102,9 +106,20 @@ class Market:
         Ce module est conçu pour le Bénin uniquement (V1.0.0).
     """
 
-    def __init__(self, lat: float, lon: float, location: str, env_file: str = ".env"):
+    def __init__(
+        self,
+        lat: float,
+        lon: float,
+        location: str,
+        env_file: str = ".env",
+        weather_session=None,
+    ):
         """
         Initialise le point central du marché pour un lieu au Bénin.
+
+        Phase 4 : accepte un weather_session optionnel pour activer
+        l'ajustement climatique dans la logistique (gamma_route dynamique,
+        perte de qualité variable) et l'aide à la décision.
 
         Args:
             lat (float): Latitude du lieu (entre 6.0 et 12.5 degrés nord).
@@ -112,6 +127,9 @@ class Market:
             location (str): Nom du lieu (ex: 'Abomey', 'Parakou'). Non vide.
             env_file (str, optional): Chemin vers le fichier .env contenant
                 les variables d'environnement (ex: WFP_API_Token). Défaut : '.env'.
+            weather_session (WeatherSession, optional): Session météo
+                (kadi.weather.WeatherSession) pour l'ajustement climatique.
+                Si None, pas d'ajustement météo (comportement V1).
 
         Raises:
             TypeError: Si lat, lon ou location ne sont pas du bon type.
@@ -121,6 +139,11 @@ class Market:
         Exemples:
             >>> marche = Market(9.30, 2.08, "Parakou")
             >>> marche = Market(lat=6.36, lon=2.41, location="Cotonou")
+
+            # Avec intégration météo :
+            >>> from kadi.weather import WeatherSession
+            >>> ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
+            >>> marche = Market(9.30, 2.08, "Parakou", weather_session=ws)
         """
         # Validation des paramètres avant toute initialisation
         _valider_coordonnees(lat, lon, location)
@@ -130,6 +153,9 @@ class Market:
         self.lat = lat
         self.lon = lon
         self.location = location.strip()
+
+        # Session météo optionnelle (Phase 4)
+        self.weather_session = weather_session
 
         # Client d'ingestion des données de marché (WFP DataBridges + cache SQLite)
         self.data_client = WFPDataBridgesClient(env_file=env_file)
@@ -141,7 +167,8 @@ class Market:
         self.forecasting = MarketForecasting()
 
         # Module logistique : distances, coûts de transport
-        self.logistics = MarketLogistics()
+        # La session météo est injectée pour ajuster gamma_route et la qualité
+        self.logistics = MarketLogistics(weather_session=weather_session)
 
         # Module d'aide à la décision, connecté au pricing réel
         self.decision_support = DecisionSupport(
@@ -383,3 +410,92 @@ class Market:
 
         # --- Étape 2 : délégation du calcul au module pricing ---
         return self.pricing.seasonality(historique=df_historique)
+
+    def assess_climate_risk(self, days_ahead: int = 7) -> dict:
+        """
+        Évalue le risque climatique courant pour la localisation du marché.
+
+        Méthode de haut niveau qui agrège les indicateurs météo disponibles
+        (pluie prévue et indice de sécheresse) depuis la session weather_session.
+
+        Si aucun weather_session n'a été fourni à l'initialisation, retourne
+        un dictionnaire indiquant l'absence de données météo.
+
+        Args:
+            days_ahead (int, optional): Horizon de prévision de pluie en jours.
+                Défaut : 7 jours.
+
+        Returns:
+            dict: Dictionnaire contenant :
+                - 'weather_available'  : bool — True si weather_session est actif
+                - 'prob_pluie'         : dict — probabilités de pluie par jour
+                - 'drought_index'      : dict — indice de sécheresse (SPI et sévérité)
+                - 'recommendation'     : str — message de synthèse
+                - 'prob_pluie_j1'      : float — probabilité de pluie demain (0 à 1)
+                - 'drought_severity'   : str — sévérité de la sécheresse
+        """
+        if self.weather_session is None:
+            # Aucun module météo injecté : retour neutre
+            return {
+                "weather_available": False,
+                "prob_pluie": {},
+                "drought_index": {},
+                "recommendation": (
+                    "Aucun module météo configuré. Fournissez un weather_session "
+                    "à Market() pour activer l'analyse climatique."
+                ),
+                "prob_pluie_j1": 0.0,
+                "drought_severity": "unknown",
+            }
+
+        # Récupération de la probabilité de pluie sur l'horizon demandé
+        try:
+            prob_pluie = self.weather_session.rain_probability(
+                days_ahead=days_ahead, min_rainfall_mm=1.0
+            )
+            prob_j1 = float(prob_pluie.get("tomorrow", 0.0))
+        except Exception:
+            prob_pluie = {"message": "Données de prévision indisponibles."}
+            prob_j1 = 0.0
+
+        # Récupération de l'indice de sécheresse SPI
+        try:
+            drought = self.weather_session.drought_index(method="spi", window_months=3)
+            severity = drought.get("drought_severity", "unknown")
+        except Exception:
+            drought = {}
+            severity = "unknown"
+
+        # Construction d'un message de synthèse contextuel
+        pct = int(prob_j1 * 100)
+        if prob_j1 > 0.7:
+            recommandation = (
+                f"Risque de pluie élevé demain ({pct}%). "
+                "Les coûts logistiques seront majorés (routes dégradées)."
+            )
+        elif prob_j1 > 0.3:
+            recommandation = (
+                f"Pluie modérée possible demain ({pct}%). "
+                "Surveiller les conditions de transport."
+            )
+        else:
+            recommandation = (
+                f"Peu de pluie prévue demain ({pct}%). "
+                "Conditions logistiques favorables."
+            )
+
+        if severity in ("moderate", "severe"):
+            recommandation += (
+                f" Sécheresse {severity} détectée (SPI). "
+                "Anticiper une hausse des prix des cultures sensibles."
+            )
+
+        return {
+            "weather_available": True,
+            "prob_pluie": prob_pluie,
+            "drought_index": drought,
+            "recommendation": recommandation,
+            "prob_pluie_j1": round(prob_j1, 3),
+            "drought_severity": severity,
+        }
+
