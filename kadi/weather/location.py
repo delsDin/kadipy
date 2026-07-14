@@ -26,9 +26,10 @@ class Location:
         self.latitude = latitude
         self.longitude = longitude
         
-        bbox = CONFIG["data"]["gps_validation_bbox"]
+        # Validation de la localisation par rapport à la zone d'étude V1 (Bénin)
+        bbox = CONFIG["weather"]["gps_validation_bbox"]
         if not (bbox["min_lat"] <= latitude <= bbox["max_lat"] and bbox["min_lon"] <= longitude <= bbox["max_lon"]):
-            raise LocationNotFound(f"Les coordonnées GPS ({latitude}, {longitude}) sont en dehors de la zone d'étude.")
+            raise LocationNotFound(f"Les coordonnées GPS ({latitude}, {longitude}) sont en dehors de la zone d'étude (Bénin V1).")
             
         self.name = name if name else f"Point({latitude}, {longitude})"
         
@@ -56,13 +57,15 @@ class Location:
     def _detect_regime(self) -> str:
         """
         Déduit le régime climatique (bimodal ou unimodal) selon la zone.
+        Le Sud et le Centre ont un régime bimodal au Bénin.
+        Le Nord a un régime unimodal.
 
         :return: 'bimodal' ou 'unimodal'
         """
-        if self.zone == 'Sud':
+        # Le Centre suit également un cycle bimodal (deux saisons de pluies)
+        if self.zone in ('Sud', 'Centre'):
             return 'bimodal'
-        else:
-            return 'unimodal'
+        return 'unimodal'
 
     def get_climate_params(self) -> dict:
         """
