@@ -434,3 +434,298 @@ class TestDecisionSupportIntegration:
         )
         # Sans API, les prix sont forcément simulés
         assert resultat["is_simulated"] == True
+
+
+# ============================================================
+# Tests d'intégration Phase 4 : météo-marché
+# ============================================================
+
+class TestWeatherMarketIntegration:
+    """
+    Tests d'intégration Phase 4 : connexion kadi.weather <-> kadi.market.
+
+    Tous les appels au module météo sont mockés via unittest.mock pour garantir
+    la rapidité et l'absence d'appels réseau réels pendant les tests.
+    """
+
+    @pytest.fixture
+    def mock_weather_session_pluie_elevee(self):
+        """
+        Retourne un mock de WeatherSession simulant une forte probabilité de pluie.
+
+        rain_probability retourne 0.9 pour demain (pluie quasi certaine).
+        """
+        from unittest.mock import MagicMock
+
+        ws = MagicMock()
+        # Probabilité de pluie élevée demain (saison des pluies)
+        ws.rain_probability.return_value = {
+            "tomorrow": 0.9,
+            "message": "90% de chance de pluie demain.",
+            "recommendation": "Repousser les opérations au champ.",
+        }
+        ws.drought_index.return_value = {
+            "spi_3month": -0.3,
+            "drought_severity": "mild",
+        }
+        return ws
+
+    @pytest.fixture
+    def mock_weather_session_saison_seche(self):
+        """
+        Retourne un mock de WeatherSession simulant une saison sèche (SPI sévère).
+
+        rain_probability retourne 0.05 pour demain.
+        drought_index retourne sévérité 'severe'.
+        """
+        from unittest.mock import MagicMock
+
+        ws = MagicMock()
+        # Probabilité de pluie très faible (saison sèche)
+        ws.rain_probability.return_value = {
+            "tomorrow": 0.05,
+            "message": "5% de chance de pluie demain.",
+            "recommendation": "Bon moment pour les traitements phyto.",
+        }
+        ws.drought_index.return_value = {
+            "spi_3month": -1.8,
+            "drought_severity": "severe",
+        }
+        return ws
+
+    def test_logistics_gamma_eleve_saison_pluies(
+        self, mock_weather_session_pluie_elevee
+    ):
+        """
+        gamma_effectif doit être strictement supérieur à gamma_base quand
+        la probabilité de pluie est élevée (0.9).
+        """
+        from kadi.market.logistics import MarketLogistics, _calculer_gamma_effectif
+        from kadi.config import CONFIG
+
+        # Instanciation du module logistique avec la session météo mockée
+        logistics = MarketLogistics(
+            cache_file="/tmp/test_osrm_cache.json",
+            weather_session=mock_weather_session_pluie_elevee,
+        )
+
+        # Récupération du gamma de base depuis la configuration
+        gamma_base = CONFIG.get("logistics", {}).get("gamma_route", 1.2)
+        prob_pluie = 0.9
+
+        # Calcul du gamma effectif
+        gamma_effectif = _calculer_gamma_effectif(gamma_base, prob_pluie)
+
+        # Vérification : avec forte pluie, gamma_effectif > gamma_base
+        assert gamma_effectif > gamma_base, (
+            f"gamma_effectif ({gamma_effectif}) doit être > gamma_base ({gamma_base}) "
+            f"quand prob_pluie={prob_pluie}"
+        )
+        # Majoration maximale : alpha=0.25, prob=1.0 -> max 25% au-dessus de gamma_base
+        alpha = CONFIG.get("logistics", {}).get("alpha_pluie", 0.25)
+        assert gamma_effectif <= gamma_base * (1.0 + alpha)
+
+    def test_logistics_gamma_inchange_sans_weather_session(self):
+        """
+        Sans weather_session, gamma_effectif doit être identique à gamma_base.
+        La logistique V1 reste inchangée.
+        """
+        from kadi.market.logistics import _calculer_gamma_effectif
+        from kadi.config import CONFIG
+
+        gamma_base = CONFIG.get("logistics", {}).get("gamma_route", 1.2)
+
+        # Pas de pluie (prob = 0.0) = comportement sans météo
+        gamma_effectif = _calculer_gamma_effectif(gamma_base, 0.0)
+
+        assert gamma_effectif == gamma_base, (
+            "Sans pluie (prob=0.0), gamma_effectif doit être identique à gamma_base."
+        )
+
+    def test_qualite_loss_variable_par_culture(self):
+        """
+        La perte de qualité d'une tomate doit être nettement supérieure
+        à celle du maïs pour le même trajet (cultures plus périssables).
+        """
+        from kadi.market.logistics import _calculer_perte_qualite
+
+        distance_km = 100.0
+        prob_pluie = 0.0  # Pas de pluie pour isoler l'effet culture
+
+        perte_tomate = _calculer_perte_qualite("tomato", distance_km, prob_pluie)
+        perte_mais = _calculer_perte_qualite("maize", distance_km, prob_pluie)
+
+        assert perte_tomate > perte_mais, (
+            f"Tomate ({perte_tomate} XOF) doit avoir une perte > maïs ({perte_mais} XOF) "
+            "sur {distance_km} km sans pluie."
+        )
+
+    def test_qualite_loss_augmente_avec_pluie(self):
+        """
+        La perte de qualité doit être plus élevée avec pluie (0.8) qu'à sec (0.0)
+        pour une culture périssable (tomate) sur une même distance.
+        """
+        from kadi.market.logistics import _calculer_perte_qualite
+
+        distance_km = 80.0
+
+        # Perte sans pluie
+        perte_sec = _calculer_perte_qualite("tomato", distance_km, prob_pluie=0.0)
+        # Perte avec forte pluie
+        perte_pluie = _calculer_perte_qualite("tomato", distance_km, prob_pluie=0.8)
+
+        assert perte_pluie > perte_sec, (
+            f"Perte sous la pluie ({perte_pluie}) doit être > perte à sec ({perte_sec})."
+        )
+
+    def test_storage_horizon_configurable_1_vs_6_mois(self):
+        """
+        Un horizon de 1 mois doit donner un résultat différent d'un horizon
+        de 6 mois (coûts de stockage et prix futur différents).
+        """
+        from kadi.market.decision_support import DecisionSupport
+
+        ds = DecisionSupport()  # Pas de modules : utilise les valeurs par défaut
+
+        res_1_mois = ds.storage_vs_sell_now(
+            crop="maize",
+            market="Parakou",
+            current_price=300_000.0,
+            qty_tons=2.0,
+            mois_stockage=1,
+        )
+        res_6_mois = ds.storage_vs_sell_now(
+            crop="maize",
+            market="Parakou",
+            current_price=300_000.0,
+            qty_tons=2.0,
+            mois_stockage=6,
+        )
+
+        # Les horizons doivent être bien enregistrés
+        assert res_1_mois["horizon_mois"] == 1
+        assert res_6_mois["horizon_mois"] == 6
+
+        # Les marges nettes doivent différer (coûts de stockage différents)
+        assert res_1_mois["marge_nette_par_tonne"] != res_6_mois["marge_nette_par_tonne"], (
+            "Un horizon de 1 mois doit produire une marge différente d'un horizon de 6 mois."
+        )
+
+    def test_confidence_score_present_dans_arbitrage(self):
+        """
+        arbitrage_decision() doit inclure la clé 'confidence_score' dans son résultat.
+        """
+        from kadi.market.decision_support import DecisionSupport
+
+        ds = DecisionSupport()
+        resultat = ds.arbitrage_decision(
+            crop="rice",
+            market_from="Savalou",
+            market_to="Cotonou",
+            qty_tons=3.0,
+        )
+
+        assert "confidence_score" in resultat, (
+            "La clé 'confidence_score' doit être présente dans le résultat d'arbitrage."
+        )
+        assert 0.0 <= resultat["confidence_score"] <= 1.0, (
+            "confidence_score doit être compris entre 0 et 1."
+        )
+
+    def test_confidence_score_faible_si_simule(self):
+        """
+        En mode sans API (is_simulated=True), le confidence_score doit être
+        inférieur à 0.5 (données peu fiables).
+        """
+        from kadi.market.decision_support import DecisionSupport
+
+        ds = DecisionSupport()  # Pas de pricing_module : données simulées
+        resultat = ds.arbitrage_decision(
+            crop="maize",
+            market_from="Parakou",
+            market_to="Abomey",
+            qty_tons=1.0,
+        )
+
+        # Sans API, is_simulated=True -> confidence_score doit être faible
+        assert resultat["is_simulated"] == True
+        assert resultat["confidence_score"] < 0.5, (
+            f"confidence_score ({resultat['confidence_score']}) doit être < 0.5 "
+            "quand les données sont simulées."
+        )
+
+    def test_portfolio_optimization_scipy_retourne_repartition_valide(self):
+        """
+        portfolio_optimization() avec scipy doit retourner une répartition
+        valide : toutes les cultures >= 0 et la somme <= available_land_ha.
+        """
+        from kadi.market.decision_support import DecisionSupport
+
+        ds = DecisionSupport()
+
+        # Prévisions de prix simulées (XOF/kg)
+        market_forecast = {"maize": 285.0, "cowpea": 580.0, "sorghum": 210.0}
+
+        # Conditions climatiques normales
+        climate_forecast = {"drought_severity": "mild", "secheresse_anticipee": False}
+
+        available_land = 10.0  # 10 hectares disponibles
+
+        resultat = ds.portfolio_optimization(
+            available_land_ha=available_land,
+            climate_forecast=climate_forecast,
+            market_forecast=market_forecast,
+        )
+
+        # Le résultat doit contenir les clés obligatoires
+        assert "repartition_hectares" in resultat
+        assert "revenu_attendu_cfa" in resultat
+        assert "methode" in resultat
+        assert "confidence_score" in resultat
+
+        repartition = resultat["repartition_hectares"]
+
+        # Chaque culture doit avoir une surface >= 0
+        for culture, surface in repartition.items():
+            assert surface >= 0.0, (
+                f"La surface allouée à {culture} ({surface} ha) ne peut pas être négative."
+            )
+
+        # La surface totale ne peut pas dépasser la surface disponible
+        total = sum(repartition.values())
+        assert total <= available_land + 1e-6, (
+            f"Surface totale allouée ({total:.2f} ha) > surface disponible ({available_land} ha)."
+        )
+
+    def test_assess_climate_risk_sans_weather_session(self):
+        """
+        assess_climate_risk() sans weather_session doit retourner
+        weather_available=False et un message explicatif.
+        """
+        marche = Market(lat=9.337, lon=2.627, location="Parakou")
+
+        resultat = marche.assess_climate_risk(days_ahead=3)
+
+        assert resultat["weather_available"] == False
+        assert resultat["prob_pluie_j1"] == 0.0
+        assert "weather_session" in resultat["recommendation"] or "météo" in resultat["recommendation"]
+
+    def test_assess_climate_risk_avec_weather_session(
+        self, mock_weather_session_pluie_elevee
+    ):
+        """
+        assess_climate_risk() avec weather_session doit retourner
+        weather_available=True et une probabilité de pluie > 0.
+        """
+        marche = Market(
+            lat=9.337, lon=2.627, location="Parakou",
+            weather_session=mock_weather_session_pluie_elevee,
+        )
+
+        resultat = marche.assess_climate_risk(days_ahead=1)
+
+        assert resultat["weather_available"] == True
+        assert resultat["prob_pluie_j1"] > 0.0
+        assert isinstance(resultat["recommendation"], str)
+        assert len(resultat["recommendation"]) > 0
+
