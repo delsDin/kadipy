@@ -209,37 +209,101 @@ class WeatherData:
 
     def _fetch_historical_data(self, days: int = 7) -> pd.DataFrame:
         """
-        Récupère l'historique météo (Open-Meteo pour T°, CHIRPS pour pluie).
+        Récupère l'historique météo depuis Open-Meteo.
+
+        En V1, CHIRPS est désactivé (données manquantes). Toutes les données
+        de précipitation proviennent donc d'Open-Meteo.
+
+        :param days: Nombre de jours d'historique à récupérer.
+        :return: DataFrame normalisé avec les données historiques.
         """
         from kadi._sources.open_meteo import fetch_historical
         from kadi._utils.network import fetch_with_retry
-        
+
         attempts = CONFIG["weather"]["retry_attempts"]
         backoff = CONFIG["weather"]["retry_backoff_sec"]
         months = max(1, (days + 29) // 30)
-        
-        # 1. Températures Open-Meteo
+
+        # Récupération des données via Open-Meteo (températures et précipitations)
         om_list = fetch_with_retry(
-            fetch_historical, attempts, backoff, 
+            fetch_historical, attempts, backoff,
             lat=self.location.latitude, lon=self.location.longitude, months_back=months
         )
         df = pd.DataFrame(om_list)
         df = self._normalize_data(df)
-        
-        # 2. Pluie CHIRPS (Fallback sur cache local)
-        from kadi._sources.chirps import fetch_historical_precipitation
-        chirps_precip_df = fetch_historical_precipitation(self.location.latitude, self.location.longitude)
-        
-        if chirps_precip_df is not None:
-            merged_precip = chirps_precip_df['precipitation'].reindex(df.index)
-            df['precipitation'] = merged_precip.combine_first(df['precipitation'])
-            df['data_source'] = 'open-meteo+chirps'
-                
+
+        # CHIRPS désactivé pour V1 — les précipitations viennent d'Open-Meteo
+        # Réactivation prévue en V2 avec les fichiers NetCDF et le filtrage spatial
+        df['data_source'] = 'open-meteo'
+
         return df
+
     def _normalize_data(self, raw_data: pd.DataFrame) -> pd.DataFrame:
-        """Normalise les données brutes."""
+        """
+        Normalise les données brutes retournées par une source météo.
+
+        Applique dans l'ordre :
+        1. Conversion de la colonne 'date' en index DatetimeIndex.
+        2. Filtrage des valeurs aberrantes (températures hors [-5, 55]°C, pluie négative).
+        3. Calcul de la colonne 'data_quality' (ratio de colonnes critiques renseignées).
+        4. Interpolation linéaire sur les lacunes courtes (maximum 3 jours consécutifs).
+        5. Remplissage résiduel pour la précipitation (0 par défaut) et temperature_mean.
+
+        :param raw_data: DataFrame brut retourné par la source de données.
+        :return: DataFrame normalisé avec l'index en date.
+        """
+        if raw_data.empty:
+            return raw_data
+
         df = raw_data.copy()
+
+        # 1. Conversion et indexation par date
         if 'date' in df.columns:
             df['date'] = pd.to_datetime(df['date'])
             df.set_index('date', inplace=True)
+
+        # Tri chronologique avant interpolation
+        df = df.sort_index()
+
+        # 2. Filtrage des valeurs aberrantes de température
+        for col in ('temperature_min', 'temperature_max'):
+            if col in df.columns:
+                masque_aberrant = (df[col] < -5.0) | (df[col] > 55.0)
+                df.loc[masque_aberrant, col] = np.nan
+
+        # Précipitation négative remise à zéro (impossible physiquement)
+        if 'precipitation' in df.columns:
+            df.loc[df['precipitation'] < 0.0, 'precipitation'] = 0.0
+
+        # 3. Colonne data_quality : proportion de colonnes critiques renseignées (0 à 1)
+        cols_critiques = [c for c in ('temperature_min', 'temperature_max', 'precipitation') if c in df.columns]
+        if cols_critiques:
+            ratio_manquant = df[cols_critiques].isna().mean(axis=1)
+            df['data_quality'] = (1.0 - ratio_manquant).round(2)
+        else:
+            df['data_quality'] = 1.0
+
+        # 4. Interpolation linéaire pour les lacunes courtes (max 3 jours)
+        for col in cols_critiques:
+            if df[col].isna().any():
+                df[col] = df[col].interpolate(method='linear', limit=3, limit_direction='both')
+
+        # 5. Remplissages résiduels après interpolation
+        if 'precipitation' in df.columns:
+            # Toute lacune restante en pluie est supposée nulle (pas de pluie = 0 mm)
+            df['precipitation'] = df['precipitation'].fillna(0.0)
+
+        # Calcul de temperature_mean si absente ou incomplète
+        if 'temperature_min' in df.columns and 'temperature_max' in df.columns:
+            tmean_calc = (df['temperature_min'] + df['temperature_max']) / 2.0
+            if 'temperature_mean' not in df.columns:
+                df['temperature_mean'] = tmean_calc
+            else:
+                df['temperature_mean'] = df['temperature_mean'].fillna(tmean_calc)
+
+        # Alias pour la compatibilité cache (temperature_avg = temperature_mean)
+        if 'temperature_avg' in df.columns and 'temperature_mean' not in df.columns:
+            df['temperature_mean'] = df['temperature_avg']
+
         return df
+
