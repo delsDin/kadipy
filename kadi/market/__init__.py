@@ -337,3 +337,49 @@ class Market:
 
         return prediction
 
+    def seasonality(
+        self,
+        crop: str,
+        days_back: int = 730,
+    ) -> dict:
+        """
+        Calcule l'indice saisonnier mensuel des prix d'une culture sur ce marché.
+
+        Cette méthode de haut niveau orchestre deux étapes :
+        1. Récupération de l'historique de prix sur la période demandée
+        2. Calcul des 12 indices saisonniers par la méthode des ratios
+
+        Un historique d'au moins 12 mois est recommandé pour des résultats
+        fiables. La valeur par défaut de ``days_back`` (730 jours, soit 2 ans)
+        vise à maximiser la fiabilité des indices calculés.
+
+        Args:
+            crop (str): Code de la culture (ex: 'maize', 'rice', 'cowpea').
+            days_back (int, optional): Nombre de jours d'historique à
+                récupérer pour le calcul. Défaut : 730 (2 ans).
+                Utiliser 365 si seule la dernière année est pertinente.
+
+        Returns:
+            dict: Résultat de ``MarketPricing.seasonality()``, contenant :
+
+                - ``indices`` (dict[int, float | None]) : les 12 indices
+                  saisonniers, indexés par mois (1=jan, 12=déc). None si
+                  données insuffisantes pour un mois.
+                - ``mois_pic`` (list[int]) : mois dont l'indice dépasse 1.05.
+                - ``mois_creux`` (list[int]) : mois dont l'indice est sous 0.95.
+                - ``prix_moyen_global`` (float) : prix moyen de référence en XOF/kg.
+                - ``prix_moyen_par_mois`` (dict[int, float | None]) : prix brut
+                  moyen par mois.
+                - ``nb_observations`` (int) : nombre d'observations utilisées.
+                - ``nb_mois_couverts`` (int) : mois avec données suffisantes.
+                - ``confiance`` (float) : score de fiabilité de 0.0 à 1.0.
+                - ``is_simulated`` (bool) : True si les données sont simulées.
+                - ``message`` (str | None) : avertissement si données insuffisantes.
+        """
+        # --- Étape 1 : récupération de l'historique de prix ---
+        df_historique = self.pricing.fetch_prices(
+            crop, self.location, days_back=days_back
+        )
+
+        # --- Étape 2 : délégation du calcul au module pricing ---
+        return self.pricing.seasonality(historique=df_historique)
