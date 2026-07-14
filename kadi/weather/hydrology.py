@@ -45,6 +45,9 @@ class Hydrology:
         """
         Calcule l'évapotranspiration de référence (ETo) par Hargreaves-Samani.
 
+        Méthode alternative à Penman-Monteith, utilisée en l'absence de données
+        d'humidité, de vent et de rayonnement solaire.
+
         :param tmin: Température minimale (°C).
         :param tmax: Température maximale (°C).
         :param day_of_year: Jour de l'année (1-365).
@@ -54,24 +57,89 @@ class Hydrology:
         lat_rad = np.radians(self.location.latitude)
         dr = 1 + 0.033 * np.cos(2 * np.pi * day_of_year / 365.0)
         delta = 0.409 * np.sin(2 * np.pi * day_of_year / 365.0 - 1.39)
-        
+
         cos_omega_s = -np.tan(lat_rad) * np.tan(delta)
         cos_omega_s = np.clip(cos_omega_s, -1.0, 1.0)
         omega_s = np.arccos(cos_omega_s)
-        
-        gsc = 0.0820 # Constante solaire
+
+        # Constante solaire (MJ/m2/min)
+        gsc = 0.0820
         ra = (24 * 60 / np.pi) * gsc * dr * (
-            omega_s * np.sin(lat_rad) * np.sin(delta) +
-            np.cos(lat_rad) * np.cos(delta) * np.sin(omega_s)
+            omega_s * np.sin(lat_rad) * np.sin(delta)
+            + np.cos(lat_rad) * np.cos(delta) * np.sin(omega_s)
         )
-        
+
         # 2. Formule Hargreaves-Samani
         tmean = (tmax + tmin) / 2.0
         tdiff = max(0.0, tmax - tmin)
         k_rs = 0.0023
-        
+
         eto = 0.408 * k_rs * ra * (tmean + 17.8) * (tdiff ** 0.5)
         return float(max(0.0, eto))
+
+    def et0_fao56_penman(
+        self,
+        tmin: float,
+        tmax: float,
+        humidity: float,
+        wind_speed: float,
+        solar_rad: float,
+    ) -> float:
+        """
+        Calcule l'évapotranspiration de référence (ETo) par FAO-56 Penman-Monteith.
+
+        Méthode de référence internationale (Allen et al., 1998, FAO-56).
+        Plus précise que Hargreaves car elle intègre l'humidité relative,
+        la vitesse du vent et le rayonnement solaire mesuré.
+
+        :param tmin: Température minimale (°C).
+        :param tmax: Température maximale (°C).
+        :param humidity: Humidité relative moyenne (%, entre 0 et 100).
+        :param wind_speed: Vitesse du vent mesurée à 2 m de hauteur (m/s).
+        :param solar_rad: Rayonnement solaire incident (MJ/m²/jour).
+        :return: ETo en mm/jour.
+        """
+        # Altitude moyenne estimée au Bénin (m) — utilisée pour la pression atmosphérique
+        z = 200.0
+        tmean = (tmax + tmin) / 2.0
+
+        # Pression atmosphérique (kPa) selon l'équation standard (FAO-56 Eq. 7)
+        p_atm = 101.3 * ((293.0 - 0.0065 * z) / 293.0) ** 5.26
+
+        # Constante psychrométrique gamma (kPa/°C) (FAO-56 Eq. 8)
+        gamma = 0.000665 * p_atm
+
+        # Pente de la courbe de pression de vapeur saturante (kPa/°C) (FAO-56 Eq. 13)
+        delta = 4098.0 * (0.6108 * np.exp(17.27 * tmean / (tmean + 237.3))) / (tmean + 237.3) ** 2
+
+        # Pression de vapeur saturante (kPa) : moyenne sur Tmin et Tmax (FAO-56 Eq. 11-12)
+        es_tmax = 0.6108 * np.exp(17.27 * tmax / (tmax + 237.3))
+        es_tmin = 0.6108 * np.exp(17.27 * tmin / (tmin + 237.3))
+        es = (es_tmax + es_tmin) / 2.0
+
+        # Pression de vapeur réelle ea (kPa) depuis l'humidité relative (FAO-56 Eq. 17)
+        ea = (humidity / 100.0) * es
+
+        # Déficit de pression de vapeur (kPa)
+        vpd = es - ea
+
+        # Rayonnement net (MJ/m²/jour) : simplification Rns - Rnl
+        # Rayonnement net court (albédo = 0.23 pour une culture de référence)
+        rns = (1.0 - 0.23) * solar_rad
+        # Rayonnement net long-onde (approximation simplifiée)
+        rnl = 0.2 * solar_rad
+        rn = rns - rnl
+
+        # Flux de chaleur du sol G ≈ 0 à l'échelle journalière (FAO-56 hypothèse)
+        g = 0.0
+
+        # Équation FAO-56 Penman-Monteith (FAO-56 Eq. 6)
+        num = 0.408 * delta * (rn - g) + gamma * (900.0 / (tmean + 273.0)) * wind_speed * vpd
+        den = delta + gamma * (1.0 + 0.34 * wind_speed)
+
+        eto = num / den
+        return float(max(0.0, eto))
+
 
     def runoff_cn(self, precipitation: float, prior_5d_rain: float = 0.0) -> float:
         """
