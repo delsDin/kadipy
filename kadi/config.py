@@ -99,6 +99,9 @@ CONFIG = {
         # Délai minimal entre deux requêtes vers Nominatim (OpenStreetMap)
         # Nominatim impose une limite stricte d'1 requête par seconde
         "nominatim_delay_sec": 1.1,
+
+        # Nombre de jours d'historique minimum pour activer le modèle de prévision
+        "horizon_stockage_mois_default": 3,
     },
 
     # ---------------------------------------------------------
@@ -136,6 +139,36 @@ CONFIG = {
 
         # Prix de carburant de repli si toutes les sources échouent (en XOF/litre)
         "prix_carburant_fallback_xof": 680.0,
+
+        # ---- Paramètres d'intégration météo (Phase 4) -------------------------
+        # Majoration maximale de gamma_route en cas de pluie certaine.
+        # Exemple : gamma_base=1.2, alpha=0.25, prob=1.0 -> gamma_effectif=1.5
+        "alpha_pluie": 0.25,
+
+        # Majoration de la perte de qualité des produits sous la pluie.
+        # Exemple : facteur_base * (1 + 0.5 * prob_pluie)
+        "beta_pluie_qualite": 0.5,
+
+        # Horizon de prévision météo utilisé pour le calcul logistique (en jours).
+        # 1 = pluie prévue demain, utilisé pour le trajet du jour.
+        "days_ahead_weather": 1,
+
+        # Facteur de perte de qualité par culture en XOF par km par tonne.
+        # Les céréales sèches sont robustes ; les légumes frais sont très sensibles.
+        # La valeur "_default" s'applique aux cultures non répertoriées.
+        "qualite_facteur_par_culture": {
+            "maize": 5.0,
+            "sorghum": 5.0,
+            "millet": 5.0,
+            "rice": 6.0,
+            "cowpea": 7.0,
+            "soybean": 7.0,
+            "yam": 12.0,
+            "cassava": 10.0,
+            "tomato": 25.0,
+            "onion": 20.0,
+            "_default": 8.0,
+        },
     },
 
     # ---------------------------------------------------------
