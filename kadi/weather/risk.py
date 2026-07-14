@@ -141,84 +141,140 @@ class RiskIndicators:
 
     def hurst_exponent(self, window: int = 1095) -> float:
         """
-        Calcule l'exposant de Hurst par la méthode de gamme rééchelonnée (R/S).
-        
-        :param window: Taille de la fenêtre maximale (jours) pour l'analyse.
-        :return: Exposant de Hurst (H). Si H > 0.5, persistance climatique.
+        Calcule l'exposant de Hurst par la méthode de gamme rééchelonnée (R/S) multi-échelle.
+
+        L'algorithme segmente la série en sous-fenêtres de tailles croissantes,
+        calcule le rapport R/S moyen pour chaque taille, puis estime H par régression
+        log-log. Un exposant H > 0.5 indique une persistance climatique (mémoire longue).
+
+        :param window: Taille maximale de la fenêtre d'analyse (jours).
+        :return: Exposant de Hurst H (compris entre 0.01 et 0.99).
         """
         if len(self.rainfall_historical) < 100:
-            raise InsufficientData("Pas assez de données pour l'exposant de Hurst (minimum 100 requis).")
-            
+            raise InsufficientData("Pas assez de données pour l'exposant de Hurst (minimum 100 jours requis).")
+
         data = self.rainfall_historical.values
-        # Simulation d'un calcul R/S simplifié (un calcul complet est coûteux)
-        # H est typiquement autour de 0.65 pour les régimes pluviométriques
-        
-        mean = np.mean(data)
-        centered_y = data - mean
-        cumulative_y = np.cumsum(centered_y)
-        
-        r = np.max(cumulative_y) - np.min(cumulative_y)
-        s = np.std(data)
-        
-        if s == 0:
+        n_total = len(data)
+
+        # Taille de la plus petite fenêtre (doit être assez grande pour un R/S stable)
+        min_w = 10
+        # Taille de la plus grande fenêtre (plafonnée à la moitié de la série)
+        max_w = min(window, n_total // 2)
+
+        window_sizes = []
+        rs_means = []
+
+        # Progression géométrique des tailles de fenêtre (facteur 1.5)
+        w = min_w
+        while w <= max_w:
+            # Calcul du R/S moyen sur toutes les sous-séquences non chevauchantes
+            num_segments = n_total // w
+            rs_values_w = []
+
+            for k in range(num_segments):
+                segment = data[k * w: (k + 1) * w]
+                seg_mean = np.mean(segment)
+                centered = segment - seg_mean
+                cum_dev = np.cumsum(centered)
+
+                # Gamme (R) et écart-type (S) du segment
+                r = np.max(cum_dev) - np.min(cum_dev)
+                s = np.std(segment)
+
+                if s > 0:
+                    rs_values_w.append(r / s)
+
+            if rs_values_w:
+                window_sizes.append(w)
+                rs_means.append(np.mean(rs_values_w))
+
+            w = max(w + 1, int(w * 1.5))
+
+        # Minimum de 3 points pour une régression fiable
+        if len(window_sizes) < 3:
             return 0.5
-            
-        # Approximation grossière : R/S = (N/2)^H
-        rs = r / s
-        n = len(data)
-        
-        try:
-            h = np.log(rs) / np.log(n/2)
-            # Contraint entre 0 et 1
-            return float(np.clip(h, 0.01, 0.99))
-        except:
-            return 0.5
+
+        # Régression linéaire dans l'espace log-log : log(R/S) = H * log(N) + c
+        log_n = np.log(np.array(window_sizes, dtype=float))
+        log_rs = np.log(np.array(rs_means, dtype=float))
+        coeffs = np.polyfit(log_n, log_rs, 1)
+
+        # H est la pente de la droite de régression
+        h = float(coeffs[0])
+        return float(np.clip(h, 0.01, 0.99))
 
     def rain_probability(self, days_ahead: int = 1, min_rainfall_mm: float = 1.0) -> dict:
         """
-        Prévoit la probabilité de pluie pour les jours suivants.
+        Prévoit la probabilité de pluie pour les prochains jours.
 
-        :param days_ahead: Jours d'avance (1 à 7).
-        :param min_rainfall_mm: Seuil de précipitation minimale.
-        :return: Dictionnaire avec probabilités et recommandations.
+        Combine deux sources d'information pour plus de robustesse :
+        1. Les prévisions API (Open-Meteo) pour le court terme.
+        2. La probabilité de transition de Markov (calculée sur l'historique local)
+           pour estimer la tendance climatique sous-jacente.
+        La probabilité combinée pondère 70 % sur la prévision API et 30 % sur Markov.
+
+        :param days_ahead: Nombre de jours d'avance (1 à 7).
+        :param min_rainfall_mm: Seuil de précipitation pour considérer un jour comme humide.
+        :return: Dictionnaire avec probabilités par jour et recommandations.
         """
         if self.forecast_data is None or self.forecast_data.empty:
             raise InsufficientData("Données de prévision indisponibles pour estimer la probabilité de pluie.")
-            
-        # Restreint aux jours demandés
+
+        # Construction de la matrice de Markov depuis l'historique local
+        try:
+            markov = self.markov_transition(min_rainfall_mm)
+            p_wet_if_wet = markov['p_wet_wet']
+            p_wet_if_dry = markov['p_dry_wet']
+
+            # État du dernier jour connu dans l'historique
+            last_precip = self.rainfall_historical.iloc[-1] if not self.rainfall_historical.empty else 0.0
+            current_p_wet = 1.0 if last_precip >= min_rainfall_mm else 0.0
+        except Exception:
+            # Si Markov échoue, on ne l'utilise pas
+            markov = None
+            p_wet_if_wet = 0.5
+            p_wet_if_dry = 0.5
+            current_p_wet = 0.0
+
         df = self.forecast_data.head(days_ahead)
-        
-        # Pour le mock, on utilise la précipitation brute simulée
-        # et on la transforme en probabilité
         probs = {}
         max_prob = 0.0
-        
+
         for i, (date, row) in enumerate(df.iterrows()):
-            precip = row.get('precipitation', 0)
-            
-            # Simple heuristique pour la probabilité
-            prob = min(1.0, precip / (min_rainfall_mm * 5))
-            if precip < min_rainfall_mm:
-                prob = prob * 0.5
-                
-            key = 'tomorrow' if i == 0 else f"{i+1}_days"
-            probs[key] = round(prob, 2)
-            if prob > max_prob:
-                max_prob = prob
-                
-        # Recommandations
-        msg = f"{int(max_prob * 100)}% de chance de pluie dans les {days_ahead} jours."
+            forecast_precip = row.get('precipitation', 0.0)
+
+            # 1. Probabilité issue de la prévision API (heuristique sur la pluie prévue)
+            prob_api = min(1.0, forecast_precip / (min_rainfall_mm * 5))
+            if forecast_precip < min_rainfall_mm:
+                prob_api *= 0.5
+
+            # 2. Probabilité de Markov (probabilité conditionnelle d'un jour humide)
+            prob_markov = current_p_wet * p_wet_if_wet + (1.0 - current_p_wet) * p_wet_if_dry
+
+            # 3. Combinaison pondérée (API court terme = 70 %, Markov tendance = 30 %)
+            prob_combined = 0.7 * prob_api + 0.3 * prob_markov
+
+            # Mise à jour de l'état courant pour le jour suivant
+            current_p_wet = prob_combined
+
+            key = 'tomorrow' if i == 0 else f"{i + 1}_days"
+            probs[key] = round(prob_combined, 2)
+            if prob_combined > max_prob:
+                max_prob = prob_combined
+
+        # Recommandations agronomiques selon le risque maximal
+        msg = f"{int(max_prob * 100)} % de chance de pluie dans les {days_ahead} prochains jours."
         if max_prob > 0.7:
-            rec = "Risque de lessivage. Repousser les traitements phytosanitaires."
+            rec = "Risque de lessivage élevé. Repousser les traitements phytosanitaires."
         elif max_prob < 0.2:
-            rec = "Conditions sèches. Bon moment pour traitements phyto."
+            rec = "Conditions sèches attendues. Bon moment pour les traitements phyto."
         else:
             rec = "Vigilance recommandée pour les opérations au champ."
-            
+
         return {
             **probs,
             'message': msg,
-            'recommendation': rec
+            'recommendation': rec,
         }
 
     def _get_severity_level(self, spi_value: float) -> str:
