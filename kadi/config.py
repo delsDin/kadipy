@@ -59,6 +59,16 @@ CONFIG = {
         
         # Temps d'attente (en secondes) avant de retenter une requête API après un échec
         "retry_backoff_sec": 5,
+        
+        # Zone géographique couverte par la V1 : le Bénin uniquement.
+        # Tout point en dehors de cette boîte englobante est rejeté.
+        # Limites : lat [2.5°N, 12.5°N], lon [-1.5°E, 4.0°E]
+        "gps_validation_bbox": {
+            "min_lat": 2.5,
+            "max_lat": 12.5,
+            "min_lon": -1.5,
+            "max_lon": 4.0,
+        },
     },
 
     # ---------------------------------------------------------
