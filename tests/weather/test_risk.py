@@ -92,7 +92,7 @@ def test_markov_transition_probabilites_valides(risk_long_setup):
     """Les probabilités de Markov doivent être comprises entre 0 et 1."""
     location, precip_data = risk_long_setup
     risk = RiskIndicators(location, precip_data, pd.DataFrame())
-    markov = risk.markov_transition(min_rainfall_mm=1.0)
+    markov = risk.markov_transition(threshold_mm=1.0)
 
     assert 0.0 <= markov['p_wet_wet'] <= 1.0
     assert 0.0 <= markov['p_dry_wet'] <= 1.0
@@ -104,7 +104,7 @@ def test_markov_somme_transitions(risk_long_setup):
     """Les probabilités de transition d'un état doivent sommer à 1."""
     location, precip_data = risk_long_setup
     risk = RiskIndicators(location, precip_data, pd.DataFrame())
-    markov = risk.markov_transition(min_rainfall_mm=1.0)
+    markov = risk.markov_transition(threshold_mm=1.0)
 
     # Depuis un état humide : P(wet|wet) + P(dry|wet) = 1
     assert abs(markov['p_wet_wet'] + markov['p_wet_dry'] - 1.0) < 1e-6
