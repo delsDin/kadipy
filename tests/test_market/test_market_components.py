@@ -836,7 +836,9 @@ def test_sauvegarder_et_recuperer_prediction():
         assert df_pred is not None
         assert not df_pred.empty
         assert df_pred.iloc[0]["predicted_price"] == 325.0
-        assert df_pred.iloc[0]["is_simulated"] is False
+        # pandas relit les booléens SQLite sous forme numpy.bool_ ;
+        # on caste explicitement pour comparer avec le singleton Python False
+        assert bool(df_pred.iloc[0]["is_simulated"]) is False
 
     finally:
         # Nettoyage de la base temporaire
