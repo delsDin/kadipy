@@ -30,3 +30,30 @@ def test_to_dict():
     assert d["name"] == "TestLoc"
     assert d["lat"] == 6.5
     assert d["zone"] == "Sud"
+
+def test_bbox_reject_north():
+    """Un point au nord du Bénin (latitude > 12.5) doit être rejeté."""
+    with pytest.raises(LocationNotFound):
+        Location(latitude=13.0, longitude=2.0, name="HorsBenin")
+
+def test_bbox_reject_south():
+    """Un point au sud de la BBox (latitude < 2.5) doit être rejeté."""
+    with pytest.raises(LocationNotFound):
+        Location(latitude=1.0, longitude=2.0, name="HorsBenin")
+
+def test_bbox_reject_east():
+    """Un point à l'est du Bénin (longitude > 4.0) doit être rejeté."""
+    with pytest.raises(LocationNotFound):
+        Location(latitude=8.0, longitude=5.0, name="HorsBenin")
+
+def test_bbox_reject_west():
+    """Un point à l'ouest de la BBox (longitude < -1.5) doit être rejeté."""
+    with pytest.raises(LocationNotFound):
+        Location(latitude=8.0, longitude=-2.0, name="HorsBenin")
+
+def test_bbox_frontiere_valide():
+    """Un point à la frontière de la BBox doit être accepté."""
+    # Latitude limite nord (12.5)
+    loc = Location(latitude=12.5, longitude=2.0, name="NordBenin")
+    assert loc is not None
+
