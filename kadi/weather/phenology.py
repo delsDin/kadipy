@@ -43,104 +43,139 @@ class Phenology:
     def onset(self, threshold_days_after: int = 120) -> dict:
         """
         Détecte la date de démarrage de la saison agricole.
-        Utilise l'algorithme approprié selon la zone (Sivakumar pour le Nord,
-        Walter-Anyadike hybride pour le Sud/Centre).
 
-        :param threshold_days_after: Fenêtre de calcul.
+        Pour le Nord (unimodal), utilise l'algorithme de Sivakumar.
+        Pour le Sud et le Centre (bimodal), utilise l'hybride Walter-Anyadike
+        sur deux fenêtres saisonnières distinctes (S1 : Jan-Août, S2 : Août-Déc).
+
+        La clé 'onset_date' est maintenue comme alias de 'onset_1' pour
+        la rétrocompatibilité.
+
+        :param threshold_days_after: Fenêtre de calcul (non utilisé directement, conservé pour la signature).
         :return: Dictionnaire contenant les informations de l'onset.
         """
-        current_year = pd.Timestamp.now().year
         if self.rainfall_data.empty:
             raise InsufficientData("Impossible de calculer l'onset : aucune donnée de précipitation disponible.")
-            
+
+        # Utilise l'année du dernier enregistrement disponible
         current_year = self.rainfall_data.index[-1].year
 
         if self.location.zone == 'Nord':
-            # Nord : Unimodal, on utilise Sivakumar
-            # Recherche généralement à partir de Mai
+            # Zone Nord : régime unimodal, algorithme de Sivakumar (recherche à partir de mai)
             search_start = f"{current_year}-05-01"
-            date = self._sivakumar(search_start)
+            date_s1 = self._sivakumar(search_start)
             algorithm = 'Sivakumar'
-        else:
-            # Sud et Centre : bimodal/transition, Walter-Anyadike
-            annual_precipitation = self.rainfall_data.loc[str(current_year)].sum()
-            date = self._walter_anyadike(current_year, annual_precipitation)
-            algorithm = 'Walter-Anyadike hybride'
 
-        if date:
-            self.onset_date = date
+            onset_1_str = date_s1.strftime('%Y-%m-%d') if date_s1 else None
+            if date_s1:
+                self.onset_date = date_s1
+
             return {
-                'onset_date': date.strftime('%Y-%m-%d'),
-                'confidence': 0.85, # Valeur fixe simplifiée pour le MVP
+                'onset_date': onset_1_str,   # Alias de rétrocompatibilité
+                'onset_1': onset_1_str,
+                'onset_2': None,             # Pas de S2 en zone Nord
                 'algorithm': algorithm,
                 'zone': self.location.zone,
-                'earliest_possible': f"{current_year}-04-01",
-                'latest_possible': f"{current_year}-07-31"
+                'confidence': 0.85,
             }
         else:
+            # Zones Sud et Centre : régime bimodal
+            # S1 : première saison (janvier à fin juillet)
+            # S2 : deuxième saison (août à décembre)
+            annual_precip = self.rainfall_data.loc[str(current_year)].sum()
+
+            date_s1 = self._walter_anyadike_bimodal(
+                current_year, season='S1'
+            )
+            date_s2 = self._walter_anyadike_bimodal(
+                current_year, season='S2'
+            )
+            algorithm = 'Walter-Anyadike bimodal'
+
+            onset_1_str = date_s1.strftime('%Y-%m-%d') if date_s1 else None
+            onset_2_str = date_s2.strftime('%Y-%m-%d') if date_s2 else None
+
+            # La date principale est celle de la S1 (première saison)
+            if date_s1:
+                self.onset_date = date_s1
+
             return {
-                'onset_date': None,
-                'confidence': 0.0,
+                'onset_date': onset_1_str,   # Alias de rétrocompatibilité
+                'onset_1': onset_1_str,
+                'onset_2': onset_2_str,
                 'algorithm': algorithm,
-                'zone': self.location.zone
+                'zone': self.location.zone,
+                'confidence': 0.80,
             }
 
     def cessation(self) -> dict:
         """
         Détermine la date de fin des pluies utiles.
-        Critère simplifié : Dernier jour après septembre où le cumul restant < 20 mm.
 
-        :return: Dictionnaire contenant la date de cessation.
+        Pour le Nord (unimodal), calcule une unique date de cessation après août.
+        Pour le Sud et le Centre (bimodal), calcule deux dates de cessation :
+        - cessation_1 : fin de la première saison (autour de juillet)
+        - cessation_2 : fin de la deuxième saison (autour de novembre)
+
+        :return: Dictionnaire avec la ou les dates de cessation.
         """
         if self.rainfall_data.empty:
             raise InsufficientData("Impossible de calculer la cessation : aucune donnée de précipitation disponible.")
-            
-        # Logique simplifiée pour la cessation
-        # On parcourt les années disponibles de la plus récente à la plus ancienne
+
         years = sorted(list(set(self.rainfall_data.index.year)), reverse=True)
-        
-        for year in years:
-            year_data = self.rainfall_data.loc[str(year)]
-            
-            # Filtre de la période potentielle de cessation (après août)
-            try:
-                late_year = year_data.loc[f"{year}-09-01":]
-            except KeyError:
-                continue
-                
-            if late_year.empty:
-                continue
-            
-            # Cumul à l'envers
-            reversed_cum = late_year[::-1].cumsum()
-            
-            # Trouve le jour où le cumul restant devient >= 20 mm, le jour précédent est la cessation
-            valid_dates = reversed_cum[reversed_cum >= 20.0].index
-            
-            if len(valid_dates) > 0:
-                cessation_date = valid_dates.max()
-                cessation_str = cessation_date.strftime('%Y-%m-%d')
-                duration = 0
-                
-                # Calcul de l'onset spécifiquement pour l'année trouvée
-                if self.location.zone == 'Nord':
+
+        if self.location.zone == 'Nord':
+            # Zone Nord : cessation unique après août
+            for year in years:
+                year_data = self.rainfall_data.loc[str(year)]
+                try:
+                    late_year = year_data.loc[f"{year}-09-01":]
+                except KeyError:
+                    continue
+                if late_year.empty:
+                    continue
+
+                reversed_cum = late_year[::-1].cumsum()
+                valid_dates = reversed_cum[reversed_cum >= 20.0].index
+                if len(valid_dates) > 0:
+                    cessation_date = valid_dates.max()
                     year_onset = self._sivakumar(f"{year}-05-01")
-                else:
-                    year_onset = self._walter_anyadike(year, float(year_data.sum()))
-                    
-                if year_onset:
-                    duration = (cessation_date - year_onset).days
-                    
-                return {
-                    'cessation_date': cessation_str,
-                    'duration_days': duration,
-                    'total_rainfall': float(year_data.sum()),
-                    'zone': self.location.zone
-                }
-                
-        # Si on n'a trouvé aucune cessation valide
+                    duration = (cessation_date - year_onset).days if year_onset else 0
+                    return {
+                        'cessation_date': cessation_date.strftime('%Y-%m-%d'),
+                        'cessation_1': cessation_date.strftime('%Y-%m-%d'),
+                        'cessation_2': None,
+                        'duration_days': duration,
+                        'total_rainfall': float(year_data.sum()),
+                        'zone': self.location.zone
+                    }
+        else:
+            # Zones Sud et Centre : deux cessations (S1 et S2)
+            for year in years:
+                year_data = self.rainfall_data.loc[str(year)]
+
+                # Cessation S1 : fin de la première saison (mars-juillet)
+                cess_1 = self._cessation_in_window(year_data, f"{year}-05-01", f"{year}-07-31")
+                # Cessation S2 : fin de la deuxième saison (sept-décembre)
+                cess_2 = self._cessation_in_window(year_data, f"{year}-10-01", f"{year}-12-15")
+
+                if cess_1 or cess_2:
+                    cess_1_str = cess_1.strftime('%Y-%m-%d') if cess_1 else None
+                    cess_2_str = cess_2.strftime('%Y-%m-%d') if cess_2 else None
+                    return {
+                        'cessation_date': cess_1_str,    # Alias rétrocompatibilité
+                        'cessation_1': cess_1_str,
+                        'cessation_2': cess_2_str,
+                        'duration_days': 0,              # Calculé séparément si besoin
+                        'total_rainfall': float(year_data.sum()),
+                        'zone': self.location.zone
+                    }
+
+        # Aucune cessation trouvée
         return {
             'cessation_date': None,
+            'cessation_1': None,
+            'cessation_2': None,
             'duration_days': 0,
             'total_rainfall': float(self.rainfall_data.sum()) if not self.rainfall_data.empty else 0.0,
             'zone': self.location.zone
@@ -266,3 +301,114 @@ class Phenology:
             return pd.Timestamp(year=year, month=1, day=1) + pd.Timedelta(days=mean_doy - 1)
 
         return walter_date or anyadike_date
+
+    def _walter_anyadike_bimodal(self, year: int, season: str) -> Optional[pd.Timestamp]:
+        """
+        Applique la méthode hybride Walter-Anyadike sur une fenêtre saisonnière restreinte.
+
+        Pour la phénologie bimodale (Sud et Centre), on découpe l'année en deux
+        sous-périodes avant d'appliquer l'algorithme :
+        - S1 : 1er janvier au 31 juillet (première saison des pluies)
+        - S2 : 1er août au 31 décembre (deuxième saison des pluies)
+
+        :param year: Année cible pour le calcul.
+        :param season: 'S1' (première saison) ou 'S2' (deuxième saison).
+        :return: Timestamp de la date d'onset estimée, ou None si non détectée.
+        """
+        # Définition des fenêtres temporelles pour chaque saison
+        if season == 'S1':
+            start_date = f"{year}-01-01"
+            end_date = f"{year}-07-31"
+        elif season == 'S2':
+            start_date = f"{year}-08-01"
+            end_date = f"{year}-12-31"
+        else:
+            return None
+
+        try:
+            # Extraction de la sous-période
+            season_data = self.rainfall_data.loc[start_date:end_date]
+            if season_data.empty:
+                return None
+
+            # Ré-échantillonnage mensuel de la sous-période
+            monthly = season_data.resample("ME").sum()
+        except Exception:
+            return None
+
+        # Total de précipitation sur la sous-période
+        season_total = float(season_data.sum())
+        if season_total <= 0:
+            return None
+
+        # Critère Walter : premier mois où le cumul mensuel dépasse 50.8 mm
+        walter_date = None
+        accum_prior = 0.0
+        for month_end, month_precip in monthly.items():
+            if month_precip >= 50.8:
+                days_in_m = month_end.days_in_month
+                offset = days_in_m * ((50.8 - accum_prior) / month_precip) if month_precip > 0 else days_in_m
+                offset = int(np.clip(offset, 1, days_in_m))
+                walter_date = pd.Timestamp(year=year, month=month_end.month, day=offset)
+                break
+            accum_prior += month_precip
+
+        # Critère Anyadike : premier mois où le cumul dépasse 8.3 % du total saisonnier
+        anyadike_date = None
+        target = season_total * 0.083
+        accum_anya = 0.0
+        for month_end, month_precip in monthly.items():
+            if month_precip >= target:
+                days_in_m = month_end.days_in_month
+                offset = days_in_m * ((target - accum_anya) / month_precip) if month_precip > 0 else days_in_m
+                offset = int(np.clip(offset, 1, days_in_m))
+                anyadike_date = pd.Timestamp(year=year, month=month_end.month, day=offset)
+                break
+            accum_anya += month_precip
+
+        # Moyenne des deux critères (hybride)
+        if walter_date and anyadike_date:
+            doy_w = walter_date.dayofyear
+            doy_a = anyadike_date.dayofyear
+            mean_doy = int((doy_w + doy_a) / 2)
+            return pd.Timestamp(year=year, month=1, day=1) + pd.Timedelta(days=mean_doy - 1)
+
+        return walter_date or anyadike_date
+
+    def _cessation_in_window(
+        self,
+        year_data: pd.Series,
+        start_date: str,
+        end_date: str,
+        threshold_mm: float = 20.0
+    ) -> Optional[pd.Timestamp]:
+        """
+        Détecte la date de cessation des pluies utiles dans une fenêtre temporelle donnée.
+
+        La cessation est définie comme le dernier jour à partir duquel le cumul
+        restant de pluie (calculé en sens inverse) passe sous le seuil de 20 mm.
+
+        :param year_data: Série de précipitations pour l'année entière.
+        :param start_date: Début de la fenêtre de recherche (format 'YYYY-MM-DD').
+        :param end_date: Fin de la fenêtre de recherche (format 'YYYY-MM-DD').
+        :param threshold_mm: Seuil de cumul en mm pour définir la cessation.
+        :return: Timestamp de la date de cessation, ou None si non détectée.
+        """
+        try:
+            # Extraction de la fenêtre temporelle
+            window_data = year_data.loc[start_date:end_date]
+        except KeyError:
+            return None
+
+        if window_data.empty:
+            return None
+
+        # Cumul cumulatif en sens inverse (du dernier au premier jour)
+        reversed_cum = window_data[::-1].cumsum()
+
+        # Le dernier jour où le cumul restant est encore >= threshold_mm
+        valid_dates = reversed_cum[reversed_cum >= threshold_mm].index
+        if len(valid_dates) > 0:
+            return valid_dates.max()
+
+        return None
