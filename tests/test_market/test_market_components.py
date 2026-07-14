@@ -864,3 +864,232 @@ def test_facade_market_predict_price():
 
     # Le prix prédit doit toujours être positif
     assert res["predicted_price"] >= 0.0
+
+
+# ==========================================================================
+# Tests Phase 3 : seasonality() - indices saisonniers
+# ==========================================================================
+
+def _creer_historique_saisonnier(
+    nb_annees: int = 2,
+    is_simulated: bool = False,
+) -> pd.DataFrame:
+    """
+    Crée un historique de prix hebdomadaire avec saisonnalité synthétique.
+
+    Les prix sont plus élevés en juillet-août (saison de soudure) et plus
+    bas en novembre-décembre (post-récolte), ce qui permet de valider que
+    seasonality() détecte correctement les mois de pic et de creux.
+
+    Args:
+        nb_annees (int): Nombre d'années d'historique à générer.
+        is_simulated (bool): Valeur du flag is_simulated dans le DataFrame.
+
+    Returns:
+        pd.DataFrame: Historique hebdomadaire avec 'date', 'price', 'is_simulated'.
+    """
+    # Génération de dates hebdomadaires sur la période demandée
+    nb_semaines = nb_annees * 52
+    dates = pd.date_range(
+        end=pd.Timestamp.today(), periods=nb_semaines, freq="W"
+    )
+
+    # Prix avec saisonnalité annuelle marquée :
+    # pic en juillet-août (mois 7-8), creux en novembre-décembre (mois 11-12)
+    t = np.arange(nb_semaines, dtype=float)
+    # Le décalage de phase (pi/2) place le pic vers juillet et le creux vers janvier
+    prix = (
+        300.0
+        + 40.0 * np.sin(2 * np.pi * t / 52 - np.pi / 2)
+        + np.random.default_rng(7).normal(0, 5, nb_semaines)
+    )
+
+    return pd.DataFrame({
+        "date": dates,
+        "price": prix,
+        "unit": "XOF/kg",
+        "is_simulated": is_simulated,
+        "source": "simulated" if is_simulated else "wfp-vam",
+    })
+
+
+def test_seasonality_structure_retour_complete():
+    """Teste que seasonality() retourne un dictionnaire avec tous les champs attendus."""
+    pricing = MarketPricing()
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    # Toutes les clés attendues doivent être présentes
+    cles_attendues = {
+        "indices", "mois_pic", "mois_creux", "prix_moyen_global",
+        "prix_moyen_par_mois", "nb_observations", "nb_mois_couverts",
+        "confiance", "is_simulated", "message",
+    }
+    assert cles_attendues.issubset(set(res.keys()))
+
+
+def test_seasonality_indices_couvrent_12_mois():
+    """Teste que le dictionnaire des indices contient exactement 12 entrées (mois 1 à 12)."""
+    pricing = MarketPricing()
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    # Exactement 12 entrées, une par mois
+    assert set(res["indices"].keys()) == set(range(1, 13))
+
+
+def test_seasonality_indices_sont_positifs():
+    """Teste que tous les indices saisonniers calculés sont des valeurs positives."""
+    pricing = MarketPricing()
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    for mois, indice in res["indices"].items():
+        if indice is not None:
+            assert indice > 0.0, f"L'indice du mois {mois} est négatif ou nul : {indice}"
+
+
+def test_seasonality_prix_moyen_par_mois_coherent():
+    """Teste que les prix moyens par mois sont cohérents avec le prix moyen global."""
+    pricing = MarketPricing()
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    prix_global = res["prix_moyen_global"]
+    assert prix_global > 0.0
+
+    # Chaque prix mensuel doit être dans une fourchette raisonnable autour du global
+    # (ici on accepte une variation de 50% au maximum)
+    for mois, prix_mois in res["prix_moyen_par_mois"].items():
+        if prix_mois is not None:
+            ratio = prix_mois / prix_global
+            assert 0.5 <= ratio <= 1.5, (
+                f"Le prix du mois {mois} ({prix_mois} XOF/kg) est trop éloigné "
+                f"du prix global ({prix_global} XOF/kg), ratio={ratio:.2f}."
+            )
+
+
+def test_seasonality_propagation_is_simulated():
+    """Teste que is_simulated=True se propage depuis l'historique simulé."""
+    pricing = MarketPricing()
+    historique_simule = _creer_historique_saisonnier(nb_annees=2, is_simulated=True)
+
+    res = pricing.seasonality(historique_simule)
+
+    assert res["is_simulated"] is True
+
+
+def test_seasonality_non_simule_avec_source_reelle():
+    """Teste que is_simulated=False quand la source est réelle."""
+    pricing = MarketPricing()
+    historique_reel = _creer_historique_saisonnier(nb_annees=2, is_simulated=False)
+
+    res = pricing.seasonality(historique_reel)
+
+    assert res["is_simulated"] is False
+
+
+def test_seasonality_mois_pic_et_creux_sont_des_listes():
+    """Teste que mois_pic et mois_creux sont des listes d'entiers valides."""
+    pricing = MarketPricing()
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    # Les résultats doivent être des listes
+    assert isinstance(res["mois_pic"], list)
+    assert isinstance(res["mois_creux"], list)
+
+    # Tous les éléments doivent être des numéros de mois valides
+    for mois in res["mois_pic"] + res["mois_creux"]:
+        assert 1 <= mois <= 12, f"Numéro de mois invalide : {mois}"
+
+
+def test_seasonality_historique_suffisant_confiance_haute():
+    """Teste que la confiance est élevée avec 2 ans de données hebdomadaires."""
+    pricing = MarketPricing()
+    # 2 ans de données hebdomadaires = 104 observations (optimal selon la formule)
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    # Avec 2 ans de données : confiance doit être >= 0.9
+    assert res["confiance"] >= 0.9, (
+        f"Confiance trop faible avec {res['nb_observations']} observations : "
+        f"{res['confiance']}"
+    )
+
+
+def test_seasonality_historique_insuffisant_message_avertissement():
+    """Teste qu'un message d'avertissement est émis si l'historique couvre moins de 6 mois."""
+    pricing = MarketPricing()
+
+    # Seulement 3 mois de données
+    dates = pd.date_range(end=pd.Timestamp.today(), periods=12, freq="W")
+    historique_court = pd.DataFrame({
+        "date": dates,
+        "price": np.full(12, 300.0),
+        "is_simulated": False,
+    })
+
+    res = pricing.seasonality(historique_court)
+
+    # Un message d'avertissement doit être présent
+    assert res["message"] is not None
+    assert len(res["message"]) > 0
+
+
+def test_seasonality_erreur_historique_vide():
+    """Teste que seasonality() lève ValueError sur un historique vide."""
+    pricing = MarketPricing()
+
+    with pytest.raises(ValueError, match="vide"):
+        pricing.seasonality(pd.DataFrame())
+
+
+def test_seasonality_erreur_colonnes_manquantes():
+    """Teste que seasonality() lève ValueError si les colonnes requises sont absentes."""
+    pricing = MarketPricing()
+
+    # DataFrame sans la colonne 'price'
+    df_incomplet = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=5, freq="W")})
+
+    with pytest.raises(ValueError, match="colonnes"):
+        pricing.seasonality(df_incomplet)
+
+
+def test_seasonality_12_mois_couverts_avec_deux_ans():
+    """Teste que 2 ans de données hebdomadaires couvrent bien les 12 mois."""
+    pricing = MarketPricing()
+    historique = _creer_historique_saisonnier(nb_annees=2)
+
+    res = pricing.seasonality(historique)
+
+    # Avec 2 ans de données, tous les mois doivent être couverts
+    assert res["nb_mois_couverts"] == 12
+
+
+def test_facade_market_seasonality():
+    """Teste la méthode seasonality() via la façade Market (pipeline complet)."""
+    marche = Market(6.36, 2.41, "Cotonou")
+
+    # En mode sans token WFP, les données seront simulées
+    # mais la méthode doit s'exécuter sans erreur
+    res = marche.seasonality(crop="maize", days_back=730)
+
+    # La structure de retour doit être complète
+    cles_attendues = {
+        "indices", "mois_pic", "mois_creux", "prix_moyen_global",
+        "nb_observations", "nb_mois_couverts", "confiance", "is_simulated",
+    }
+    assert cles_attendues.issubset(set(res.keys()))
+
+    # Avec des données simulées, is_simulated doit être True
+    assert res["is_simulated"] is True
+
+    # Le dictionnaire des indices doit contenir les 12 mois
+    assert set(res["indices"].keys()) == set(range(1, 13))
