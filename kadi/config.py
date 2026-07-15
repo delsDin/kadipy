@@ -59,6 +59,16 @@ CONFIG = {
         
         # Temps d'attente (en secondes) avant de retenter une requête API après un échec
         "retry_backoff_sec": 5,
+        
+        # Zone géographique couverte par la V1 : le Bénin uniquement.
+        # Tout point en dehors de cette boîte englobante est rejeté.
+        # Limites : lat [2.5°N, 12.5°N], lon [-1.5°E, 4.0°E]
+        "gps_validation_bbox": {
+            "min_lat": 2.5,
+            "max_lat": 12.5,
+            "min_lon": -1.5,
+            "max_lon": 4.0,
+        },
     },
 
     # ---------------------------------------------------------
@@ -67,27 +77,104 @@ CONFIG = {
     "market": {
         # Ordre de priorité des sources pour récupérer les prix (fallback automatique)
         "sources_priority": ["wfp-vam", "ratin", "scrape-local"],
-        
-        # Minimum d'historique requis (en semaines) pour que le modèle ML de prédiction des prix soit fiable
+
+        # Minimum d'historique requis (en semaines) pour que le modèle ML
+        # de prédiction des prix soit fiable
         "min_history_weeks": 52,
-        
-        # Durée de vie en cache des prix récupérés (en jours), avant de vérifier s'il y a des prix plus récents
+
+        # Durée de vie en cache des prix récupérés (en jours),
+        # avant de vérifier s'il y a des prix plus récents
         "cache_ttl_prices_days": 7,
-        
+
         # Durée de vie en cache des prédictions générées par le modèle local (en jours)
         "cache_ttl_predictions_days": 1,
-        
+
         # Nombre de tentatives de connexion à la source de données de prix
         "retry_attempts": 3,
-        
-        # Temps d'attente (en secondes) avant de relancer une requête après un échec réseau
-        "retry_backoff_sec": 5,
+
+        # Temps d'attente initial (en secondes) avant de relancer une requête
+        # Le backoff exponentiel multiplie ce délai à chaque tentative
+        "retry_backoff_sec": 2,
+
+        # Délai minimal entre deux requêtes vers Nominatim (OpenStreetMap)
+        # Nominatim impose une limite stricte d'1 requête par seconde
+        "nominatim_delay_sec": 1.1,
+
+        # Nombre de jours d'historique minimum pour activer le modèle de prévision
+        "horizon_stockage_mois_default": 3,
     },
 
     # ---------------------------------------------------------
-    # Paramètres liés au module de traitement de données (kadi.data)
+    # Coefficients logistiques (kadi.market.logistics)
+    # Ces paramètres modélisent les frictions de terrain au Bénin.
+    # Ils sont centralisés ici pour être facilement ajustables.
     # ---------------------------------------------------------
-    "data": {
+    "logistics": {
+        # Coût fixe de recherche d'informations (en XOF) :
+        # temps passé à appeler les acheteurs, vérifier les prix, etc.
+        "c_info_xof": 5000.0,
+
+        # Coefficient d'état de la route (gamma_route) :
+        # multiplicateur appliqué au prix du carburant par km.
+        # 1.0 = route parfaite, 1.2 = route normale béninoise,
+        # 1.5 = piste dégradée. À ajuster selon la saison.
+        "gamma_route": 1.2,
+
+        # Coût moyen des tracasseries policières par kilomètre (en XOF/km) :
+        # représente les postes de contrôle, les frais informels, etc.
+        "mu_checkpoints_xof_per_km": 15.0,
+
+        # Perte de qualité fixe par trajet (en XOF) :
+        # dégradation due aux manipulations, à la chaleur, aux chocs.
+        # Valeur de base pour les céréales sèches. Les produits frais
+        # (tomate, etc.) subiront un coefficient supplémentaire.
+        "c_qualite_loss_xof": 2500.0,
+
+        # Facteur de consommation du véhicule (litres pour 100 km) :
+        # utilisé pour calculer le coût carburant en complément de gamma_route
+        "consommation_l_per_100km": 12.0,
+
+        # Seuil de rentabilité minimum (en %) pour recommander un transfert
+        "seuil_rentabilite_pct": 10.0,
+
+        # Prix de carburant de repli si toutes les sources échouent (en XOF/litre)
+        "prix_carburant_fallback_xof": 680.0,
+
+        # ---- Paramètres d'intégration météo (Phase 4) -------------------------
+        # Majoration maximale de gamma_route en cas de pluie certaine.
+        # Exemple : gamma_base=1.2, alpha=0.25, prob=1.0 -> gamma_effectif=1.5
+        "alpha_pluie": 0.25,
+
+        # Majoration de la perte de qualité des produits sous la pluie.
+        # Exemple : facteur_base * (1 + 0.5 * prob_pluie)
+        "beta_pluie_qualite": 0.5,
+
+        # Horizon de prévision météo utilisé pour le calcul logistique (en jours).
+        # 1 = pluie prévue demain, utilisé pour le trajet du jour.
+        "days_ahead_weather": 1,
+
+        # Facteur de perte de qualité par culture en XOF par km par tonne.
+        # Les céréales sèches sont robustes ; les légumes frais sont très sensibles.
+        # La valeur "_default" s'applique aux cultures non répertoriées.
+        "qualite_facteur_par_culture": {
+            "maize": 5.0,
+            "sorghum": 5.0,
+            "millet": 5.0,
+            "rice": 6.0,
+            "cowpea": 7.0,
+            "soybean": 7.0,
+            "yam": 12.0,
+            "cassava": 10.0,
+            "tomato": 25.0,
+            "onion": 20.0,
+            "_default": 8.0,
+        },
+    },
+
+    # ---------------------------------------------------------
+    # Paramètres liés au module de traitement de données (kadi.kidas)
+    # ---------------------------------------------------------
+    "kidas": {
         # Taille maximale des fichiers (en mégaoctets) acceptée pour les imports locaux (Excel/CSV)
         "max_file_size_mb": 100,
         

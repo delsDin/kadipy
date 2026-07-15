@@ -1,0 +1,135 @@
+[build-system]
+# Système de build standard pour les packages Python modernes
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# Nom exact du package sur PyPI (installable via "pip install kadipy")
+name = "kadipy"
+
+# Version courante du package
+version = "1.0.0"
+
+# Description courte affichée sur la page PyPI
+description = "Le \"pandas\" de l'agriculture africaine. Interface Python pour les données météo, de marché et de récoltes au Bénin."
+
+# Lecture du README principal pour l'afficher en entier sur PyPI
+readme = "README.md"
+
+# Version minimale de Python requise
+requires-python = ">=3.9"
+
+# Licence déclarée (doit correspondre au fichier LICENSE à la racine)
+license = { file = "LICENSE" }
+
+# Auteur principal du projet
+authors = [
+    { name = "Dels Dinla", email = "delsdenla.dev@gmail.com" },
+]
+
+# Mots-clés pour la recherche sur PyPI
+keywords = [
+    "agriculture",
+    "benin",
+    "afrique-ouest",
+    "meteo",
+    "marche-agricole",
+    "prix",
+    "prevision",
+    "pandas",
+    "pipeline-donnees",
+    "analyse-donnees",
+    "donnees-collectes",
+    "agritech",
+    "decision-support",
+]
+
+# Classifieurs standardisés PyPI : décrivent le public cible et l'état du projet
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Natural Language :: French",
+    "Operating System :: OS Independent",
+]
+
+# Dépendances principales (installées automatiquement avec le package)
+# Fourchettes souples (>=) pour maximiser la compatibilité avec l'environnement
+# de l'utilisateur final sans créer de conflits
+dependencies = [
+    # Requêtes HTTP vers les APIs météo (Open-Meteo, CHIRPS, WFP, OSRM)
+    "requests>=2.25",
+
+    # Manipulation de données tabulaires (séries temporelles, jointures)
+    "pandas>=1.3",
+
+    # Calculs numériques (GDD, régression, Z-Score)
+    "numpy>=1.21",
+
+    # Lecture des fichiers Excel .xlsx (données des coopératives)
+    "openpyxl>=3.0",
+
+    # Validation et calcul de distances GPS
+    "geopy>=2.2",
+
+    # Modèles de machine learning (régression linéaire, validation croisée)
+    "scikit-learn>=1.0",
+
+    # Sauvegarde des modèles ML en cache local
+    "joblib>=1.1",
+
+    # Lecture des fichiers NetCDF (données CHIRPS)
+    "xarray>=2023.1",
+    "netCDF4>=1.6",
+
+    # Détection automatique de l'encodage des fichiers CSV
+    "chardet>=5.0",
+
+    # Calculs statistiques avancés (Z-score, SPI, optimisation portfolio)
+    "scipy>=1.9",
+
+    # Géométries GPS pour la normalisation des coordonnées
+    "shapely>=2.0",
+
+    # Suppression des accents unicode pour la normalisation du texte
+    "Unidecode>=1.3",
+]
+
+# Dépendances optionnelles : installées uniquement si l'utilisateur le demande
+# via "pip install kadipy[dev]" pour le développement
+[project.optional-dependencies]
+dev = [
+    # Exécution des tests unitaires
+    "pytest>=7.0",
+    # Mocking des appels HTTP dans les tests
+    "pytest-mock>=3.7",
+    "responses>=0.21",
+    "requests-mock>=1.9",
+    # Documentation
+    "mkdocs>=1.3",
+    "mkdocs-material>=8.0",
+    "mkdocstrings[python]>=0.20",
+]
+
+# URL officielles du projet, affichées sur la page PyPI
+[project.urls]
+Homepage       = "https://github.com/delsDin/kadipy"
+Documentation  = "https://delsDin.github.io/kadipy/"
+Repository     = "https://github.com/delsDin/kadipy"
+"Bug Tracker"  = "https://github.com/delsDin/kadipy/issues"
+Changelog      = "https://github.com/delsDin/kadipy/releases"
+
+# Configuration de setuptools : détection automatique des packages Python
+# dans le répertoire source (le dossier "kadi/")
+[tool.setuptools.packages.find]
+where   = ["."]
+include = ["kadi*"]
+exclude = ["tests*", "docs*", "scripts*", "documents*"]

@@ -1,0 +1,46 @@
+# Workflow : Exécution des tests unitaires
+#
+# Ce workflow s'exécute automatiquement à chaque push ou pull request
+# sur la branche principale. Il garantit que le code ne casse pas avant
+# toute fusion ou publication.
+
+name: Tests
+
+on:
+  push:
+    branches: ["main", "v*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: ubuntu-latest
+
+    # Matrice de versions : on vérifie la compatibilité sur toutes les
+    # versions de Python déclarées dans pyproject.toml
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      # Étape 1 : Récupération du code source
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      # Étape 2 : Installation de la version Python cible
+      - name: Configuration de Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Étape 3 : Installation du package et de ses dépendances de dev
+      - name: Installation des dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      # Étape 4 : Exécution de la suite de tests avec pytest
+      - name: Exécution des tests avec pytest
+        run: pytest tests/ -v --tb=short

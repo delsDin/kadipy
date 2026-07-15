@@ -1,6 +1,9 @@
 .*
+# Les document de suivi du développement du package
 documents
-main.ipynb
+
+!.github
+# Le dossier généré par mkdocs.yml
+site/
+
 __pycache__
-*.ipynb
-!weather.ipynb

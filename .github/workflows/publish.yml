@@ -1,0 +1,85 @@
+# Workflow : Publication automatique sur PyPI
+#
+# Ce workflow se déclenche UNIQUEMENT lorsqu'une release est créée sur GitHub
+# (ou un tag de la forme vX.Y.Z). Il construit le package et le publie sur
+# PyPI via le mécanisme Trusted Publishing (OIDC), sans avoir besoin de stocker
+# un mot de passe ou un token PyPI en tant que secret GitHub.
+#
+# Prérequis côté PyPI :
+#   1. Créer un compte sur https://pypi.org
+#   2. Aller dans Account Settings > Publishing > Add a new pending publisher
+#   3. Renseigner : nom du package "kadipy", dépôt GitHub "delsDin/kadipy",
+#      workflow "publish.yml", environnement "pypi"
+
+name: Publication PyPI
+
+on:
+  # Déclenchement sur chaque release GitHub (ex: création du tag "v1.0.0")
+  release:
+    types: [published]
+
+# Droits OIDC nécessaires pour le Trusted Publishing (connexion sans mot de passe)
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: "Construction du package"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Récupération du code source
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      # Étape 2 : Installation de Python
+      - name: Configuration de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Étape 3 : Installation des outils de construction
+      - name: Installation des outils de build
+        run: |
+          python -m pip install --upgrade pip build
+
+      # Étape 4 : Construction du wheel (.whl) et de l'archive source (.tar.gz)
+      # Les fichiers générés sont placés dans le dossier "dist/"
+      - name: Construction du package
+        run: python -m build
+
+      # Étape 5 : Sauvegarde des fichiers de distribution comme artefact
+      # du workflow (accessible dans l'onglet "Actions" de GitHub)
+      - name: Sauvegarde des artefacts de distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: "Publication sur PyPI"
+    runs-on: ubuntu-latest
+
+    # Ce job ne s'exécute qu'après la réussite du job "build"
+    needs: build
+
+    # L'environnement "pypi" doit être configuré dans les paramètres du
+    # dépôt GitHub (Settings > Environments) et déclaré comme éditeur
+    # de confiance sur PyPI
+    environment:
+      name: pypi
+      url: https://pypi.org/project/kadipy/
+
+    steps:
+      # Étape 1 : Récupération des fichiers de distribution construits
+      - name: Récupération des artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      # Étape 2 : Publication sur PyPI via Trusted Publishing (OIDC)
+      # Aucun token ou mot de passe requis grâce au mécanisme OIDC de PyPI
+      - name: Publication sur PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
