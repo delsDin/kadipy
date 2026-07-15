@@ -76,8 +76,8 @@ class DataPipeline:
         ...     .add_normalization_step({'culture': 'fao_standard'})
         ...     .execute(cache=True)
         ... )
-        >>> print(report['quality_score']['overall'])
-        0.92
+        >>> print(report['lignes_finales'])
+        150
     """
 
     def __init__(self) -> None:
