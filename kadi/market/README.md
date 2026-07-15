@@ -1,6 +1,8 @@
 # Module kadi.market
 
-Ce module constitue le cœur d'analyse économique et de prévision des marchés de KadiPy. Il est conçu pour modéliser le marché agricole béninois de manière dynamique, en calculant les opportunités d'arbitrage (vente immédiate vs stockage, ou transfert de marchandises entre deux villes) en s'appuyant sur des données réelles et géospatiales.
+Ce module constitue le coeur d'analyse économique et de prévision des marchés de KadiPy. Il est conçu pour modéliser le marché agricole béninois de manière dynamique, en calculant les opportunités d'arbitrage (vente immédiate vs stockage, ou transfert de marchandises entre deux villes) en s'appuyant sur des données réelles et géospatiales.
+
+Depuis la Phase 4, le module intègre directement les données météorologiques (`kadi.weather`) pour ajuster les coûts de transport, la perte de qualité des cultures et le score de confiance des recommandations.
 
 ---
 
@@ -29,16 +31,24 @@ Anticipe les fluctuations futures des prix agricoles.
 
 ### 4. `kadi.market.logistics` (Frictions, Routage et Coûts de Transport)
 Le moteur logistique qui simule la réalité du terrain au Bénin.
-- **Géocodage** : Traduit les noms de villes en coordonnées GPS (latitude/longitude) via l'API Nominatim (OpenStreetMap).
-- **Routage Routier (OSRM)** : Calcule la vraie distance routière de conduite (et non à vol d'oiseau) via les serveurs publics OSRM. Les itinéraires sont mis en cache dans `~/.kadi/osrm_cache.json`.
-- **Formule de Coût** : Calcule le coût de transfert total avec la formule suivante :
-  `C_transfer = Coûts d'information + (Distance * (État de la route * Prix du Carburant) + Tracasseries policières) + Perte de Qualité`
-- **Carburant Dynamique** : Le prix de l'essence n'est pas codé en dur. Il est récupéré via la variable d'environnement `BENIN_FUEL_PRICE`. S'il est absent, il interroge un [fichier de configuration communautaire hébergé sur GitHub](https://raw.githubusercontent.com/delsDin/kadipy/main/config/fuel_prices.json), avec un repli mathématique à 680 XOF en cas d'échec total.
+- **Géocodage** : Traduit les noms de villes en coordonnées GPS via l'API Nominatim (OpenStreetMap).
+- **Routage Routier (OSRM)** : Calcule la vraie distance routière via les serveurs publics OSRM. Les itinéraires sont mis en cache dans `~/.kadi/osrm_cache.json`.
+- **Formule de Coût** : Calcule le coût de transfert total avec la formule :
+  `C_transfer = Coûts d'information + (Distance * gamma_route * Prix du Carburant) + Perte de Qualité`
+- **Intégration météo (Phase 4)** : Le coefficient `gamma_route` est ajusté automatiquement selon la probabilité de pluie fournie par `WeatherSession`. Les cultures périssables (tomate, oignon) voient leur coefficient de perte de qualité augmenté en cas de pluie.
+- **Carburant Dynamique** : Récupéré via la variable d'environnement `BENIN_FUEL_PRICE`, avec un repli sur `config/fuel_prices.json` ou 680 XOF.
 
 ### 5. `kadi.market.decision_support` (Aide à la Décision)
-Synthétise les données de tous les autres modules pour fournir une recommandation exploitable pour l'agriculteur.
-- **Arbitrage Spatial** : Est-ce rentable de payer le transport pour vendre ailleurs ? Compare le bénéfice brut (Prix Destination - Prix Origine) au coût de transfert logistique total.
-- **Stockage Stratégique** : Est-ce rentable d'attendre 3 mois ? Compare le prix projeté futur (Forecasting) au prix actuel additionné des coûts fixes et variables de stockage sur la période.
+Synthétise les données de tous les autres modules pour fournir une recommandation exploitable.
+- **Arbitrage Spatial** : Compare le bénéfice brut (Prix Destination - Prix Origine) au coût de transfert logistique total.
+- **Stockage Stratégique** : Compare le prix projeté futur au prix actuel, en tenant compte des coûts de stockage et d'un horizon configurable (`mois_stockage`).
+- **Score de Confiance (Phase 4)** : Chaque recommandation inclut un `confidence_score` (0 à 1) composite : qualité de l'historique, RMSE du modèle et probabilité de pluie.
+- **Optimisation de Portfolio (scipy)** : `portfolio_optimization()` utilise `scipy.optimize.linprog` si disponible, avec un fallback heuristique.
+
+### 6. `kadi.market.backtesting` (Évaluation a posteriori)
+Mesure la qualité des prévisions sur des données historiques réelles.
+- **Principe** : Fenêtres glissantes sur l'historique, prévision simulée, comparaison avec les prix observés.
+- **Métriques** : MAE, RMSE, MAPE et précision directionnelle (proportion de hausses/baisses correctement prédites).
 
 ---
 
@@ -115,20 +125,16 @@ Le module requiert les librairies suivantes (listées dans `requirements.txt`) :
 
 ## Améliorations Futures
 
-Bien que fonctionnel, ce module a vocation à évoluer pour être encore plus précis. Voici les grands axes de développement futurs :
+Bien que fonctionnel, ce module a vocation à évoluer pour être encore plus précis :
 
-1. **Intégration Météorologique Complète (`kadi.weather`)** :
-   - Connecter le module logistique aux historiques et prévisions de précipitations.
-   - Objectif : Dégrader automatiquement l'état des routes (`gamma_route`) et augmenter le coefficient de perte de qualité (`c_qualite_loss`) de manière exponentielle si le transport s'effectue en pleine saison des pluies.
+1. **Modèles de Prévisions Avancés (Time-Series)** :
+   - Remplacer la régression linéaire actuelle par des modèles taillés pour les séries temporelles saisonnières (ex: Facebook Prophet ou réseaux LSTM).
+   - Objectif : Mieux capturer les cycles récurrents comme la période de soudure annuelle béninoise.
 
-2. **Modèles de Prévisions Avancés (Time-Series)** :
-   - Remplacer le `MLPRegressor` actuel (qui convient bien pour un PoC) par des modèles taillés pour les séries temporelles saisonnières (ex: **Facebook Prophet**, ou réseaux **LSTM**).
-   - Objectif : Mieux capturer les cycles récurrents comme la *période de soudure* annuelle béninoise.
+2. **Graphes de Transport Multimodaux** :
+   - Plutôt qu'un simple trajet A-B, permettre le calcul multi-étapes (ex: 20 km de piste en charrette, puis 150 km de route en camion).
+   - Objectif : Rendre le module logistique pertinent même pour le dernier kilomètre en zone enclavée.
 
-3. **Graphes de Transport Multimodaux** :
-   - Plutôt que d'estimer un simple trajet du Point A au Point B, permettre le calcul multi-étapes (ex: 20 km de piste en charrette tractée, puis 150 km de route asphaltée en camion).
-   - Objectif : Rendre le module logistique pertinent même pour le "dernier kilomètre" en zone très enclavée.
-
-4. **Modélisation Avancée du Stockage** :
-   - Affiner l'aide à la décision en incluant le coût local des produits de fumigation (ex: Sofagrain) ou les risques d'infestation selon la durée.
-   - Inclure la dynamique d'offre et de demande : si le modèle suggère à 10 000 agriculteurs de déstocker en même temps, anticiper la chute mathématique du prix sur le marché de destination.
+3. **Modélisation Avancée du Stockage** :
+   - Inclure le coût des produits de fumigation (ex: Sofagrain) ou les risques d'infestation selon la durée.
+   - Anticiper la chute du prix si de nombreux agriculteurs déstockent simultanément.

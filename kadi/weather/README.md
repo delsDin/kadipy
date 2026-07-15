@@ -1,110 +1,186 @@
-# KadiPy - Module Météorologique (`kadi.weather`)
+# Module kadi.weather
 
-Le module `weather` est l'un des piliers centraux de KadiPy. Il est conçu pour fournir aux agronomes, chercheurs et développeurs béninois une interface unifiée pour accéder à des données météorologiques historiques et prévisionnelles, ainsi qu'à des modélisations agronomiques avancées.
+Le module `weather` est le composant météorologique de KadiPy. Il fournit
+une interface unifiée pour accéder aux données climatiques historiques et
+prévisionnelles, et les transformer en indicateurs directement utiles pour
+l'agriculture béninoise.
 
-## Fonctionnalités Principales
+---
 
-Ce module ne se contente pas de télécharger de la donnée brute. Il la transforme en indicateurs métiers utiles pour l'agriculture africaine :
-- **Phénologie** : Détection du démarrage (Onset) et de la fin (Cessation) de la saison des pluies en s'adaptant à la zone climatique (algorithme de Sivakumar pour le régime unimodal au Nord, et Walter-Anyadike pour le régime bimodal au Sud).
-- **Hydrologie** : Modélisation du bilan hydrique des sols selon les normes de la FAO (méthode de Hargreaves-Samani pour l'évapotranspiration de référence ET0).
-- **Risques Climatiques** : Calcul d'indices de sécheresse (SPI, Chaînes de Markov, Exposant de Hurst) et de probabilités de pluies pour alerter sur le lessivage des intrants.
-- **Résilience (Offline-First)** : Un cache SQLite local transparent (`kadi.cache`) permet de stocker les historiques et prévisions. Si le terrain n'offre pas de connexion internet, le module utilise gracieusement les dernières données en cache.
+## Ce que fait ce module
 
-## Architecture du Module
+Il ne se contente pas de télécharger de la donnée brute. Chaque appel
+retourne un résultat interprétable par un agronome ou un conseiller agricole.
 
-Le module est structuré autour d'une **Façade** (`WeatherSession`) qui orchestre le chargement paresseux (Lazy Loading) des autres composants pour économiser la RAM et la bande passante :
+**Phénologie**
 
-1. **`WeatherSession`** (`session.py`) : Le point d'entrée unique de l'utilisateur. 
-2. **`Location`** (`location.py`) : Représente les coordonnées géographiques et détecte automatiquement la zone agro-écologique (Nord, Centre, Sud).
-3. **`WeatherData`** (`data.py`) : Gère les requêtes vers les connecteurs (`_sources/open_meteo.py`, `_sources/chirps.py`) et interroge le cache local.
-4. **`Phenology`** (`phenology.py`) : Algorithmes de détection du cycle de la mousson et calcul des degrés-jours de croissance (GDD).
-5. **`Hydrology`** (`hydrology.py`) : Calculs liés à l'évapotranspiration, au ruissellement et au bilan hydrique.
-6. **`RiskIndicators`** (`risk.py`) : Alertes climatiques à court terme et indices de sécheresse à long terme.
+Détection automatique du démarrage et de la fin de la saison des pluies.
+Le module choisit l'algorithme adapté à la zone géographique : Sivakumar
+pour le régime unimodal du Nord, et Walter-Anyadike pour le régime bimodal
+du Sud. Le calcul des degrés-jours de croissance (GDD) permet de suivre le
+stade phénologique de la culture en cours.
 
-## 🚀 Guide d'Utilisation Rapide
+**Hydrologie**
 
-Il n'est pas nécessaire d'instancier manuellement toutes les sous-classes. La `WeatherSession` simplifie tout le processus.
+Modélisation du cycle de l'eau dans le sol selon les normes FAO-56.
+L'évapotranspiration de référence (ET0) est calculée par la méthode
+Hargreaves-Samani. Le bilan hydrique journalier est produit par culture
+et par type de sol béninois.
+
+**Risques climatiques**
+
+Calcul d'indices de sécheresse (SPI, Markov, Exposant de Hurst) et
+probabilité de pluie à court terme pour anticiper le lessivage des intrants
+ou les risques de pertes de récolte.
+
+**Fonctionnement hors ligne (offline-first)**
+
+Un cache SQLite local stocke automatiquement les données téléchargées.
+Si le terrain n'offre pas de connexion internet, le module utilise les
+dernières données en cache de manière transparente.
+
+---
+
+## Architecture
+
+Le module est construit autour d'une facade principale (`WeatherSession`)
+qui orchestre le chargement des composants à la demande pour limiter la
+consommation de mémoire et de bande passante.
+
+```
+WeatherSession
+    |
+    ├── Location          -> Coordonnées GPS + zone agro-écologique
+    ├── WeatherData       -> Requêtes Open-Meteo / CHIRPS + cache SQLite
+    ├── Phenology         -> Sivakumar, Walter-Anyadike, GDD
+    ├── Hydrology         -> ET0 Hargreaves, bilan hydrique FAO
+    └── RiskIndicators    -> SPI, Markov, probabilité de pluie
+```
+
+---
+
+## Utilisation
 
 ### Initialisation
+
 ```python
 from kadi.weather import WeatherSession
 
-# On initialise la session avec les coordonnées géographiques
-# Le nom est optionnel. KadiPy va automatiquement identifier la zone climatique.
-session = WeatherSession(latitude=9.3333, longitude=2.6333, name='Parakou')
+# Le module détecte automatiquement la zone agro-écologique
+# depuis les coordonnées (Nord, Centre ou Sud Bénin).
+session = WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
 ```
 
-### 1. Données Brutes (Prévisions et Historique)
+### Données brutes
+
 ```python
-# Obtenir les prévisions pour les 3 prochains jours
-forecast = session.forecast(days=3)
-print(forecast['data'])
+# Prévisions pour les 3 prochains jours
+previsions = session.forecast(days=3)
+print(previsions["data"])
 
-# Obtenir un mois d'historique de températures
-hist_temp = session.historical(metric='temperature', months_back=1)
+# Historique des températures sur 1 mois
+historique = session.historical(metric="temperature", months_back=1)
 ```
 
-### 2. Phénologie (Saisons et Croissance)
+### Phénologie
+
 ```python
-# Date de démarrage de la saison des pluies (Onset)
-onset_info = session.onset()
-print("Démarrage des pluies estimé :", onset_info['onset_date'])
+# Date estimée de démarrage de la saison des pluies
+debut = session.onset()
+print("Début estimé :", debut["onset_date"])
 
-# Date de fin de saison (Cessation)
-cessation_info = session.cessation()
-print("Fin de la saison des pluies :", cessation_info['cessation_date'])
+# Date estimée de fin de saison
+fin = session.cessation()
+print("Fin estimée  :", fin["cessation_date"])
 
-# Calcul des Degrés-Jours de croissance pour le maïs semé le 1er Mai
-gdd = session.growing_degree_days(crop='maize', start_date='2026-05-01')
-print("Stade phénologique :", gdd['phenology_stage'])
+# Suivi du stade phénologique du maïs semé le 1er mai
+gdd = session.growing_degree_days(crop="maize", start_date="2026-05-01")
+print("Stade phénologique :", gdd["phenology_stage"])
 ```
 
-### 3. Hydrologie (Eau dans le sol)
+### Hydrologie
+
 ```python
 # Bilan hydrique sur la période historique disponible
-wb = session.water_balance(crop='maize', soil_type='ferrugineux')
-print(wb[['precipitation', 'ET0', 'runoff', 'soil_moisture']].tail())
+bilan = session.water_balance(crop="maize", soil_type="ferrugineux")
+print(bilan[["precipitation", "ET0", "deficit_eau", "reserve_utile"]].tail())
 ```
 
-### 4. Risques et Alertes
+### Risques et alertes
+
 ```python
-# Probabilité de pluie et recommandations pour les 2 prochains jours
-rain_risk = session.rain_probability(days_ahead=2)
-print("Recommandation :", rain_risk['recommendation'])
+# Probabilité de pluie et recommandation pour les 2 prochains jours
+risque = session.rain_probability(days_ahead=2)
+print("Recommandation :", risque["recommendation"])
 
-# Indice de sécheresse (Standardized Precipitation Index) sur 3 mois
-drought = session.drought_index(method='spi', window_months=3)
-print("Sévérité de la sécheresse :", drought['drought_severity'])
+# Indice de sécheresse sur 3 mois glissants
+secheresse = session.drought_index(method="spi", window_months=3)
+print("Sévérité :", secheresse["drought_severity"])
 ```
 
-## 🧪 Tests et Documentation Interne
-Le module est entièrement testé. Vous pouvez lancer la suite de tests (unitaires et intégration) avec `pytest` :
+---
+
+## Intégration avec kadi.market (Phase 4)
+
+Le module weather est utilisé directement par `kadi.market` depuis la
+Phase 4. La probabilité de pluie entre dans le calcul du coefficient
+logistique (`gamma_route`) et dans le score de confiance des
+recommandations d'arbitrage.
+
+```python
+from kadi.weather import WeatherSession
+from kadi.market import Market
+
+session = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
+marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=session)
+
+risque = marche.assess_climate_risk(days_ahead=7)
+print(risque["recommendation"])
+```
+
+---
+
+## Zones agro-écologiques reconnues
+
+| Zone | Latitude | Régime pluviométrique | Algorithme utilisé |
+|------|----------|-----------------------|--------------------|
+| Nord | > 9.5° N | Unimodal | Sivakumar |
+| Centre | 7.5° - 9.5° N | Transition | Sivakumar |
+| Sud | < 7.5° N | Bimodal | Walter-Anyadike |
+
+---
+
+## Dépendances
+
+- `requests` : requêtes vers Open-Meteo et CHIRPS
+- `pandas` / `numpy` : manipulation des séries temporelles
+- `scipy` (optionnel) : calcul avancé de l'indice SPI
+
+---
+
+## Tests
+
 ```bash
-pytest tests/weather/
+pytest tests/test_weather/ -v
 ```
 
-Pour une plongée en profondeur dans chaque classe, des **Notebooks Jupyter interactifs** sont disponibles dans le dossier `docs/weather/`. Ils documentent et exécutent les concepts mathématiques sous-jacents (Sivakumar, Hargreaves, GDD, etc.).
-
-## Améliorations Futures (Roadmap)
-
-Afin d'atteindre un niveau scientifique et une robustesse dignes des outils de production, voici les améliorations planifiées pour ce module :
-
-1. **Bimodalité de la phénologie (Sud/Centre)**
-   - *Objectif* : Gérer la petite et la grande saison des pluies.
-   - *Amélioration* : Rendre l'algorithme Walter-Anyadike capable de détecter et renvoyer plusieurs onsets et cessations par an (`onset_1`, `cessation_1`, `onset_2`, `cessation_2`).
-
-2. **Évapotranspiration via Penman-Monteith (FAO-56)**
-   - *Objectif* : Obtenir un calcul de l'ET0 ultra-précis.
-   - *Amélioration* : Remplacer l'actuel Hargreaves-Samani (qui ne demande que Tmin/Tmax) par Penman-Monteith en récupérant le rayonnement solaire et la vitesse du vent via Open-Meteo.
-
-3. **Modélisation Avancée du SPI (Sécheresse)**
-   - *Objectif* : Respecter la définition météorologique stricte.
-   - *Amélioration* : Remplacer l'approximation du Z-Score par l'ajustement d'une distribution Gamma via `scipy.stats.gamma.fit`.
-
-4. **Système d'Alertes Extrêmes**
-   - *Objectif* : Prévenir les dégâts imminents sur les cultures.
-   - *Amélioration* : Implémenter une méthode `extreme_weather_alerts()` pour détecter automatiquement dans les prévisions les vagues de chaleur (> 40°C) ou les précipitations diluviennes (> 50mm/j).
-
 ---
-*README RÉDIGÉ PAR GEMINI 3.1 PRO*
----
+
+## Améliorations prévues
+
+**Évapotranspiration Penman-Monteith (FAO-56)**
+Remplacer Hargreaves-Samani par la méthode complète Penman-Monteith en
+utilisant le rayonnement solaire et la vitesse du vent disponibles via
+Open-Meteo.
+
+**Bimodalité complète (Sud)**
+Rendre l'algorithme Walter-Anyadike capable de retourner les deux saisons
+séparément (`onset_1`, `cessation_1`, `onset_2`, `cessation_2`).
+
+**SPI rigoureux**
+Remplacer l'approximation Z-Score par l'ajustement d'une distribution Gamma
+via `scipy.stats.gamma.fit`, conformément à la définition météorologique.
+
+**Alertes climatiques extrêmes**
+Ajouter une méthode `extreme_weather_alerts()` pour détecter les vagues de
+chaleur (> 40 °C) et les précipitations diluviennes (> 50 mm/j).
