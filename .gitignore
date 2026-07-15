@@ -1,10 +1,9 @@
 .*
 # Les document de suivi du développement du package
 documents
-# Environnement
-.*env
-# Caches
-__pycache__
-.pytest_cache
+
+!.github
 # Le dossier généré par mkdocs.yml
 site/
+
+__pycache__
