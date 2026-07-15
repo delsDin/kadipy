@@ -1,0 +1,58 @@
+# Workflow : Publication de la documentation sur GitHub Pages
+#
+# Ce workflow s'exécute automatiquement à chaque push sur la branche
+# principale et peut aussi être déclenché manuellement depuis l'interface
+# GitHub. Il génère la documentation MkDocs et la publie sur GitHub Pages.
+
+name: Documentation
+
+on:
+  push:
+    branches: ["main"]
+  # Déclenchement manuel depuis l'interface GitHub (onglet Actions)
+  workflow_dispatch:
+
+# Droits nécessaires pour que le workflow puisse écrire sur la branche
+# gh-pages (utilisée par GitHub Pages)
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    name: "Publication de la documentation"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Récupération complète du dépôt (avec l'historique git
+      # complet, nécessaire pour que mike gère les versions)
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Étape 2 : Installation de Python
+      - name: Configuration de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Étape 3 : Installation des dépendances de documentation
+      - name: Installation des dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install mike
+
+      # Étape 4 : Configuration de l'identité git (requise par mike pour
+      # créer les commits sur la branche gh-pages)
+      - name: Configuration de git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Étape 5 : Publication de la documentation avec mike
+      # La version est extraite depuis le tag git ou fixée à "latest"
+      - name: Publication avec mike
+        run: |
+          mike deploy --push --update-aliases 1.0.0 latest
+          mike set-default --push latest
