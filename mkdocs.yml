@@ -1,0 +1,119 @@
+site_name: KadiPy - Documentation Officielle
+site_description: >
+  Le “pandas” de l'agriculture africaine. Interface Python unifiée pour les données
+  météo, de marché et de récoltes au Bénin.
+site_author: Dels Dinla
+site_url: https://delsDin.github.io/kadipy/
+repo_url: https://github.com/delsDin/kadipy
+repo_name: delsDin/kadipy
+edit_uri: ""
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - scheme: default
+      primary: green
+      accent: light-green
+      toggle:
+        icon: material/brightness-7
+        name: Passer en mode sombre
+    - scheme: slate
+      primary: green
+      accent: light-green
+      toggle:
+        icon: material/brightness-4
+        name: Passer en mode clair
+  font:
+    text: Inter
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - toc.integrate
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search:
+      lang: fr
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            heading_level: 2
+            members_order: source
+            show_signature_annotations: true
+            separate_signature: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: Sur cette page
+
+nav:
+  - Accueil: index.md
+
+  - market:
+      - Vue d'ensemble: market/index.md
+      - Tarification (pricing): market/pricing.md
+      - Prévisions (forecasting): market/forecasting.md
+      - Logistique: market/logistics.md
+      - Aide à la décision: market/decision_support.md
+      - Ingestion des données: market/data_ingestion.md
+
+  - weather:
+      - Vue d'ensemble: weather/index.md
+      - Session météo: weather/session.md
+      - Phénologie: weather/phenology.md
+      - Hydrologie: weather/hydrology.md
+      - Risques climatiques: weather/risk.md
+
+  - kidas:
+      - Vue d'ensemble: kidas/index.md
+      - Pipeline: kidas/pipeline.md
+      - Nettoyage: kidas/cleaner.md
+      - Validation: kidas/validator.md
+      - Normalisation: kidas/normalizer.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/delsDin/kadipy
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/delsdinla/
+      
+  version:
+    provider: mike
+
+copyright: >
+  Copyright &copy; 2026 Dels Dinla -  KadiPy Contributors -
+  Bénin, Afrique de l'Ouest
