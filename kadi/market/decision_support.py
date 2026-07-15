@@ -61,9 +61,9 @@ class DecisionSupport:
         Initialise le module d'aide à la décision.
 
         Args:
-            forecasting_module: Instance de MarketForecasting pour les prévisions.
-            logistics_module: Instance de MarketLogistics pour les coûts de transport.
-            pricing_module: Instance de MarketPricing pour les prix réels du marché.
+            forecasting_module (MarketForecasting, optional): Instance de MarketForecasting pour les prévisions.
+            logistics_module (MarketLogistics, optional): Instance de MarketLogistics pour les coûts de transport.
+            pricing_module (MarketPricing, optional): Instance de MarketPricing pour les prix réels du marché.
                 Si None, les méthodes utiliseront des prix estimés par défaut.
         """
         # Références vers les sous-modules
@@ -280,7 +280,7 @@ class DecisionSupport:
 
         Phase 4 : l'horizon de stockage est maintenant configurable via le
         paramètre mois_stockage. La valeur par défaut est lue depuis config.py
-        (clé market.horizon_stockage_mois_default, défaut : 3 mois).
+        (clé de configuration horizon stockage mois, défaut : 3 mois).
 
         Formule :
             E = E[P_{t+n}] - P_t - C_stockage(n) - C_opportunite(n) - theta * Var(P)
@@ -291,7 +291,7 @@ class DecisionSupport:
             current_price (float): Prix actuel en XOF par tonne.
             qty_tons (float): Quantité récoltée en tonnes.
             mois_stockage (int, optional): Horizon de stockage en mois.
-                Si None, utilise CONFIG["market"]["horizon_stockage_mois_default"].
+                Si None, utilise la valeur par defaut configuree (3 mois).
 
         Returns:
             dict: Dictionnaire contenant :
