@@ -30,7 +30,7 @@ class MarketPricing:
         Initialise le module de tarification.
 
         Args:
-            wfp_client: Instance de WFPDataBridgesClient pour récupérer les données.
+            wfp_client (WFPDataBridgesClient, optional): Instance de WFPDataBridgesClient pour récupérer les données.
                 Si None, le module génère des données de simulation en fallback.
         """
         # Instance du client WFP DataBridges
