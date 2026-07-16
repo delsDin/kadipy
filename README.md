@@ -1,4 +1,5 @@
 # KadiPy
+<img src="img/logo.png" alt="KadiPy" width="300px" style="display: block; margin-left: auto; margin-right: auto;">
 
 **Le "pandas" de l'agriculture africaine.**
 
