@@ -7,3 +7,7 @@ documents
 site/
 
 __pycache__
+# Artefacts de build générés par setuptools/pip install -e
+*.egg-info/
+build/
+dist/
