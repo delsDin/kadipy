@@ -16,7 +16,7 @@ un score de qualité global.
 from kadi.kidas import DataValidator
 
 validator = DataValidator(df)
-rapport = validator.validate(schema={
+rapport = validator.validate_schema(schema={
     "culture": "str",
     "rendement_kg_ha": "float",
     "latitude": "float",
@@ -27,12 +27,12 @@ rapport = validator.validate(schema={
 
 ## Méthodes
 
-### `validate(schema)`
+### `validate_schema(schema)`
 
 Valide les colonnes du DataFrame selon le schéma fourni.
 
 ```python
-rapport = validator.validate(schema={
+rapport = validator.validate_schema(schema={
     "culture": "str",           # Type de la colonne
     "rendement_kg": "float",    # Valeur numérique obligatoire
     "date_recolte": "date",     # Format date
