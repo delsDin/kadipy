@@ -2,70 +2,70 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/kidas/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/kidas/cleaner/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/kidas/normalizer/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/kidas/pipeline/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/kidas/validator/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/market/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/market/data_ingestion/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/market/decision_support/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/market/forecasting/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/market/logistics/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/market/pricing/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/weather/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/weather/hydrology/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/weather/phenology/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/weather/risk/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
     <url>
          <loc>https://delsDin.github.io/kadipy/1.0.0/weather/session/</loc>
-         <lastmod>2026-07-16</lastmod>
+         <lastmod>2026-07-19</lastmod>
     </url>
 </urlset>
