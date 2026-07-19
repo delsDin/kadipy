@@ -42,8 +42,9 @@ import kadi.kidas as kidas
 # Chargement, nettoyage automatique et cache
 df, rapport = kidas.load_and_clean("recolte_2024.csv")
 
-print(f"Lignes chargées : {len(df)}")
-print(f"Score qualité   : {rapport['quality_score']['overall']:.2f}")
+print(f"Lignes chargées : {rapport.get('lignes_finales', len(df))}")
+if "quality_score" in rapport:
+    print(f"Score qualité   : {rapport['quality_score']}")
 ```
 
 ### Pipeline personnalisé
@@ -67,7 +68,7 @@ df, rapport = (
     .execute(cache=True)
 )
 
-print(rapport["steps_summary"])
+print(rapport["etapes_appliquees"])
 ```
 
 ---
@@ -91,17 +92,22 @@ Le format est détecté automatiquement depuis l'extension ou le préfixe de l'U
 Chaque exécution de pipeline retourne un rapport structuré :
 
 ```python
-df, rapport = pipeline.load_data("recoltes.csv").execute()
+# L'ajout d'une étape de validation est nécessaire pour générer un quality_score
+df, rapport = (
+    pipeline.load_data("recoltes.csv")
+    .add_validation_step({"culture": "str"})
+    .execute()
+)
 
 print(rapport.keys())
-# dict_keys(['steps_summary', 'quality_score', 'warnings', 'nb_rows_in', 'nb_rows_out'])
+# dict_keys(['source', 'etapes_appliquees', 'nettoyage', 'validation', 'normalisation', 'cache_utilise', 'quality_score', 'lignes_finales'])
 
-# Score de qualité global (0 à 1)
-print(f"Score : {rapport['quality_score']['overall']:.2f}")
+# Score de qualité (généré par l'étape de validation)
+if "quality_score" in rapport:
+    print(f"Score : {rapport['quality_score']}")
 
-# Avertissements de validation
-for warning in rapport["warnings"]:
-    print(f"  ! {warning}")
+# Nombre de lignes finales
+print(f"Lignes en sortie : {rapport['lignes_finales']}")
 ```
 
 ---
