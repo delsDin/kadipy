@@ -1177,7 +1177,7 @@
 
 
 
-<h1 id="kadikidas-traitement-et-standardisation-des-donnees">kadi.kidas — Traitement et standardisation des données<a class="headerlink" href="#kadikidas-traitement-et-standardisation-des-donnees" title="Permanent link">&para;</a></h1>
+<h1 id="kadikidas-traitement-et-standardisation-des-donnees">kadi.kidas : Traitement et standardisation des données<a class="headerlink" href="#kadikidas-traitement-et-standardisation-des-donnees" title="Permanent link">&para;</a></h1>
 <p>Le module <code>kadi.kidas</code> est le pipeline de traitement des données agricoles de
 KadiPy. Il prend en charge l'ingestion, le nettoyage, la validation et la
 normalisation des données depuis n'importe quelle source.</p>
@@ -1209,8 +1209,8 @@ normalisation des données depuis n'importe quelle source.</p>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Chargement, nettoyage automatique et cache</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">df</span><span class="p">,</span> <span class="n">rapport</span> <span class="o">=</span> <span class="n">kidas</span><span class="o">.</span><span class="n">load_and_clean</span><span class="p">(</span><span class="s2">&quot;recolte_2024.csv&quot;</span><span class="p">)</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lignes chargées : </span><span class="si">{</span><span class="n">rapport</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lignes_finales&#39;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">if</span> <span class="s2">&quot;quality_score&quot;</span> <span class="ow">in</span> <span class="n">rapport</span><span class="p">:</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lignes chargées : </span><span class="si">{</span><span class="n">rapport</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nb_rows_out&#39;</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">if</span> <span class="n">rapport</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;quality_score&quot;</span><span class="p">):</span>
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Score qualité   : </span><span class="si">{</span><span class="n">rapport</span><span class="p">[</span><span class="s1">&#39;quality_score&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="pipeline-personnalise">Pipeline personnalisé<a class="headerlink" href="#pipeline-personnalise" title="Permanent link">&para;</a></h3>
@@ -1232,7 +1232,7 @@ normalisation des données depuis n'importe quelle source.</p>
 </span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="p">)</span>
 </span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">rapport</span><span class="p">[</span><span class="s2">&quot;etapes_appliquees&quot;</span><span class="p">])</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">rapport</span><span class="p">[</span><span class="s2">&quot;steps_summary&quot;</span><span class="p">])</span>
 </span></code></pre></div>
 <hr />
 <h2 id="formats-de-fichiers-supportes">Formats de fichiers supportés<a class="headerlink" href="#formats-de-fichiers-supportes" title="Permanent link">&para;</a></h2>
@@ -1284,22 +1284,22 @@ normalisation des données depuis n'importe quelle source.</p>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">)</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">rapport</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># dict_keys([&#39;source&#39;, &#39;etapes_appliquees&#39;, &#39;nettoyage&#39;, &#39;validation&#39;, &#39;normalisation&#39;, &#39;cache_utilise&#39;, &#39;quality_score&#39;, &#39;lignes_finales&#39;])</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># dict_keys([&#39;nb_rows_in&#39;, &#39;nb_rows_out&#39;, &#39;steps_summary&#39;, &#39;quality_score&#39;, &#39;warnings&#39;, &#39;cache_utilise&#39;, &#39;details&#39;])</span>
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
 </span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Score de qualité (généré par l&#39;étape de validation)</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">if</span> <span class="s2">&quot;quality_score&quot;</span> <span class="ow">in</span> <span class="n">rapport</span><span class="p">:</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">if</span> <span class="n">rapport</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;quality_score&quot;</span><span class="p">):</span>
 </span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Score : </span><span class="si">{</span><span class="n">rapport</span><span class="p">[</span><span class="s1">&#39;quality_score&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
 </span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Nombre de lignes finales</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lignes en sortie : </span><span class="si">{</span><span class="n">rapport</span><span class="p">[</span><span class="s1">&#39;lignes_finales&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lignes en sortie : </span><span class="si">{</span><span class="n">rapport</span><span class="p">[</span><span class="s1">&#39;nb_rows_out&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <hr />
 <h2 id="sous-modules">Sous-modules<a class="headerlink" href="#sous-modules" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="pipeline/">Pipeline</a> — Orchestration des étapes de traitement</li>
-<li><a href="cleaner/">Nettoyage (DataCleaner)</a> — Doublons, valeurs manquantes, outliers</li>
-<li><a href="validator/">Validation (DataValidator)</a> — Règles de validation des données</li>
-<li><a href="normalizer/">Normalisation (DataNormalizer)</a> — Standardisation des noms et unités</li>
+<li><a href="pipeline/">Pipeline</a> : Orchestration des étapes de traitement</li>
+<li><a href="cleaner/">Nettoyage (DataCleaner)</a> : Doublons, valeurs manquantes, outliers</li>
+<li><a href="validator/">Validation (DataValidator)</a> : Règles de validation des données</li>
+<li><a href="normalizer/">Normalisation (DataNormalizer)</a> : Standardisation des noms et unités</li>
 </ul>
 <hr />
 <h2 id="acces-direct-aux-sources">Accès direct aux sources<a class="headerlink" href="#acces-direct-aux-sources" title="Permanent link">&para;</a></h2>

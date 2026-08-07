@@ -1221,7 +1221,7 @@
 
 
 
-<h1 id="kadiweather-meteorologie-agronomique">kadi.weather — Météorologie agronomique<a class="headerlink" href="#kadiweather-meteorologie-agronomique" title="Permanent link">&para;</a></h1>
+<h1 id="kadiweather-meteorologie-agronomique">kadi.weather - Météorologie agronomique<a class="headerlink" href="#kadiweather-meteorologie-agronomique" title="Permanent link">&para;</a></h1>
 <p>Le module <code>kadi.weather</code> fournit une interface unifiée pour accéder aux données
 météo historiques et prévisionnelles, et les transformer en indicateurs
 directement utiles pour l'agriculture béninoise : saisons, sécheresses, bilans
@@ -1231,13 +1231,13 @@ hydriques.</p>
 <p>Le module est organisé autour d'une façade <code>WeatherSession</code> qui initialise
 chaque composant uniquement quand il est nécessaire (chargement paresseux).</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>WeatherSession
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Location        — Coordonnées GPS et zone agro-écologique
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── WeatherData     — Récupération et cache des données brutes
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── Phenology       — Saisons, GDD, onset/cessation
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── Hydrology       — Bilan hydrique, ET0 (FAO-56)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── RiskIndicators  — SPI, Markov, probabilité de pluie
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Location        - Coordonnées GPS et zone agro-écologique
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── WeatherData     - Récupération et cache des données brutes
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── Phenology       - Saisons, GDD, onset/cessation
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── Hydrology       - Bilan hydrique, ET0 (FAO-56)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── RiskIndicators  - SPI, Markov, probabilité de pluie
 </span></code></pre></div>
-<p>Les sources de données utilisées :</p>
+<p>Les sources de données utilisées (mode hybride <code>source='both'</code>) :</p>
 <table>
 <thead>
 <tr>
@@ -1248,22 +1248,29 @@ chaque composant uniquement quand il est nécessaire (chargement paresseux).</p>
 </thead>
 <tbody>
 <tr>
-<td>Open-Meteo</td>
-<td>Prévisions jusqu'à 16 jours</td>
-<td>API gratuite</td>
-</tr>
-<tr>
 <td>CHIRPS</td>
-<td>Précipitations historiques (1981+)</td>
+<td>Précipitations historiques longues (1981 à J-15)</td>
+<td>Rasters GeoTIFF / API CHC</td>
+</tr>
+<tr>
+<td>Open-Meteo</td>
+<td>Prévisions (15 jours) et températures historiques</td>
 <td>API gratuite</td>
 </tr>
 <tr>
-<td>Cache SQLite</td>
-<td>Réutilisation hors-ligne</td>
+<td>SoilGrids v2.0</td>
+<td>Classification pédologique WRB pour le bilan hydrique</td>
+<td>API ISRIC (<code>rest.isric.org</code>)</td>
+</tr>
+<tr>
+<td>Cache SQLite / JSON</td>
+<td>Stockage local et réutilisation hors-ligne</td>
 <td><code>~/.kadi/</code></td>
 </tr>
 </tbody>
 </table>
+<p>Les colonnes de température sont automatiquement normalisées par <code>_unifier_colonne_temperature()</code> pour produire <code>temperature_mean</code> (moyenne de <code>temperature_min</code> et <code>temperature_max</code> ou alias de <code>temperature_avg</code>).</p>
+<p>La source d'origine de chaque observation (<code>'chirps'</code>, <code>'open-meteo'</code> ou leur combinaison) est préservée de façon dynamique dans la colonne <code>data_source</code> du cache SQLite (<code>~/.kadi/cache.db</code>).</p>
 <hr />
 <h2 id="zones-agro-ecologiques-du-benin">Zones agro-écologiques du Bénin<a class="headerlink" href="#zones-agro-ecologiques-du-benin" title="Permanent link">&para;</a></h2>
 <p>Le module détecte automatiquement la zone en fonction de la latitude :</p>
@@ -1279,17 +1286,17 @@ chaque composant uniquement quand il est nécessaire (chargement paresseux).</p>
 <tr>
 <td>Nord</td>
 <td>&gt; 9.5° N</td>
-<td>Régime unimodal — algorithme Sivakumar</td>
+<td>Régime unimodal - algorithme Sivakumar</td>
 </tr>
 <tr>
 <td>Centre</td>
 <td>7.5° – 9.5° N</td>
-<td>Transition — algorithme adaptatif</td>
+<td>Transition - algorithme adaptatif</td>
 </tr>
 <tr>
 <td>Sud</td>
 <td>&lt; 7.5° N</td>
-<td>Régime bimodal — algorithme Walter-Anyadike</td>
+<td>Régime bimodal - algorithme Walter-Anyadike</td>
 </tr>
 </tbody>
 </table>
@@ -1356,7 +1363,7 @@ chaque composant uniquement quand il est nécessaire (chargement paresseux).</p>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lieu : </span><span class="si">{</span><span class="n">prevision</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">for</span> <span class="n">jour</span> <span class="ow">in</span> <span class="n">prevision</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="nb">print</span><span class="p">(</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">jour</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> — Pluie : </span><span class="si">{</span><span class="n">jour</span><span class="p">[</span><span class="s1">&#39;precipitation&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mm, &quot;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">jour</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - Pluie : </span><span class="si">{</span><span class="n">jour</span><span class="p">[</span><span class="s1">&#39;precipitation&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mm, &quot;</span>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="sa">f</span><span class="s2">&quot;T min : </span><span class="si">{</span><span class="n">jour</span><span class="p">[</span><span class="s1">&#39;temperature_min&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°C&quot;</span>
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="p">)</span>
 </span></code></pre></div>

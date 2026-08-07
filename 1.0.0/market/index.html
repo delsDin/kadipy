@@ -603,10 +603,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#comportement-sans-cle-api-wfp" class="md-nav__link">
+  <a href="#acces-aux-donnees-et-boucle-de-fallback" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Comportement sans clé API WFP
+        Accès aux données et boucle de fallback
       
     </span>
   </a>
@@ -1209,18 +1209,18 @@ prix et des recommandations de portefeuille de cultures.</p>
 <p>Le module est centré sur la classe <code>Market</code>, qui orchestre 4 sous-modules
 spécialisés et un client d'ingestion de données.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Market
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── data_ingestion   — Client WFP DataBridges + cache SQLite
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── pricing          — Normalisation, anomalies, saisonnalité
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── forecasting      — Prévisions par Machine Learning
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── logistics        — Distances, coûts de transport, météo (Phase 4)
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── decision_support — Arbitrage, stockage, portefeuille
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── data_ingestion   : Client WFP DataBridges + cache SQLite
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── pricing          : Normalisation, anomalies, saisonnalité
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── forecasting      : Prévisions par Machine Learning
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── logistics        : Distances, coûts de transport, météo (Phase 4)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── decision_support : Arbitrage, stockage, portefeuille
 </span></code></pre></div>
 <p>Chaque sous-module peut être utilisé seul ou via la façade <code>Market</code>.</p>
 <hr />
 <h2 id="initialisation">Initialisation<a class="headerlink" href="#initialisation" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">kadi.market</span><span class="w"> </span><span class="kn">import</span> <span class="n">Market</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Initialisation simple (données simulées si pas de clé WFP)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Initialisation simple (accès transparent aux données réelles via HAPI HumData)</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">marche</span> <span class="o">=</span> <span class="n">Market</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="mf">9.30</span><span class="p">,</span> <span class="n">lon</span><span class="o">=</span><span class="mf">2.08</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="s2">&quot;Parakou&quot;</span><span class="p">)</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Avec intégration météo (Phase 4)</span>
@@ -1241,12 +1241,12 @@ spécialisés et un client d'ingestion de données.</p>
 <tr>
 <td><code>lat</code></td>
 <td><code>float</code></td>
-<td>Latitude (entre 6.0° et 12.5° N)</td>
+<td>Latitude (entre 2.5° et 12.5° N)</td>
 </tr>
 <tr>
 <td><code>lon</code></td>
 <td><code>float</code></td>
-<td>Longitude (entre 0.5° et 3.9° E)</td>
+<td>Longitude (entre -1.5° et 4.0° E)</td>
 </tr>
 <tr>
 <td><code>location</code></td>
@@ -1325,33 +1325,46 @@ spécialisés et un client d'ingestion de données.</p>
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sécheresse : </span><span class="si">{</span><span class="n">risque</span><span class="p">[</span><span class="s1">&#39;drought_severity&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <hr />
-<h2 id="comportement-sans-cle-api-wfp">Comportement sans clé API WFP<a class="headerlink" href="#comportement-sans-cle-api-wfp" title="Permanent link">&para;</a></h2>
-<p>Sans clé API, le module fonctionne entièrement avec des données simulées. Cela
-permet de développer et tester toute la logique sans dépendance réseau.</p>
+<h2 id="acces-aux-donnees-et-boucle-de-fallback">Accès aux données et boucle de fallback<a class="headerlink" href="#acces-aux-donnees-et-boucle-de-fallback" title="Permanent link">&para;</a></h2>
+<p>Par défaut, KadiPy interroge l'API publique HAPI HumData (PAM/OCHA) et le cache SQLite local.
+Aucune clé commercial payante n'est nécessaire pour obtenir des données réelles de prix.</p>
 <table>
 <thead>
 <tr>
-<th>Indicateur</th>
-<th>Valeur sans clé</th>
+<th>Niveau</th>
+<th>Source</th>
+<th><code>is_simulated</code></th>
+<th><code>confidence_score</code></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>is_simulated</code></td>
+<td>1</td>
+<td>Cache SQLite local</td>
+<td><code>False</code></td>
+<td>Variable (score d'origine)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>API HAPI HumData / VAM (PAM)</td>
+<td><code>False</code></td>
+<td><code>0.9</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>API WFP DataBridges (si clé <code>.env</code>)</td>
+<td><code>False</code></td>
+<td><code>1.0</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mode simulation (hors-ligne uniquement)</td>
 <td><code>True</code></td>
-</tr>
-<tr>
-<td><code>confidence_score</code></td>
 <td><code>0.1</code></td>
-</tr>
-<tr>
-<td><code>source</code></td>
-<td><code>"simulated"</code></td>
 </tr>
 </tbody>
 </table>
-<p>Dès qu'une clé WFP est fournie dans <code>.env</code>, les données réelles remplacent
-automatiquement les données simulées.</p>
+<p>En cas de coupure de réseau ou d'indisponibilité complète des serveurs distants, le module bascule automatiquement sur le mode simulation avec <code>is_simulated=True</code>.</p>
 <hr />
 <h2 id="sous-modules">Sous-modules<a class="headerlink" href="#sous-modules" title="Permanent link">&para;</a></h2>
 <ul>
