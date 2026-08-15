@@ -101,6 +101,14 @@ Le coeur de KadiPy reste installable sans compiler de code C++, ce qui est
 essentiel pour les utilisateurs qui travaillent sur des machines de terrain
 avec des connexions lentes.
 
+### Gestion du dossier des modèles Machine Learning
+
+Comme configuré dans `kadi/config.py` à travers la variable `MODELS_DIR`
+(qui pointe vers `kadi/_ml/models`), un dossier physique `kadi/_ml/models`
+est créé et initialisé dans le projet. Ce répertoire est dédié à la sauvegarde,
+au stockage des artefacts et à l'archivage local des modèles entraînés
+(Prophet et modèles ML futurs).
+
 ---
 
 ## 3. Planning des travaux
@@ -110,7 +118,7 @@ le ROADMAP pour la livraison de la fonctionnalité principale, et l'échéance
 de janvier 2027 pour la version v1.2.0 complète qui intègre aussi
 Penman-Monteith, le connecteur Google Sheets et les données TAMSAT.
 
-### Semaine 1 : Préparation de l'environnement (1 au 7 septembre 2026)
+### Semaine 1 : Préparation de l'environnement (20 au 26 août 2026)
 
 La première semaine est entièrement consacrée à la mise en place technique
 sans écrire une seule ligne de code dans le module de prévision.
@@ -122,6 +130,10 @@ de KadiPy (pandas, numpy, scikit-learn, scipy). Prophet utilise le moteur
 probabiliste PyStan en interne, qui requiert une compilation C++ lors de
 la première installation.
 
+Au cours de cette phase, le répertoire `kadi/_ml/models` (défini par `MODELS_DIR`
+dans `kadi/config.py`) est officiellement créé et structuré pour accueillir
+les futurs artéfacts des modèles.
+
 Une fois l'installation vérifiée, `pyproject.toml` est mis à jour pour
 déclarer Prophet comme dépendance optionnelle dans une nouvelle section
 dédiée, de façon à ce que la commande `pip install "kadipy[prophet]"` soit
@@ -131,10 +143,10 @@ clair indiquant le caractère optionnel de cette dépendance.
 La compatibilité avec les quatre versions de Python supportées par KadiPy
 (3.9, 3.10, 3.11 et 3.12) est vérifiée à cette étape.
 
-**Livrable de la semaine :** `pyproject.toml` mis à jour, dépendance installée
-et vérifiée sur les quatre versions de Python cibles.
+**Livrable de la semaine :** `pyproject.toml` mis à jour, répertoire `kadi/_ml/models`
+créé, dépendance installée et vérifiée sur les quatre versions de Python cibles.
 
-### Semaine 2 : Intégration dans forecasting.py (8 au 14 septembre 2026)
+### Semaine 2 : Intégration dans forecasting.py (27 août au 3 septembre 2026)
 
 C'est la semaine de travail principal. Elle concentre les modifications
 dans le fichier `kadi/market/forecasting.py`.
@@ -181,7 +193,7 @@ de code actuel de la régression harmonique, sans aucune modification.
 Prophet intégré, le fallback automatique opérationnel, et `model_used` correct
 dans tous les cas.
 
-### Semaine 3 : Backtesting comparatif et tests (15 au 21 septembre 2026)
+### Semaine 3 : Backtesting comparatif et tests (04 au 10 septembre 2026)
 
 Cette semaine a deux objectifs parallèles : étendre le backtester pour
 permettre la comparaison des deux modèles, et écrire les tests unitaires
@@ -216,7 +228,7 @@ clé `model_used` dans les résultats.
 **Livrable de la semaine :** `backtesting.py` étendu, suite de tests complète,
 tous les tests passent via `pytest tests/test_market/ -v`.
 
-### Semaine 4 : Benchmarking et validation finale (22 au 30 septembre 2026)
+### Semaine 4 : Benchmarking et validation finale (11 au 17 septembre 2026)
 
 La dernière semaine de septembre est consacrée à valider que Prophet
 apporte effectivement une amélioration mesurable par rapport à la régression
@@ -224,7 +236,7 @@ harmonique sur les données réelles béninoises.
 
 Un notebook de benchmarking est créé dans `examples_local/`. Il exécute
 les deux modèles en parallèle sur cinq années de données historiques WFP
-pour trois marchés représentatifs du Bénin : Cotonou pour le marché côtier,
+pour trois marchés représentatifs du Bénin : Cotonou pour le marché végétal côtier,
 Parakou pour le marché central du Nord, et Malanville pour le marché
 transfrontalier. Les métriques produites pour chaque combinaison marché /
 culture / modèle sont le MAPE (erreur de prévision en pourcentage), le RMSE
@@ -249,7 +261,7 @@ métriques réelles, `ROADMAP.md` mis à jour, item Prophet marqué comme livré
 
 ---
 
-## 4. Phase avancée : régresseurs climatiques (Novembre 2026 - Janvier 2027)
+## 4. Phase avancée : régresseurs climatiques (Octobre 2026 - Janvier 2027)
 
 Cette phase s'inscrit dans le cycle v1.2.0 prévu en janvier 2027 et ne
 fait pas partie de la livraison de septembre 2026.
@@ -279,6 +291,8 @@ du coût logistique selon les prévisions météo.
 |---------|--------------------------|
 | `pyproject.toml` | Ajout de la section `prophet` dans les dépendances optionnelles |
 | `requirements.txt` | Mention commentée de la dépendance optionnelle |
+| `kadi/config.py` | Définition de `MODELS_DIR` pointant vers `kadi/_ml/models` |
+| `kadi/_ml/models/` | Création physique du répertoire dédié aux modèles ML |
 | `kadi/market/forecasting.py` | Import conditionnel de Prophet, trois nouvelles méthodes privées, logique de sélection du modèle dans `predict_price()` |
 | `kadi/market/backtesting.py` | Paramètre de choix de modèle, clé `model_used` dans les résultats de chaque fenêtre |
 | `kadi/market/__init__.py` | Propagation du choix de modèle (phase avancée, novembre 2026) |
@@ -297,6 +311,8 @@ l'ensemble des conditions suivantes est satisfait.
 
 L'installation de `kadipy[prophet]` se déroule sans erreur sur les quatre
 versions de Python supportées par le projet (3.9 à 3.12).
+
+Le dossier `kadi/_ml/models` existe et est correctement configuré.
 
 La méthode `predict_price()` retourne `model_used` égal à `"prophet"` quand
 Prophet est installé et l'historique contient trente observations ou plus.
