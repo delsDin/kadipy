@@ -45,7 +45,7 @@ Avant de toucher au code, il faut poser les bases pour travailler en sécurité.
 
 ---
 
-## Phase 1 — Exceptions (`kadi/exceptions.py`) (3/3 Terminé)
+## Phase 1 — Exceptions (`kadi/exceptions.py`) (4/4 Terminé)
 
 Priorité haute : les exceptions sont importées partout dans le package. Les
 corriger en premier simplifie toutes les phases suivantes.
@@ -57,6 +57,7 @@ corriger en premier simplifie toutes les phases suivantes.
   avec `CacheError`.
 - Renommer `InsufficientData` en `DataError`, `LocationNotFound` en
   `LocationError`, `CropNotFound` en `CropError`.
+- Ajouter un `DeprecationWarning` sur chaque ancien nom via `__getattr__`.
 
 ### Fichiers modifiés
 - `[x]` **1.1** `kadi/exceptions.py` : appliquer tous les renommages.
@@ -65,12 +66,22 @@ corriger en premier simplifie toutes les phases suivantes.
   grep -rn "KadiException\|KidasReadError\|KidasWriteError\|KidasConnectionError\|KidasCleaningError\|KidasValidationError\|KidasCacheError\|KidasPipelineError\|InsufficientData\|LocationNotFound\|CropNotFound\|DataSourceError" kadi/ tests/
   ```
 - `[x]` **1.3** Lancer les tests pour valider.
+- `[x]` **1.4** Ajouter les `DeprecationWarning` via `__getattr__` dans `exceptions.py`.
+  Les anciens noms continuent de fonctionner mais émettent un avertissement
+  explicite indiquant le nouveau nom à utiliser et la version de suppression.
+  Exemple du message émis :
+  ```
+  DeprecationWarning: kadi.exceptions.KadiException est obsolète et sera
+  supprimé dans KadiPy v2.0. Utilisez kadi.exceptions.KadiError à la place.
+  ```
 
-> **Rétrocompatibilité** : Les anciens noms (KadiException, DataSourceError, etc.) restent disponibles comme alias dans `exceptions.py` — les scripts externes ne cassent pas.
+> **Rétrocompatibilité** : Les anciens noms sont interceptés par `__getattr__`
+> au niveau du module. Ils retournent la classe correcte mais émettent un
+> `DeprecationWarning` pour guider la migration. Suppression prévue en v2.0.
 
 ---
 
-## Phase 2 — Sources de données (`kadi/kidas/sources/`) (3/6 En cours)
+## Phase 2 — Sources de données (`kadi/kidas/sources/`) (En cours)
 
 ### Règles
 - Renommer `DataSource` en `Source` (classe de base abstraite).

@@ -2,9 +2,14 @@
 Module définissant la hiérarchie des exceptions personnalisées de KadiPy.
 
 Chaque exception décrit une catégorie d'erreur précise : source de données,
-cache, validation, accès hors ligne, nettoyage, pipeline. Les anciens noms
-sont conservés comme alias pour ne pas casser les scripts existants.
+cache, validation, accès hors ligne, nettoyage, pipeline.
+
+Les anciens noms sont gérés via __getattr__ : ils continuent de fonctionner
+mais émettent un DeprecationWarning pour encourager la migration vers les
+nouveaux noms. Ils seront supprimés dans KadiPy v2.0.
 """
+
+import warnings
 
 
 # Exception racine
@@ -12,7 +17,6 @@ sont conservés comme alias pour ne pas casser les scripts existants.
 class KadiError(Exception):
     """Exception de base pour toutes les erreurs spécifiques à KadiPy."""
     pass
-
 
 
 # Exceptions générales
@@ -50,7 +54,6 @@ class CropError(ValidationError):
 class DataError(ValidationError):
     """Historique insuffisant pour l'opération demandée."""
     pass
-
 
 
 # Exceptions du module kidas
@@ -99,25 +102,54 @@ class PipelineError(KadiError):
     pass
 
 
+# Table des anciens noms -> (nouveau nom, classe cible)
+# Utilisée par __getattr__ pour intercepter les imports d'anciens noms.
+_DEPRECATED = {
+    "KadiException":      ("KadiError",       KadiError),
+    "DataSourceError":    ("SourceError",      SourceError),
+    "LocationNotFound":   ("LocationError",    LocationError),
+    "CropNotFound":       ("CropError",        CropError),
+    "InsufficientData":   ("DataError",        DataError),
+    "KidasReadError":     ("ReadError",        ReadError),
+    "KidasWriteError":    ("WriteError",       WriteError),
+    "KidasConnectionError": ("ConnectError",   ConnectError),
+    "KidasCleaningError": ("CleanError",       CleanError),
+    "KidasValidationError": ("ValidationError", ValidationError),
+    "KidasCacheError":    ("CacheError",       CacheError),
+    "KidasPipelineError": ("PipelineError",    PipelineError),
+}
 
-# Alias de compatibilite (anciens noms conserves)
-# Ces alias permettent aux scripts existants de continuer a fonctionner
-# sans modification immediate. Ils seront supprimes dans une version future.
 
-# -- Exception racine
-KadiException = KadiError
+def __getattr__(name: str):
+    """Intercepte l'accès aux anciens noms d'exceptions pour émettre un avertissement.
 
-# -- Exceptions generales
-DataSourceError = SourceError
-LocationNotFound = LocationError
-CropNotFound = CropError
-InsufficientData = DataError
+    Paramètres
+    ----------
+    name : str
+        Nom de l'attribut demandé dans ce module.
 
-# -- Exceptions kidas
-KidasReadError = ReadError
-KidasWriteError = WriteError
-KidasConnectionError = ConnectError
-KidasCleaningError = CleanError
-KidasValidationError = ValidationError
-KidasCacheError = CacheError
-KidasPipelineError = PipelineError
+    Retourne
+    --------
+    type
+        La classe exception correspondant à l'ancien nom.
+
+    Lève
+    ----
+    AttributeError
+        Si le nom demandé n'est ni un symbole courant ni un ancien nom connu.
+    """
+    if name in _DEPRECATED:
+        # Récupère le nouveau nom et la classe cible
+        new_name, cls = _DEPRECATED[name]
+        warnings.warn(
+            f"kadi.exceptions.{name} est obsolète et sera supprimé dans KadiPy v2.0. "
+            f"Utilisez kadi.exceptions.{new_name} à la place.",
+            category=DeprecationWarning,
+            # stacklevel=2 pointe vers la ligne de code de l'utilisateur,
+            # pas vers cette fonction interne
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.exceptions' n'a pas d'attribut '{name}'."
+    )
