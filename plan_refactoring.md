@@ -81,34 +81,34 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ---
 
-## Phase 2 — Sources de données (`kadi/kidas/sources/`) (En cours)
+## Phase 2 : Sources de données (`kadi/kidas/sources/`) (8/8 Terminé)
 
 ### Règles
 - Renommer `DataSource` en `Source` (classe de base abstraite).
-- Renommer les sous-classes : supprimer le suffixe `Data` (`CSVDataSource`
-  devient `CSVSource`, etc.).
+- Renommer les sous-classes : supprimer le suffixe `Data` (`CSVDataSource` devient `CSVSource`, etc.).
 - Harmoniser les attributs : `source_path` -> `path`, `source_type` -> `kind`.
 - Renommer les méthodes internes en anglais.
-- Exposer toutes les sources dans `kadi/kidas/sources/__init__.py`.
+- Exposer toutes les sources de données dans `kadi/kidas/sources/__init__.py` et utiliser la syntaxe d'importation regroupée depuis ce sous-package.
 
-### Fichiers à modifier
+### Fichiers modifiés
 
-- `[ ]` **2.1** `kadi/kidas/sources/base.py` : renommer la classe et ses méthodes.
-- `[ ]` **2.2** `kadi/kidas/sources/csv_source.py` : renommer classe et méthodes.
-- `[ ]` **2.3** `kadi/kidas/sources/excel_source.py` : renommer classe et méthodes.
-- `[ ]` **2.4** `kadi/kidas/sources/json_source.py` : renommer classe et méthodes.
-- `[ ]` **2.5** `kadi/kidas/sources/netcdf_source.py` : renommer classe et méthodes.
-- `[ ]` **2.6** `kadi/kidas/sources/api_source.py` : renommer classe et méthodes.
-- `[ ]` **2.7** `kadi/kidas/sources/__init__.py` : exporter toutes les classes.
+- `[x]` **2.1** `kadi/kidas/sources/base.py` : renommer classe et méthodes.
+- `[x]` **2.2** `kadi/kidas/sources/csv_source.py` : renommer classe et méthodes.
+- `[x]` **2.3** `kadi/kidas/sources/excel_source.py` : renommer classe et méthodes.
+- `[x]` **2.4** `kadi/kidas/sources/json_source.py` : renommer classe et méthodes.
+- `[x]` **2.5** `kadi/kidas/sources/netcdf_source.py` : renommer classe et méthodes.
+- `[x]` **2.6** `kadi/kidas/sources/api_source.py` : renommer classe et méthodes.
+- `[x]` **2.7** `kadi/kidas/sources/__init__.py` : exporter toutes les classes.
   ```python
-  from .base import Source
-  from .csv_source import CSVSource
-  from .excel_source import ExcelSource
-  from .json_source import JSONSource
-  from .netcdf_source import NetCDFSource
-  from .api_source import APISource
+  from kadi.kidas.sources import (
+      Source,
+      CSVSource,
+      ExcelSource,
+      JSONSource,
+      APISource,
+  )
   ```
-- `[ ]` **2.8** Lancer les tests.
+- `[x]` **2.8** Lancer les tests (tous les tests `test_sources` et `test_csv_source` passent avec succès).
 
 ---
 
@@ -136,7 +136,14 @@ corriger en premier simplifie toutes les phases suivantes.
   from .normalizer import Normalizer
   from .cache import Cache
   from .pipeline import Pipeline
-  from .sources import Source, CSVSource, ExcelSource, JSONSource, NetCDFSource, APISource
+  from .sources import (
+      Source,
+      CSVSource,
+      ExcelSource,
+      JSONSource,
+      APISource,
+      NetCDFSource,
+  )
   ```
 - `[ ]` **3.7** Lancer les tests.
 

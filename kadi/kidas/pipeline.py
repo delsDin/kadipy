@@ -15,19 +15,21 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
-# Import des sources de données
-from kadi.kidas.sources.csv_source import CSVDataSource
-from kadi.kidas.sources.excel_source import ExcelDataSource
-from kadi.kidas.sources.json_source import JSONDataSource
-from kadi.kidas.sources.api_source import APIDataSource
-from kadi.kidas.sources.base import DataSource
+# Import des sources de données (nouveaux noms Phase 2)
+from kadi.kidas.sources import (
+    CSVSource,
+    ExcelSource,
+    JSONSource,
+    APISource,
+    Source,
+)
 
 # Import conditionnel : xarray est requis pour NetCDF
 try:
-    from kadi.kidas.sources.netcdf_source import NetCDFDataSource
+    from kadi.kidas.sources import NetCDFSource
     _NETCDF_DISPONIBLE = True
 except ImportError:
-    NetCDFDataSource = None  # type: ignore[assignment]
+    NetCDFSource = None  # type: ignore[assignment]
     _NETCDF_DISPONIBLE = False
 
 # Import des classes de traitement
@@ -86,7 +88,7 @@ class DataPipeline:
     def __init__(self) -> None:
         """Initialise un pipeline vide prêt à recevoir des étapes de traitement."""
         # Source de données (sera configurée par load_data())
-        self._source: Optional[DataSource] = None
+        self._source: Optional[Source] = None
 
         # DataFrame courant (None jusqu'à l'appel de execute())
         self._df: Optional[pd.DataFrame] = None
@@ -146,7 +148,7 @@ class DataPipeline:
 
     def load_data(
         self,
-        source: Union[str, DataSource],
+        source: Union[str, Source],
         **kwargs: Any,
     ) -> "DataPipeline":
         """Configure la source de données du pipeline.
@@ -166,24 +168,24 @@ class DataPipeline:
         Raises:
             PipelineError: Si le type de source est indéterminable.
         """
-        if isinstance(source, DataSource):
-            # Utilisation directe d'une DataSource existante
+        if isinstance(source, Source):
+            # Utilisation directe d'une Source existante
             self._source = source
-            type_source = source.source_type
+            type_source = source.kind
         else:
-            # Auto-détection et instanciation de la DataSource appropriée
+            # Auto-détection et instanciation de la Source appropriée
             type_source = self._detecter_type_source(source)
 
             if type_source == "csv":
-                self._source = CSVDataSource(source, **kwargs)
+                self._source = CSVSource(source, **kwargs)
             elif type_source == "excel":
-                self._source = ExcelDataSource(source, **kwargs)
+                self._source = ExcelSource(source, **kwargs)
             elif type_source == "json":
-                self._source = JSONDataSource(source, **kwargs)
+                self._source = JSONSource(source, **kwargs)
             elif type_source == "netcdf":
-                self._source = NetCDFDataSource(source, **kwargs)
+                self._source = NetCDFSource(source, **kwargs)
             elif type_source == "api":
-                self._source = APIDataSource(source, **kwargs)
+                self._source = APISource(source, **kwargs)
 
         # Enregistrement dans le rapport
         self._rapports["source"] = {
@@ -321,7 +323,7 @@ class DataPipeline:
         # tronqué à 16 caractères hexadécimaux pour éviter les collisions et les
         # erreurs d'encodage avec des chemins contenant des espaces ou des accents.
         _empreinte = hashlib.sha256(
-            str(self._source.source_path).encode("utf-8")
+            str(self._source.path).encode("utf-8")
         ).hexdigest()[:16]
         cle_cache = f"pipeline_{_empreinte}"
 
@@ -358,7 +360,7 @@ class DataPipeline:
             logger.info(
                 "Pipeline kidas : %d lignes chargées depuis '%s'.",
                 self._lignes_avant,
-                self._source.source_path,
+                self._source.path,
             )
         except Exception as erreur:
             raise ReadError(

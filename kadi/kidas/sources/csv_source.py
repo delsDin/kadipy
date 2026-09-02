@@ -1,35 +1,39 @@
 # -*- coding: utf-8 -*-
 """
-Module implémentant CSVDataSource pour la lecture/écriture de fichiers CSV.
+Module implémentant CSVSource pour la lecture/écriture de fichiers CSV.
 
 Ce module gère les fichiers CSV bancals rencontrés en terrain AgriTech :
 encodages mixtes (UTF-8, Latin-1), délimiteurs variables (virgule, point-virgule,
 tabulation), décimales françaises (virgule) vs anglaises (point).
+
+L'ancien nom CSVDataSource est conservé comme alias obsolète : il continue
+de fonctionner mais émet un DeprecationWarning pour guider la migration.
 """
 
 import csv
 import logging
 import os
+import warnings
 from typing import Optional
 
 import chardet
 import pandas as pd
 
 # Import de la classe de base et des exceptions personnalisées
-from kadi.kidas.sources.base import DataSource
+from kadi.kidas.sources.base import Source
 from kadi.exceptions import ReadError, WriteError, ConnectError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
 
-# Nombre d'octets lu pour la détection de l'encodage
+# Nombre d'octets lus pour la détection de l'encodage
 _CHARDET_SAMPLE_SIZE = 10_000
 
 # Délimiteurs testés lors de l'auto-détection
 _CANDIDATE_DELIMITERS = [",", ";", "\t", "|"]
 
 
-class CSVDataSource(DataSource):
+class CSVSource(Source):
     """Source de données pour les fichiers CSV agricoles.
 
     Gère la lecture robuste de fichiers CSV avec détection automatique
@@ -38,55 +42,52 @@ class CSVDataSource(DataSource):
     de données nationales (INSAE, MAEP).
 
     Attributs:
-        file_path (str): Chemin absolu ou relatif vers le fichier CSV.
-        delimiter (str): Délimiteur de colonnes (auto-détecté si 'auto').
+        path (str): Chemin absolu ou relatif vers le fichier CSV.
+        sep (str): Délimiteur de colonnes (auto-détecté si 'auto').
         decimal (str): Séparateur décimal (auto-détecté si 'auto').
-        _detected_delimiter (str | None): Délimiteur détecté en cache.
-        _detected_encoding (str | None): Encodage détecté en cache.
+        _sep (str | None): Délimiteur détecté en cache.
+        _enc (str | None): Encodage détecté en cache.
 
     Exemple:
-        >>> source = CSVDataSource('recoltes_2024.csv')
+        >>> source = CSVSource('recoltes_2024.csv')
         >>> df = source.read()
-        >>> print(source.get_metadata())
+        >>> print(source.info())
     """
 
     def __init__(
         self,
-        file_path: str,
+        path: str,
         encoding: str = "auto",
-        delimiter: str = "auto",
+        sep: str = "auto",
         decimal: str = "auto",
     ) -> None:
         """Initialise la source CSV avec détection automatique des paramètres.
 
         Args:
-            file_path (str): Chemin vers le fichier CSV à lire.
+            path (str): Chemin vers le fichier CSV à lire.
             encoding (str): Encodage du fichier. 'auto' pour la détection
                 automatique via chardet. Par défaut 'auto'.
-            delimiter (str): Délimiteur de colonnes. 'auto' pour l'auto-
+            sep (str): Délimiteur de colonnes. 'auto' pour l'auto-
                 détection. Par défaut 'auto'.
             decimal (str): Séparateur décimal. 'auto' pour l'inférence
                 (détecte les fichiers français avec ','). Par défaut 'auto'.
         """
         # Initialisation de la classe parente avec le type 'csv'
         super().__init__(
-            source_path=file_path,
-            source_type="csv",
+            path=path,
+            kind="csv",
             encoding=encoding,
         )
 
-        # Chemin vers le fichier CSV
-        self.file_path: str = file_path
-
         # Paramètres de lecture (peuvent être 'auto' avant détection)
-        self.delimiter: str = delimiter
+        self.sep: str = sep
         self.decimal: str = decimal
 
         # Cache interne pour éviter de re-détecter à chaque lecture
-        self._detected_delimiter: Optional[str] = None
-        self._detected_encoding: Optional[str] = None
+        self._sep: Optional[str] = None
+        self._enc: Optional[str] = None
 
-    def detect_encoding(self) -> str:
+    def _sniff_encoding(self) -> str:
         """Détecte automatiquement l'encodage du fichier CSV via chardet.
 
         Lit un échantillon du fichier (10 000 octets) pour minimiser
@@ -100,14 +101,14 @@ class CSVDataSource(DataSource):
             ConnectError: Si le fichier n'est pas accessible.
         """
         # Vérification de l'existence du fichier avant de lire
-        if not os.path.isfile(self.file_path):
+        if not os.path.isfile(self.path):
             raise ConnectError(
-                f"Fichier CSV introuvable : '{self.file_path}'"
+                f"Fichier CSV introuvable : '{self.path}'"
             )
 
         try:
             # Lecture d'un échantillon d'octets bruts pour chardet
-            with open(self.file_path, "rb") as fichier:
+            with open(self.path, "rb") as fichier:
                 echantillon = fichier.read(_CHARDET_SAMPLE_SIZE)
 
             # Analyse de l'encodage via chardet
@@ -116,21 +117,21 @@ class CSVDataSource(DataSource):
 
             logger.debug(
                 "Encodage détecté pour '%s' : %s (confiance : %.0f%%).",
-                self.file_path,
+                self.path,
                 encodage,
                 (resultat.get("confidence") or 0) * 100,
             )
 
             # Mise en cache du résultat
-            self._detected_encoding = encodage
+            self._enc = encodage
             return encodage
 
         except OSError as erreur:
             raise ConnectError(
-                f"Impossible de lire le fichier CSV '{self.file_path}' : {erreur}"
+                f"Impossible de lire le fichier CSV '{self.path}' : {erreur}"
             ) from erreur
 
-    def detect_delimiter(self) -> str:
+    def _sniff_sep(self) -> str:
         """Détecte automatiquement le délimiteur de colonnes du fichier CSV.
 
         Utilise csv.Sniffer sur les premières lignes du fichier. En cas
@@ -144,11 +145,11 @@ class CSVDataSource(DataSource):
             ConnectError: Si le fichier n'est pas accessible.
         """
         # Détermination de l'encodage pour ouvrir le fichier correctement
-        encodage = self._detected_encoding or self.detect_encoding()
+        encodage = self._enc or self._sniff_encoding()
 
         try:
             # Tentative 1 : utilisation du Sniffer de la bibliothèque csv
-            with open(self.file_path, encoding=encodage, errors="replace") as f:
+            with open(self.path, encoding=encodage, errors="replace") as f:
                 echantillon = f.read(2048)
 
             try:
@@ -156,7 +157,7 @@ class CSVDataSource(DataSource):
                 delimiteur = dialect.delimiter
                 logger.debug(
                     "Délimiteur détecté via Sniffer pour '%s' : '%s'.",
-                    self.file_path,
+                    self.path,
                     delimiteur,
                 )
             except csv.Error:
@@ -168,23 +169,23 @@ class CSVDataSource(DataSource):
                 )
                 logger.debug(
                     "Délimiteur détecté par comptage pour '%s' : '%s'.",
-                    self.file_path,
+                    self.path,
                     delimiteur,
                 )
 
             # Mise en cache du résultat
-            self._detected_delimiter = delimiteur
+            self._sep = delimiteur
             return delimiteur
 
         except OSError as erreur:
             raise ConnectError(
-                f"Impossible d'accéder au fichier '{self.file_path}' : {erreur}"
+                f"Impossible d'accéder au fichier '{self.path}' : {erreur}"
             ) from erreur
 
     def read(
         self,
-        nrows: Optional[int] = None,
-        skip_rows: Optional[int] = None,
+        n: Optional[int] = None,
+        skip: Optional[int] = None,
     ) -> pd.DataFrame:
         """Lit le fichier CSV et retourne son contenu sous forme de DataFrame.
 
@@ -193,9 +194,9 @@ class CSVDataSource(DataSource):
         principale échoue.
 
         Args:
-            nrows (int | None): Nombre maximum de lignes à lire. None pour
+            n (int | None): Nombre maximum de lignes à lire. None pour
                 lire toutes les lignes. Par défaut None.
-            skip_rows (int | None): Nombre de lignes à ignorer en début
+            skip (int | None): Nombre de lignes à ignorer en début
                 de fichier (hors en-tête). Par défaut None.
 
         Returns:
@@ -206,23 +207,23 @@ class CSVDataSource(DataSource):
             ReadError: Si la lecture échoue malgré les fallbacks.
         """
         # Vérification préalable de l'accessibilité
-        if not self.validate_connection():
+        if not self.ping():
             raise ConnectError(
-                f"Le fichier CSV '{self.file_path}' n'est pas accessible."
+                f"Le fichier CSV '{self.path}' n'est pas accessible."
             )
 
         # Détermination de l'encodage (détection si 'auto')
         encodage = (
-            self._detected_encoding or self.detect_encoding()
+            self._enc or self._sniff_encoding()
             if self.encoding == "auto"
             else self.encoding
         )
 
         # Détermination du délimiteur (détection si 'auto')
         delimiteur = (
-            self._detected_delimiter or self.detect_delimiter()
-            if self.delimiter == "auto"
-            else self.delimiter
+            self._sep or self._sniff_sep()
+            if self.sep == "auto"
+            else self.sep
         )
 
         # Détermination du séparateur décimal
@@ -243,25 +244,25 @@ class CSVDataSource(DataSource):
         for enc in encodages_a_tester:
             try:
                 df = pd.read_csv(
-                    self.file_path,
+                    self.path,
                     sep=delimiteur,
                     encoding=enc,
                     decimal=separateur_decimal,
-                    nrows=nrows,
-                    skiprows=skip_rows,
+                    nrows=n,
+                    skiprows=skip,
                     on_bad_lines="warn",
                 )
                 logger.info(
                     "Fichier CSV '%s' lu avec succès : %d lignes, %d colonnes "
                     "(encodage: %s, délimiteur: '%s').",
-                    self.file_path,
+                    self.path,
                     len(df),
                     len(df.columns),
                     enc,
                     delimiteur,
                 )
                 # Mise à jour de l'horodatage de lecture
-                self._update_last_read()
+                self._touch()
                 return df
 
             except UnicodeDecodeError as erreur:
@@ -269,7 +270,7 @@ class CSVDataSource(DataSource):
                 logger.debug(
                     "Échec de lecture avec encodage '%s' pour '%s' : %s",
                     enc,
-                    self.file_path,
+                    self.path,
                     erreur,
                 )
                 dernier_erreur = erreur
@@ -278,12 +279,12 @@ class CSVDataSource(DataSource):
             except Exception as erreur:
                 raise ReadError(
                     f"Erreur inattendue lors de la lecture de "
-                    f"'{self.file_path}' : {erreur}"
+                    f"'{self.path}' : {erreur}"
                 ) from erreur
 
         # Si tous les encodages ont échoué
         raise ReadError(
-            f"Impossible de lire '{self.file_path}' avec les encodages "
+            f"Impossible de lire '{self.path}' avec les encodages "
             f"testés : {encodages_a_tester}. Dernière erreur : {dernier_erreur}"
         )
 
@@ -311,32 +312,32 @@ class CSVDataSource(DataSource):
 
         # Détermination du délimiteur de sortie
         delimiteur_sortie = (
-            self._detected_delimiter or ","
-            if self.delimiter == "auto"
-            else self.delimiter
+            self._sep or ","
+            if self.sep == "auto"
+            else self.sep
         )
 
         try:
             # Écriture du DataFrame au format CSV
             data.to_csv(
-                self.file_path,
+                self.path,
                 sep=delimiteur_sortie,
                 encoding=encodage_sortie,
                 index=index,
             )
             logger.info(
                 "DataFrame écrit avec succès vers '%s' (%d lignes).",
-                self.file_path,
+                self.path,
                 len(data),
             )
             return True
 
         except OSError as erreur:
             raise WriteError(
-                f"Impossible d'écrire vers '{self.file_path}' : {erreur}"
+                f"Impossible d'écrire vers '{self.path}' : {erreur}"
             ) from erreur
 
-    def get_metadata(self) -> dict:
+    def info(self) -> dict:
         """Retourne les métadonnées descriptives du fichier CSV.
 
         Effectue une lecture légère du fichier pour en extraire les
@@ -344,10 +345,10 @@ class CSVDataSource(DataSource):
 
         Returns:
             dict: Dictionnaire contenant les clés suivantes :
-                - 'source_path' (str) : chemin du fichier.
-                - 'source_type' (str) : 'csv'.
+                - 'path' (str) : chemin du fichier.
+                - 'kind' (str) : 'csv'.
                 - 'encoding' (str) : encodage détecté ou configuré.
-                - 'delimiter' (str) : délimiteur détecté ou configuré.
+                - 'sep' (str) : délimiteur détecté ou configuré.
                 - 'decimal' (str) : séparateur décimal utilisé.
                 - 'rows' (int) : nombre de lignes de données.
                 - 'cols' (int) : nombre de colonnes.
@@ -356,20 +357,20 @@ class CSVDataSource(DataSource):
         """
         # Détection de l'encodage et du délimiteur si nécessaire
         encodage = (
-            self._detected_encoding or self.detect_encoding()
+            self._enc or self._sniff_encoding()
             if self.encoding == "auto"
             else self.encoding
         )
         delimiteur = (
-            self._detected_delimiter or self.detect_delimiter()
-            if self.delimiter == "auto"
-            else self.delimiter
+            self._sep or self._sniff_sep()
+            if self.sep == "auto"
+            else self.sep
         )
 
         # Lecture rapide pour obtenir le nombre de lignes et colonnes
         try:
             df_apercu = pd.read_csv(
-                self.file_path,
+                self.path,
                 sep=delimiteur,
                 encoding=encodage,
                 nrows=0,
@@ -377,7 +378,7 @@ class CSVDataSource(DataSource):
             nb_colonnes = len(df_apercu.columns)
 
             # Comptage des lignes sans charger tout le fichier en mémoire
-            with open(self.file_path, encoding=encodage, errors="replace") as f:
+            with open(self.path, encoding=encodage, errors="replace") as f:
                 nb_lignes = sum(1 for _ in f) - 1  # -1 pour l'en-tête
 
         except Exception:
@@ -385,15 +386,15 @@ class CSVDataSource(DataSource):
             nb_colonnes = -1
 
         # Calcul de la taille du fichier
-        taille_kb = os.path.getsize(self.file_path) / 1024 if os.path.isfile(
-            self.file_path
+        taille_kb = os.path.getsize(self.path) / 1024 if os.path.isfile(
+            self.path
         ) else 0.0
 
         return {
-            "source_path": self.file_path,
-            "source_type": "csv",
+            "path": self.path,
+            "kind": "csv",
             "encoding": encodage,
-            "delimiter": delimiteur,
+            "sep": delimiteur,
             "decimal": self.decimal if self.decimal != "auto" else "inféré",
             "rows": nb_lignes,
             "cols": nb_colonnes,
@@ -403,21 +404,59 @@ class CSVDataSource(DataSource):
             ),
         }
 
-    def validate_connection(self) -> bool:
+    def ping(self) -> bool:
         """Vérifie que le fichier CSV existe et est lisible.
 
         Returns:
             bool: True si le fichier est accessible en lecture, False sinon.
         """
         # Vérification de l'existence et de la lisibilité du fichier
-        est_accessible = os.path.isfile(self.file_path) and os.access(
-            self.file_path, os.R_OK
+        est_accessible = os.path.isfile(self.path) and os.access(
+            self.path, os.R_OK
         )
 
         if not est_accessible:
             logger.warning(
                 "Le fichier CSV '%s' n'existe pas ou n'est pas lisible.",
-                self.file_path,
+                self.path,
             )
 
         return est_accessible
+
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+# Utilisée par __getattr__ pour intercepter les imports de l'ancien nom.
+_DEPRECATED = {
+    "CSVDataSource": ("CSVSource", CSVSource),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte l'accès aux anciens noms de classes pour émettre un avertissement.
+
+    Args:
+        name (str): Nom de l'attribut demandé dans ce module.
+
+    Returns:
+        type: La classe correspondant à l'ancien nom.
+
+    Raises:
+        AttributeError: Si le nom demandé n'est ni un symbole courant
+            ni un ancien nom connu.
+    """
+    if name in _DEPRECATED:
+        # Récupère le nouveau nom et la classe cible
+        new_name, cls = _DEPRECATED[name]
+        warnings.warn(
+            f"kadi.kidas.sources.csv_source.{name} est obsolète et sera supprimé "
+            f"dans KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            # stacklevel=2 pointe vers la ligne de code de l'utilisateur,
+            # pas vers cette fonction interne
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
+    )

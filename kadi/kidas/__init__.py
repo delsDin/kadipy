@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Package kidas — KadiPy Data Acquisition & Standardization.
+Package kidas - KadiPy Data Acquisition & Standardization.
 
 Ce package est le coeur du traitement de données agricoles dans KadiPy.
 Il expose des classes pour lire, nettoyer, valider, normaliser et mettre
@@ -23,17 +23,20 @@ Exemple avec pipeline personnalisé :
     ... )
 """
 
-# --- Sources de données ---
-from kadi.kidas.sources.csv_source import CSVDataSource
-from kadi.kidas.sources.excel_source import ExcelDataSource
-from kadi.kidas.sources.json_source import JSONDataSource
-from kadi.kidas.sources.api_source import APIDataSource
+import warnings
+
+# --- Sources de données (nouveaux noms Phase 2) ---
+from kadi.kidas.sources import (CSVSource,
+    ExcelSource,
+    JSONSource,
+    APISource,
+    Source)
 
 # Import conditionnel : xarray est requis pour NetCDF
 try:
-    from kadi.kidas.sources.netcdf_source import NetCDFDataSource
+    from kadi.kidas.sources import NetCDFSource
 except ImportError:
-    NetCDFDataSource = None  # type: ignore[assignment]
+    NetCDFSource = None  # type: ignore[assignment]
 
 # --- Classes de traitement ---
 from kadi.kidas.cleaner import DataCleaner
@@ -45,15 +48,16 @@ from kadi.kidas.cache import DataCache
 from kadi.kidas.pipeline import DataPipeline
 
 # Version du module kidas
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 # API publique exposée par le package
 __all__ = [
-    "CSVDataSource",
-    "ExcelDataSource",
-    "JSONDataSource",
-    "NetCDFDataSource",
-    "APIDataSource",
+    "Source",
+    "CSVSource",
+    "ExcelSource",
+    "JSONSource",
+    "NetCDFSource",
+    "APISource",
     "DataCleaner",
     "DataValidator",
     "DataNormalizer",
@@ -95,4 +99,49 @@ def load_and_clean(source: str, cache: bool = True):
         .add_cleaning_step("remove_duplicates")
         .add_cleaning_step("handle_missing_values", strategy="mean")
         .execute(cache=cache)
+    )
+
+
+# Table des anciens noms -> (nouveau nom, référence)
+# Interceptés ici pour les imports du style :
+#   from kadi.kidas import CSVDataSource
+_DEPRECATED_KIDAS = {
+    "DataSource": ("Source", lambda: Source),
+    "CSVDataSource": ("CSVSource", lambda: CSVSource),
+    "ExcelDataSource": ("ExcelSource", lambda: ExcelSource),
+    "JSONDataSource": ("JSONSource", lambda: JSONSource),
+    "NetCDFDataSource": ("NetCDFSource", lambda: NetCDFSource),
+    "APIDataSource": ("APISource", lambda: APISource),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis kadi.kidas.
+
+    Permet la rétrocompatibilité complète pour les imports du style :
+    ``from kadi.kidas import CSVDataSource``.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce package.
+
+    Returns:
+        type: La classe source correspondante.
+
+    Raises:
+        AttributeError: Si le nom demandé n'est ni un export courant
+            ni un ancien nom connu.
+    """
+    if name in _DEPRECATED_KIDAS:
+        # Récupère le nouveau nom et la factory
+        new_name, factory = _DEPRECATED_KIDAS[name]
+        warnings.warn(
+            f"kadi.kidas.{name} est obsolète et sera supprimé dans KadiPy v2.0. "
+            f"Utilisez kadi.kidas.{new_name} à la place.",
+            category=DeprecationWarning,
+            # stacklevel=2 pointe vers la ligne de code de l'utilisateur
+            stacklevel=2,
+        )
+        return factory()
+    raise AttributeError(
+        f"Le module 'kadi.kidas' n'a pas d'attribut '{name}'."
     )
