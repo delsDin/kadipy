@@ -12,8 +12,13 @@ from pathlib import Path
 # Définition du répertoire de cache dans le dossier utilisateur
 CACHE_DIR = Path.home() / ".kadi"
 
-# Création du répertoire de cache s'il n'existe pas déjà
-CACHE_DIR.mkdir(exist_ok=True)
+# Création du répertoire de cache s'il n'existe pas déjà (avec fallback si lecture seule)
+try:
+    CACHE_DIR.mkdir(exist_ok=True)
+except OSError:
+    import tempfile
+    CACHE_DIR = Path(tempfile.gettempdir()) / ".kadi"
+    CACHE_DIR.mkdir(exist_ok=True)
 
 # Chemins vers les bases de données SQLite de cache et de sauvegarde
 CACHE_DB = CACHE_DIR / "cache.db"
@@ -23,7 +28,12 @@ CACHE_DB_BACKUP = CACHE_DIR / "cache_backup.db"
 LOG_DIR = CACHE_DIR / "logs"
 
 # Création du répertoire de logs s'il n'existe pas déjà
-LOG_DIR.mkdir(exist_ok=True)
+try:
+    LOG_DIR.mkdir(exist_ok=True)
+except OSError:
+    import tempfile
+    LOG_DIR = Path(tempfile.gettempdir()) / ".kadi" / "logs"
+    LOG_DIR.mkdir(exist_ok=True)
 
 # Chemin vers le fichier de journalisation principal
 LOG_FILE = LOG_DIR / "kadi.log"

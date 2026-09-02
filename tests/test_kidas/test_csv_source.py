@@ -7,7 +7,7 @@ import warnings
 import pandas as pd
 import pytest
 
-from kadi.kidas.sources import CSVSource
+from kadi.kidas import CSVSource
 from kadi.exceptions import ConnectError, ReadError
 
 

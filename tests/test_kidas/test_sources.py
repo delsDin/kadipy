@@ -12,8 +12,7 @@ import pandas as pd
 import pytest
 from unittest.mock import MagicMock, patch
 
-from kadi.kidas.sources import ExcelSource, JSONSource, APISource
-from kadi.kidas.cache import DataCache
+from kadi.kidas import ExcelSource, JSONSource, APISource, Cache
 from kadi.exceptions import ConnectError, ReadError, CacheError
 
 
@@ -206,70 +205,68 @@ class TestAPISource:
 
 
 # =============================================================================
-# Tests DataCache
+# Tests Cache
 # =============================================================================
 
-class TestDataCache:
-    """Tests unitaires pour DataCache (SQLite kidas)."""
+class TestCache:
+    """Tests unitaires pour la classe Cache (SQLite kidas)."""
 
     @pytest.fixture
     def cache_temp(self, tmp_path):
-        """Crée une instance DataCache dans un répertoire temporaire."""
-        return DataCache(cache_dir=str(tmp_path), max_age_days=365)
+        """Crée une instance Cache dans un répertoire temporaire."""
+        return Cache(cache_dir=str(tmp_path), max_age_days=365)
 
-    def test_save_et_load_dataframe(self, cache_temp, sample_df):
+    def test_set_et_get_dataframe(self, cache_temp, sample_df):
         """Vérifie la sauvegarde et le rechargement d'un DataFrame."""
-        cache_temp.save("test_key", sample_df)
-        df_charge, meta = cache_temp.load("test_key")
+        cache_temp.set("test_key", sample_df)
+        df_charge, meta = cache_temp.get("test_key")
         assert df_charge is not None
         assert len(df_charge) == len(sample_df)
 
-    def test_load_cle_absente_retourne_none(self, cache_temp):
+    def test_get_cle_absente_retourne_none(self, cache_temp):
         """Vérifie que le chargement d'une clé inexistante retourne None."""
-        df, meta = cache_temp.load("cle_inexistante")
+        df, meta = cache_temp.get("cle_inexistante")
         assert df is None
         assert meta is None
 
-    def test_get_cached_keys(self, cache_temp, sample_df):
-        """Vérifie que les clés sauvegardées apparaissent dans get_cached_keys()."""
-        cache_temp.save("cle_a", sample_df)
-        cache_temp.save("cle_b", sample_df)
-        cles = cache_temp.get_cached_keys()
+    def test_keys(self, cache_temp, sample_df):
+        """Vérifie que les clés sauvegardées apparaissent dans keys()."""
+        cache_temp.set("cle_a", sample_df)
+        cache_temp.set("cle_b", sample_df)
+        cles = cache_temp.keys()
         assert "cle_a" in cles
         assert "cle_b" in cles
 
-    def test_invalidate_supprime_entree(self, cache_temp, sample_df):
-        """Vérifie que invalidate() supprime l'entrée du cache."""
-        cache_temp.save("a_supprimer", sample_df)
-        assert cache_temp.invalidate("a_supprimer") is True
-        df, _ = cache_temp.load("a_supprimer")
+    def test_delete_supprime_entree(self, cache_temp, sample_df):
+        """Vérifie que delete() supprime l'entrée du cache."""
+        cache_temp.set("a_supprimer", sample_df)
+        assert cache_temp.delete("a_supprimer") is True
+        df, _ = cache_temp.get("a_supprimer")
         assert df is None
 
     def test_clear_vide_le_cache(self, cache_temp, sample_df):
         """Vérifie que clear() supprime toutes les entrées."""
-        cache_temp.save("entree_1", sample_df)
-        cache_temp.save("entree_2", sample_df)
+        cache_temp.set("entree_1", sample_df)
+        cache_temp.set("entree_2", sample_df)
         cache_temp.clear()
-        assert len(cache_temp.get_cached_keys()) == 0
+        assert len(cache_temp.keys()) == 0
 
-    def test_get_cache_size_retourne_dict(self, cache_temp, sample_df):
-        """Vérifie que get_cache_size() retourne les clés attendues."""
-        cache_temp.save("test", sample_df)
-        taille = cache_temp.get_cache_size()
+    def test_size_retourne_dict(self, cache_temp, sample_df):
+        """Vérifie que size() retourne les clés attendues."""
+        cache_temp.set("test", sample_df)
+        taille = cache_temp.size()
         for cle in ("total_mb", "num_entries", "oldest_date"):
             assert cle in taille
 
-    def test_get_history_apres_deux_saves(self, cache_temp, sample_df):
+    def test_history_apres_deux_sets(self, cache_temp, sample_df):
         """Vérifie que l'historique est enregistré lors d'un remplacement."""
-        cache_temp.save("ma_cle", sample_df)
-        cache_temp.save("ma_cle", sample_df)  # Deuxième save : archive la première
-        historique = cache_temp.get_history("ma_cle")
+        cache_temp.set("ma_cle", sample_df)
+        cache_temp.set("ma_cle", sample_df)
+        historique = cache_temp.history("ma_cle")
         assert len(historique) >= 1
 
-    def test_invalidate_older_than(self, cache_temp, sample_df):
+    def test_purge(self, cache_temp, sample_df):
         """Vérifie la suppression des entrées trop anciennes."""
-        cache_temp.save("entree_recente", sample_df)
-        # Avec 0 jours, toutes les entrées sont considérées expirées
-        nb = cache_temp.invalidate_older_than(days=0)
-        # Peut retourner 0 si l'entrée a été créée dans la même seconde
+        cache_temp.set("entree_recente", sample_df)
+        nb = cache_temp.purge(days=0)
         assert isinstance(nb, int)

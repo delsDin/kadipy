@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module implémentant DataCache pour la gestion du cache SQLite dédié à kidas.
+Module implémentant Cache pour la gestion du cache SQLite dédié à kidas.
 
 Ce module gère un cache persistant SQLite local distinct du cache global
 KadiPy (kadi/cache.py). Il stocke les DataFrames sérialisés avec compression
@@ -14,6 +14,7 @@ import logging
 import os
 import pickle
 import sqlite3
+import warnings
 import zlib
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
@@ -33,7 +34,7 @@ _DEFAULT_CACHE_DIR: str = os.path.join(os.path.expanduser("~"), ".kadi", "kidas_
 _DB_FILENAME: str = "kidas_cache.db"
 
 
-class DataCache:
+class Cache:
     """Gestionnaire de cache SQLite persistant pour les données kidas.
 
     Stocke les DataFrames pandas sous forme sérialisée (pickle + zlib)
@@ -45,17 +46,28 @@ class DataCache:
     utilise son propre répertoire : ~/.kadi/kidas_cache/.
 
     Attributs:
-        cache_dir (str): Répertoire du cache SQLite.
-        max_age_days (int): Durée de validité maximale en jours.
-        db_path (str): Chemin complet vers le fichier de base de données.
+        dir (str): Répertoire du cache SQLite.
+        ttl (int): Durée de validité maximale en jours (Time-To-Live).
+        db (str): Chemin complet vers le fichier de base de données.
 
     Exemple:
-        >>> cache = DataCache()
-        >>> cache.save('recoltes_2024', df)
-        >>> df_cached, meta = cache.load('recoltes_2024')
-        >>> print(cache.get_cache_size())
+        >>> cache = Cache()
+        >>> cache.set('recoltes_2024', df)
+        >>> df_cached, meta = cache.get('recoltes_2024')
+        >>> print(cache.size())
         {'total_mb': 1.2, 'num_entries': 3, 'oldest_date': '2026-06-01'}
     """
+
+    # Table de rétrocompatibilité des méthodes d'instance.
+    _METHODES_DEPRECATED = {
+        "save":                  "set",
+        "load":                  "get",
+        "get_cached_keys":       "keys",
+        "invalidate":            "delete",
+        "invalidate_older_than": "purge",
+        "get_cache_size":        "size",
+        "get_history":           "history",
+    }
 
     def __init__(
         self,
@@ -74,36 +86,73 @@ class DataCache:
             CacheError: Si le répertoire ne peut pas être créé.
         """
         # Chemin du répertoire de cache
-        self.cache_dir: str = cache_dir
+        self.dir: str = cache_dir
 
-        # Durée de validité maximale des entrées
-        self.max_age_days: int = max_age_days
+        # Durée de validité maximale des entrées (Time-To-Live en jours)
+        self.ttl: int = max_age_days
 
         # Chemin complet vers la base de données SQLite
-        self.db_path: str = os.path.join(cache_dir, _DB_FILENAME)
+        self.db: str = os.path.join(cache_dir, _DB_FILENAME)
 
         # Création du répertoire si nécessaire
-        self._creer_repertoire()
+        self._mkdir()
 
         # Initialisation des tables de la base de données
-        self._initialiser_db()
+        self._init_db()
 
-    def _creer_repertoire(self) -> None:
+    def __getattr__(self, name: str):
+        """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
+
+        Args:
+            name (str): Nom de la méthode demandée.
+
+        Returns:
+            callable: La méthode correspondant au nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est pas un alias connu.
+        """
+        if name in Cache._METHODES_DEPRECATED:
+            nouveau_nom = Cache._METHODES_DEPRECATED[name]
+            warnings.warn(
+                f"Cache.{name}() est obsolète et sera supprimé dans KadiPy v2.0. "
+                f"Utilisez Cache.{nouveau_nom}() à la place.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, nouveau_nom)
+        raise AttributeError(
+            f"'Cache' n'a pas de méthode '{name}'."
+        )
+
+    def _mkdir(self) -> None:
         """Crée le répertoire du cache s'il n'existe pas encore.
 
         Raises:
             CacheError: Si la création du répertoire échoue.
         """
         try:
-            os.makedirs(self.cache_dir, exist_ok=True)
-            logger.debug("Répertoire cache kidas : '%s'.", self.cache_dir)
+            os.makedirs(self.dir, exist_ok=True)
+            logger.debug("Répertoire cache kidas : '%s'.", self.dir)
         except OSError as erreur:
-            raise CacheError(
-                f"Impossible de créer le répertoire cache '{self.cache_dir}' : {erreur}"
-            ) from erreur
+            import tempfile
+            alt_dir = os.path.join(tempfile.gettempdir(), ".kadi", "kidas_cache")
+            try:
+                os.makedirs(alt_dir, exist_ok=True)
+                self.dir = alt_dir
+                self.db = os.path.join(alt_dir, _DB_FILENAME)
+                logger.warning(
+                    "Répertoire cache principal inaccessible (%s). Bascule sur : '%s'.",
+                    erreur,
+                    alt_dir,
+                )
+            except OSError:
+                raise CacheError(
+                    f"Impossible de créer le répertoire cache '{self.dir}' : {erreur}"
+                ) from erreur
 
-    def _obtenir_connexion(self) -> sqlite3.Connection:
-        """Établit et retourne une connexion à la base de données SQLite.
+    def _connect(self) -> sqlite3.Connection:
+        """Etablit et retourne une connexion à la base de données SQLite.
 
         Returns:
             sqlite3.Connection: Objet de connexion à la base de données.
@@ -112,16 +161,16 @@ class DataCache:
             CacheError: En cas d'échec de connexion.
         """
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db)
             # Accès aux colonnes par leur nom via Row factory
             conn.row_factory = sqlite3.Row
             return conn
         except sqlite3.Error as erreur:
             raise CacheError(
-                f"Impossible de se connecter au cache '{self.db_path}' : {erreur}"
+                f"Impossible de se connecter au cache '{self.db}' : {erreur}"
             ) from erreur
 
-    def _initialiser_db(self) -> None:
+    def _init_db(self) -> None:
         """Initialise les tables SQLite du cache kidas.
 
         Crée les tables 'kidas_cache' et 'kidas_cache_history' si elles
@@ -131,7 +180,7 @@ class DataCache:
             CacheError: Si la création des tables échoue.
         """
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
 
                 # --- Table principale du cache ---
@@ -180,7 +229,7 @@ class DataCache:
             ) from erreur
 
     @staticmethod
-    def _serialiser(data: pd.DataFrame) -> Tuple[bytes, str]:
+    def _pack(data: pd.DataFrame) -> Tuple[bytes, str]:
         """Sérialise un DataFrame en BLOB compressé et calcule son hash.
 
         Args:
@@ -201,7 +250,7 @@ class DataCache:
         return blob_compresse, hash_sha256
 
     @staticmethod
-    def _deserialiser(blob: bytes) -> pd.DataFrame:
+    def _unpack(blob: bytes) -> pd.DataFrame:
         """Désérialise un BLOB compressé en DataFrame pandas.
 
         Args:
@@ -224,11 +273,12 @@ class DataCache:
                 f"Impossible de désérialiser les données du cache : {erreur}"
             ) from erreur
 
-    def save(
+    def set(
         self,
         key: str,
         data: pd.DataFrame,
-        metadata: Optional[Dict] = None,
+        meta: Optional[Dict] = None,
+        **kwargs,
     ) -> bool:
         """Sauvegarde un DataFrame dans le cache avec compression et horodatage.
 
@@ -238,9 +288,9 @@ class DataCache:
         Args:
             key (str): Clé unique identifiant l'entrée de cache.
             data (pd.DataFrame): Le DataFrame à sauvegarder.
-            metadata (dict | None): Métadonnées optionnelles à stocker
+            meta (dict | None): Métadonnées optionnelles à stocker
                 avec les données (ex: source, nb_lignes, colonnes).
-                Par défaut None.
+                Par défaut None. Alias accepté : metadata= (rétrocompatibilité).
 
         Returns:
             bool: True si la sauvegarde s'est déroulée avec succès.
@@ -248,23 +298,27 @@ class DataCache:
         Raises:
             CacheError: Si la sauvegarde échoue.
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "metadata" in kwargs:
+            meta = kwargs.pop("metadata")
+
         import json
 
         try:
             # Sérialisation et compression du DataFrame
-            blob, hash_sha256 = self._serialiser(data)
+            blob, hash_sha256 = self._pack(data)
 
             # Horodatage de la sauvegarde
             maintenant = datetime.now().isoformat()
 
             # Préparation des métadonnées JSON
-            meta_json = json.dumps(metadata or {
+            meta_json = json.dumps(meta or {
                 "nb_rows": len(data),
                 "nb_cols": len(data.columns),
                 "columns": list(data.columns),
             })
 
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
 
                 # Archivage de l'ancienne version si elle existe
@@ -309,27 +363,33 @@ class DataCache:
                 f"Erreur lors de la sauvegarde en cache (clé '{key}') : {erreur}"
             ) from erreur
 
-    def load(
+    def get(
         self,
         key: str,
-        check_validity: bool = True,
+        check: bool = True,
+        **kwargs,
     ) -> Tuple[Optional[pd.DataFrame], Optional[Dict]]:
         """Charge un DataFrame depuis le cache.
 
         Args:
             key (str): Clé identifiant l'entrée à charger.
-            check_validity (bool): Si True, retourne (None, None) si l'entrée
-                est plus ancienne que max_age_days. Par défaut True.
+            check (bool): Si True, retourne (None, None) si l'entrée
+                est plus ancienne que ttl. Par défaut True.
+                Alias accepté : check_validity= (rétrocompatibilité).
 
         Returns:
             tuple[pd.DataFrame | None, dict | None]: Tuple contenant :
                 - Le DataFrame chargé, ou None si absent/expiré.
                 - Les métadonnées, ou None si absent/expiré.
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "check_validity" in kwargs:
+            check = kwargs.pop("check_validity")
+
         import json
 
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
                 ligne = curseur.execute(
                     "SELECT data, metadata, created_at FROM kidas_cache WHERE key = ?",
@@ -341,21 +401,21 @@ class DataCache:
                 return None, None
 
             # Vérification de la fraîcheur si demandée
-            if check_validity:
+            if check:
                 date_creation = datetime.fromisoformat(ligne["created_at"])
                 age = datetime.now() - date_creation
 
-                if age > timedelta(days=self.max_age_days):
+                if age > timedelta(days=self.ttl):
                     logger.info(
                         "Cache kidas : clé '%s' expirée (%d jours > %d jours max).",
                         key,
                         age.days,
-                        self.max_age_days,
+                        self.ttl,
                     )
                     return None, None
 
             # Désérialisation du DataFrame
-            df = self._deserialiser(ligne["data"])
+            df = self._unpack(ligne["data"])
             metadata = json.loads(ligne["metadata"]) if ligne["metadata"] else {}
 
             logger.info(
@@ -368,14 +428,14 @@ class DataCache:
                 f"Erreur lors du chargement depuis le cache (clé '{key}') : {erreur}"
             ) from erreur
 
-    def get_cached_keys(self) -> List[str]:
+    def keys(self) -> List[str]:
         """Retourne la liste de toutes les clés enregistrées dans le cache.
 
         Returns:
             list[str]: Liste ordonnée alphabétiquement des clés de cache.
         """
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
                 resultats = curseur.execute(
                     "SELECT key FROM kidas_cache ORDER BY key"
@@ -388,17 +448,17 @@ class DataCache:
                 f"Erreur lors de la récupération des clés de cache : {erreur}"
             ) from erreur
 
-    def invalidate(self, key: str) -> bool:
+    def delete(self, key: str) -> bool:
         """Supprime une entrée spécifique du cache (sans effacer l'historique).
 
         Args:
-            key (str): Clé de l'entrée à invalider.
+            key (str): Clé de l'entrée à supprimer.
 
         Returns:
             bool: True si l'entrée a été supprimée, False si elle n'existait pas.
         """
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
                 curseur.execute(
                     "DELETE FROM kidas_cache WHERE key = ?", (key,)
@@ -418,11 +478,11 @@ class DataCache:
                 f"Erreur lors de l'invalidation de la clé '{key}' : {erreur}"
             ) from erreur
 
-    def invalidate_older_than(self, days: int) -> int:
+    def purge(self, days: int) -> int:
         """Supprime toutes les entrées de cache plus anciennes que N jours.
 
         Args:
-            days (int): Âge maximum en jours des entrées à conserver.
+            days (int): Age maximum en jours des entrées à conserver.
 
         Returns:
             int: Nombre d'entrées supprimées.
@@ -431,7 +491,7 @@ class DataCache:
         date_seuil = (datetime.now() - timedelta(days=days)).isoformat()
 
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
                 curseur.execute(
                     "DELETE FROM kidas_cache WHERE created_at < ?",
@@ -452,7 +512,7 @@ class DataCache:
                 f"Erreur lors de l'invalidation par âge : {erreur}"
             ) from erreur
 
-    def get_cache_size(self) -> dict:
+    def size(self) -> dict:
         """Retourne des statistiques sur la taille du cache.
 
         Returns:
@@ -463,11 +523,11 @@ class DataCache:
         """
         # Taille du fichier SQLite
         taille_mo = 0.0
-        if os.path.isfile(self.db_path):
-            taille_mo = os.path.getsize(self.db_path) / (1024 * 1024)
+        if os.path.isfile(self.db):
+            taille_mo = os.path.getsize(self.db) / (1024 * 1024)
 
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
 
                 # Comptage des entrées
@@ -498,7 +558,7 @@ class DataCache:
             bool: True si le vidage s'est déroulé avec succès.
         """
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
                 curseur.execute("DELETE FROM kidas_cache")
                 curseur.execute("DELETE FROM kidas_cache_history")
@@ -512,7 +572,7 @@ class DataCache:
                 f"Erreur lors du vidage du cache : {erreur}"
             ) from erreur
 
-    def get_history(self, key: str) -> List[Dict]:
+    def history(self, key: str) -> List[Dict]:
         """Retourne l'historique des versions antérieures d'une clé.
 
         Args:
@@ -523,7 +583,7 @@ class DataCache:
                 chacune avec les clés 'created_at', 'hash' et 'size_bytes'.
         """
         try:
-            with self._obtenir_connexion() as conn:
+            with self._connect() as conn:
                 curseur = conn.cursor()
                 resultats = curseur.execute(
                     "SELECT created_at, hash, LENGTH(data) as size_bytes "
@@ -552,3 +612,36 @@ class DataCache:
             raise CacheError(
                 f"Erreur lors de la récupération de l'historique pour '{key}' : {erreur}"
             ) from erreur
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+_DEPRECATED = {
+    "DataCache": ("Cache", Cache),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.cache.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.cache' n'a pas d'attribut '{name}'."
+    )

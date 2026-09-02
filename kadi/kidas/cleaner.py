@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module implémentant DataCleaner pour le nettoyage des données agricoles.
+Module implémentant Cleaner pour le nettoyage des données agricoles.
 
 Ce module fournit des outils de nettoyage robustes adaptés aux données
 rencontrées en AgriTech béninoise : doublons exacts, valeurs manquantes
@@ -11,6 +11,7 @@ normalisation de dates hétérogènes et standardisation du texte.
 import logging
 import re
 import unicodedata
+import warnings
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -30,7 +31,7 @@ _STRATEGIES_MISSING = {"mean", "median", "forward_fill", "drop"}
 _METHODES_OUTLIERS = {"iqr", "zscore", "mad"}
 
 
-class DataCleaner:
+class Cleaner:
     """Classe de nettoyage des données agricoles tabulaires.
 
     Fournit une suite complète de méthodes pour détecter et corriger
@@ -43,18 +44,31 @@ class DataCleaner:
 
     Attributs:
         df (pd.DataFrame): Le DataFrame en cours de nettoyage.
-        _rapport (dict): Journal des opérations de nettoyage effectuées.
+        _report (dict): Journal des opérations de nettoyage effectuées.
 
     Exemple:
-        >>> cleaner = DataCleaner(df)
+        >>> cleaner = Cleaner(df)
         >>> df_propre = (
         ...     cleaner
-        ...     .remove_duplicates()
-        ...     .handle_missing_values(strategy='mean')
-        ...     .fix_dates(columns=['date_recolte'])
+        ...     .drop_dupes()
+        ...     .fill_missing(strategy='mean')
+        ...     .parse_dates(cols=['date_recolte'])
         ... )
-        >>> print(cleaner.get_cleaning_report())
+        >>> print(cleaner.report())
     """
+
+    # Table de rétrocompatibilité des méthodes d'instance.
+    # Intercept les anciens noms appelés via cleaner.remove_duplicates() etc.
+    _METHODES_DEPRECATED = {
+        "remove_duplicates":           "drop_dupes",
+        "handle_missing_values":       "fill_missing",
+        "remove_outliers":             "drop_outliers",
+        "fix_dates":                   "parse_dates",
+        "standardize_text":            "norm_text",
+        "remove_special_chars":        "strip_chars",
+        "detect_inconsistent_decimals":"check_decimals",
+        "get_cleaning_report":         "report",
+    }
 
     def __init__(self, df: pd.DataFrame) -> None:
         """Initialise le nettoyeur avec le DataFrame à traiter.
@@ -69,7 +83,7 @@ class DataCleaner:
         # Vérification du type d'entrée
         if not isinstance(df, pd.DataFrame):
             raise CleanError(
-                f"DataCleaner attend un pandas DataFrame, "
+                f"Cleaner attend un pandas DataFrame, "
                 f"reçu : {type(df).__name__}."
             )
 
@@ -77,7 +91,7 @@ class DataCleaner:
         self.df: pd.DataFrame = df.copy()
 
         # Rapport d'opérations initialisé à zéro
-        self._rapport: Dict = {
+        self._report: Dict = {
             "doublons_supprimes": 0,
             "nan_traites": 0,
             "outliers_detectes": 0,
@@ -87,7 +101,37 @@ class DataCleaner:
             "operations": [],
         }
 
-    def remove_duplicates(
+    def __getattr__(self, name: str):
+        """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
+
+        Permet aux scripts utilisant les anciens noms (ex: remove_duplicates)
+        de continuer à fonctionner avec un DeprecationWarning.
+
+        Args:
+            name (str): Nom de la méthode demandée.
+
+        Returns:
+            callable: La méthode correspondant au nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est pas un alias connu.
+        """
+        if name in Cleaner._METHODES_DEPRECATED:
+            # Récupération du nouveau nom équivalent
+            nouveau_nom = Cleaner._METHODES_DEPRECATED[name]
+            warnings.warn(
+                f"Cleaner.{name}() est obsolète et sera supprimé dans KadiPy v2.0. "
+                f"Utilisez Cleaner.{nouveau_nom}() à la place.",
+                category=DeprecationWarning,
+                # stacklevel=2 pointe vers la ligne de code de l'utilisateur
+                stacklevel=2,
+            )
+            return getattr(self, nouveau_nom)
+        raise AttributeError(
+            f"'Cleaner' n'a pas de méthode '{name}'."
+        )
+
+    def drop_dupes(
         self,
         subset: Optional[List[str]] = None,
         keep: str = "first",
@@ -121,17 +165,18 @@ class DataCleaner:
             logger.debug("Aucun doublon détecté.")
 
         # Mise à jour du rapport
-        self._rapport["doublons_supprimes"] += nb_doublons
-        self._rapport["operations"].append(
-            {"operation": "remove_duplicates", "doublons_supprimes": nb_doublons}
+        self._report["doublons_supprimes"] += nb_doublons
+        self._report["operations"].append(
+            {"operation": "drop_dupes", "doublons_supprimes": nb_doublons}
         )
 
         return self.df
 
-    def handle_missing_values(
+    def fill_missing(
         self,
         strategy: str = "mean",
-        columns: Optional[List[str]] = None,
+        cols: Optional[List[str]] = None,
+        **kwargs,
     ) -> pd.DataFrame:
         """Traite les valeurs manquantes (NaN) selon une stratégie donnée.
 
@@ -142,8 +187,9 @@ class DataCleaner:
                 - 'forward_fill' : propage la dernière valeur connue.
                 - 'drop' : supprime les lignes contenant des NaN.
                 Par défaut 'mean'.
-            columns (list[str] | None): Colonnes cibles. None pour
+            cols (list[str] | None): Colonnes cibles. None pour
                 toutes les colonnes. Par défaut None.
+                Alias accepté : columns= (rétrocompatibilité).
 
         Returns:
             pd.DataFrame: DataFrame avec les valeurs manquantes traitées.
@@ -151,6 +197,10 @@ class DataCleaner:
         Raises:
             CleanError: Si la stratégie fournie est invalide.
         """
+        # Rétrocompatibilité : ancien paramètre 'columns' accepté
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+
         # Validation de la stratégie
         if strategy not in _STRATEGIES_MISSING:
             raise CleanError(
@@ -159,7 +209,7 @@ class DataCleaner:
             )
 
         # Sélection des colonnes cibles
-        colonnes_cibles = columns if columns else list(self.df.columns)
+        colonnes_cibles = cols if cols else list(self.df.columns)
 
         # Comptage des NaN avant traitement
         nb_nan_avant = self.df[colonnes_cibles].isna().sum().sum()
@@ -197,10 +247,10 @@ class DataCleaner:
         )
 
         # Mise à jour du rapport
-        self._rapport["nan_traites"] += nb_nan_traites
-        self._rapport["operations"].append(
+        self._report["nan_traites"] += nb_nan_traites
+        self._report["operations"].append(
             {
-                "operation": "handle_missing_values",
+                "operation": "fill_missing",
                 "strategy": strategy,
                 "nan_traites": nb_nan_traites,
             }
@@ -208,11 +258,12 @@ class DataCleaner:
 
         return self.df
 
-    def remove_outliers(
+    def drop_outliers(
         self,
         method: str = "iqr",
-        threshold: float = 1.5,
-        columns: Optional[List[str]] = None,
+        thresh: float = 1.5,
+        cols: Optional[List[str]] = None,
+        **kwargs,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Détecte et supprime les outliers statistiques du DataFrame.
 
@@ -222,10 +273,12 @@ class DataCleaner:
                 - 'zscore' : seuil sur le Z-score standardisé.
                 - 'mad' : Median Absolute Deviation, robuste aux outliers.
                 Par défaut 'iqr'.
-            threshold (float): Seuil de détection. Pour 'iqr' : 1.5 standard.
+            thresh (float): Seuil de détection. Pour 'iqr' : 1.5 standard.
                 Pour 'zscore' : 3.0 recommandé. Par défaut 1.5.
-            columns (list[str] | None): Colonnes numériques à analyser.
+                Alias accepté : threshold= (rétrocompatibilité).
+            cols (list[str] | None): Colonnes numériques à analyser.
                 None pour toutes les colonnes numériques. Par défaut None.
+                Alias accepté : columns= (rétrocompatibilité).
 
         Returns:
             tuple[pd.DataFrame, pd.DataFrame]: Tuple contenant :
@@ -235,6 +288,12 @@ class DataCleaner:
         Raises:
             CleanError: Si la méthode fournie est invalide.
         """
+        # Rétrocompatibilité : anciens paramètres acceptés
+        if "threshold" in kwargs:
+            thresh = kwargs.pop("threshold")
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+
         # Validation de la méthode
         if method not in _METHODES_OUTLIERS:
             raise CleanError(
@@ -243,8 +302,8 @@ class DataCleaner:
             )
 
         # Sélection des colonnes numériques cibles
-        if columns:
-            cols_num = [c for c in columns if pd.api.types.is_numeric_dtype(self.df[c])]
+        if cols:
+            cols_num = [c for c in cols if pd.api.types.is_numeric_dtype(self.df[c])]
         else:
             cols_num = list(self.df.select_dtypes(include=[np.number]).columns)
 
@@ -263,17 +322,17 @@ class DataCleaner:
                 q1 = serie.quantile(0.25)
                 q3 = serie.quantile(0.75)
                 iqr = q3 - q1
-                borne_basse = q1 - threshold * iqr
-                borne_haute = q3 + threshold * iqr
+                borne_basse = q1 - thresh * iqr
+                borne_haute = q3 + thresh * iqr
                 masque_col = self.df[colonne].between(borne_basse, borne_haute)
 
             elif method == "zscore":
-                # Z-score standardisé : |z| ≤ threshold
+                # Z-score standardisé : |z| ≤ thresh
                 z_scores = np.abs(stats.zscore(serie))
                 # Alignement avec l'index original (NaN pour les valeurs manquantes)
                 z_alignes = self.df[colonne].copy().astype(float)
                 z_alignes.loc[serie.index] = z_scores
-                masque_col = z_alignes <= threshold
+                masque_col = z_alignes <= thresh
 
             elif method == "mad":
                 # MAD : valeur robuste, moins sensible aux outliers extrêmes
@@ -283,7 +342,7 @@ class DataCleaner:
                 mad_facteur = mad * 1.4826
                 if mad_facteur > 0:
                     z_mad = np.abs(self.df[colonne] - mediane) / mad_facteur
-                    masque_col = z_mad <= threshold
+                    masque_col = z_mad <= thresh
                 else:
                     masque_col = pd.Series(True, index=self.df.index)
 
@@ -297,29 +356,30 @@ class DataCleaner:
 
         nb_outliers = len(df_outliers)
         logger.info(
-            "%d outlier(s) détecté(s) et supprimé(s) (method='%s', threshold=%.2f).",
+            "%d outlier(s) détecté(s) et supprimé(s) (method='%s', thresh=%.2f).",
             nb_outliers,
             method,
-            threshold,
+            thresh,
         )
 
         # Mise à jour du rapport
-        self._rapport["outliers_detectes"] += nb_outliers
-        self._rapport["operations"].append(
+        self._report["outliers_detectes"] += nb_outliers
+        self._report["operations"].append(
             {
-                "operation": "remove_outliers",
+                "operation": "drop_outliers",
                 "method": method,
-                "threshold": threshold,
+                "thresh": thresh,
                 "outliers_supprimes": nb_outliers,
             }
         )
 
         return self.df, df_outliers
 
-    def fix_dates(
+    def parse_dates(
         self,
-        columns: List[str],
-        infer_format: bool = True,
+        cols: Optional[List[str]] = None,
+        infer: bool = True,
+        **kwargs,
     ) -> pd.DataFrame:
         """Normalise les formats de dates hétérogènes dans les colonnes spécifiées.
 
@@ -327,18 +387,28 @@ class DataCleaner:
         si possible. Les valeurs non parsables sont laissées comme NaT.
 
         Args:
-            columns (list[str]): Liste des colonnes contenant des dates
-                à normaliser.
-            infer_format (bool): Si True, infère automatiquement le format
-                de date. Par défaut True.
+            cols (list[str] | None): Liste des colonnes contenant des dates.
+                Alias accepté : columns= (rétrocompatibilité).
+            infer (bool): Si True, infère automatiquement le format de date.
+                Par défaut True. Alias accepté : infer_format= (rétrocompatibilité).
 
         Returns:
             pd.DataFrame: DataFrame avec les colonnes de dates normalisées
                 en datetime64.
         """
+        # Rétrocompatibilité : anciens paramètres acceptés
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+        if "infer_format" in kwargs:
+            infer = kwargs.pop("infer_format")
+
+        # Valeur par défaut : toutes les colonnes objet du DataFrame
+        if cols is None:
+            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+
         nb_dates_corrigees = 0
 
-        for colonne in columns:
+        for colonne in cols:
             if colonne not in self.df.columns:
                 logger.warning(
                     "Colonne '%s' introuvable dans le DataFrame.", colonne
@@ -378,33 +448,44 @@ class DataCleaner:
                 )
 
         # Mise à jour du rapport
-        self._rapport["dates_corrigees"] += nb_dates_corrigees
-        self._rapport["operations"].append(
+        self._report["dates_corrigees"] += nb_dates_corrigees
+        self._report["operations"].append(
             {
-                "operation": "fix_dates",
-                "columns": columns,
+                "operation": "parse_dates",
+                "cols": cols,
                 "dates_corrigees": nb_dates_corrigees,
             }
         )
 
         return self.df
 
-    def standardize_text(
+    def norm_text(
         self,
-        columns: List[str],
+        cols: Optional[List[str]] = None,
         case: str = "lower",
+        **kwargs,
     ) -> pd.DataFrame:
         """Standardise le texte des colonnes : trim, casse, suppression d'accents.
 
         Args:
-            columns (list[str]): Colonnes texte à standardiser.
+            cols (list[str] | None): Colonnes texte à standardiser.
+                Par défaut None : toutes les colonnes texte.
+                Alias accepté : columns= (rétrocompatibilité).
             case (str): Casse à appliquer : 'lower', 'upper' ou 'title'.
                 Par défaut 'lower'.
 
         Returns:
             pd.DataFrame: DataFrame avec les colonnes texte standardisées.
         """
-        for colonne in columns:
+        # Rétrocompatibilité : ancien paramètre 'columns' accepté
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+
+        # Valeur par défaut : toutes les colonnes texte
+        if cols is None:
+            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+
+        for colonne in cols:
             if colonne not in self.df.columns:
                 logger.warning(
                     "Colonne '%s' introuvable dans le DataFrame.", colonne
@@ -436,38 +517,52 @@ class DataCleaner:
                 self.df[colonne] = self.df[colonne].str.title()
 
         logger.debug(
-            "Standardisation texte appliquée aux colonnes : %s (case='%s').",
-            columns,
+            "Normalisation texte appliquée aux colonnes : %s (case='%s').",
+            cols,
             case,
         )
 
-        self._rapport["operations"].append(
-            {"operation": "standardize_text", "columns": columns, "case": case}
+        self._report["operations"].append(
+            {"operation": "norm_text", "cols": cols, "case": case}
         )
 
         return self.df
 
-    def remove_special_chars(
+    def strip_chars(
         self,
-        columns: List[str],
-        keep_chars: str = "",
+        cols: Optional[List[str]] = None,
+        keep: str = "",
+        **kwargs,
     ) -> pd.DataFrame:
         """Supprime les caractères spéciaux des colonnes texte.
 
         Args:
-            columns (list[str]): Colonnes texte à nettoyer.
-            keep_chars (str): Chaîne de caractères à préserver même s'ils
+            cols (list[str] | None): Colonnes texte à nettoyer.
+                Par défaut None : toutes les colonnes texte.
+                Alias accepté : columns= (rétrocompatibilité).
+            keep (str): Chaîne de caractères à préserver même s'ils
                 sont spéciaux (ex: '-' pour les codes). Par défaut ''.
+                Alias accepté : keep_chars= (rétrocompatibilité).
 
         Returns:
             pd.DataFrame: DataFrame avec les caractères spéciaux supprimés.
         """
+        # Rétrocompatibilité : anciens paramètres acceptés
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+        if "keep_chars" in kwargs:
+            keep = kwargs.pop("keep_chars")
+
+        # Valeur par défaut : toutes les colonnes texte
+        if cols is None:
+            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+
         # Construction du pattern regex : supprime tout sauf alphanum,
         # espaces et les caractères à préserver
-        chars_securises = re.escape(keep_chars)
+        chars_securises = re.escape(keep)
         pattern = rf"[^a-zA-Z0-9\s{chars_securises}]"
 
-        for colonne in columns:
+        for colonne in cols:
             if colonne not in self.df.columns:
                 continue
 
@@ -477,28 +572,30 @@ class DataCleaner:
             )
 
         logger.debug(
-            "Caractères spéciaux supprimés dans les colonnes : %s.", columns
+            "Caractères spéciaux supprimés dans les colonnes : %s.", cols
         )
 
-        self._rapport["operations"].append(
+        self._report["operations"].append(
             {
-                "operation": "remove_special_chars",
-                "columns": columns,
-                "keep_chars": keep_chars,
+                "operation": "strip_chars",
+                "cols": cols,
+                "keep": keep,
             }
         )
 
         return self.df
 
-    def detect_inconsistent_decimals(
+    def check_decimals(
         self,
-        columns: List[str],
+        cols: Optional[List[str]] = None,
+        **kwargs,
     ) -> Dict[str, dict]:
         """Détecte le mélange de séparateurs décimaux (. et ,) dans les colonnes.
 
         Args:
-            columns (list[str]): Colonnes à inspecter (doivent être de type str
+            cols (list[str]): Colonnes à inspecter (doivent être de type str
                 ou object pour contenir les deux styles de décimales).
+                Alias accepté : columns= (rétrocompatibilité).
 
         Returns:
             dict: Dictionnaire par colonne avec les clés :
@@ -508,9 +605,17 @@ class DataCleaner:
                 - 'count_dot' (int) : nombre de valeurs avec '.'.
                 - 'count_comma' (int) : nombre de valeurs avec ','.
         """
+        # Rétrocompatibilité : ancien paramètre 'columns' accepté
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+
+        # Valeur par défaut : toutes les colonnes objet du DataFrame
+        if cols is None:
+            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+
         rapport_decimales: Dict[str, dict] = {}
 
-        for colonne in columns:
+        for colonne in cols:
             if colonne not in self.df.columns:
                 continue
 
@@ -540,7 +645,7 @@ class DataCleaner:
 
         return rapport_decimales
 
-    def get_cleaning_report(self) -> dict:
+    def report(self) -> dict:
         """Retourne le rapport complet des opérations de nettoyage effectuées.
 
         Returns:
@@ -555,8 +660,47 @@ class DataCleaner:
                 - 'operations' (list) : historique détaillé des opérations.
         """
         # Ajout des statistiques finales au rapport
-        rapport_final = self._rapport.copy()
+        rapport_final = self._report.copy()
         rapport_final["lignes_finales"] = len(self.df)
         rapport_final["colonnes_finales"] = len(self.df.columns)
 
         return rapport_final
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+# Utilisée par __getattr__ pour intercepter les imports du style :
+#   from kadi.kidas.cleaner import DataCleaner
+_DEPRECATED = {
+    "DataCleaner": ("Cleaner", Cleaner),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Permet la rétrocompatibilité pour les imports du style :
+    ``from kadi.kidas.cleaner import DataCleaner``.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        # Récupère le nouveau nom et la classe
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.cleaner.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.cleaner' n'a pas d'attribut '{name}'."
+    )

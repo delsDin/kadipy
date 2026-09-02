@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module implémentant DataNormalizer pour la normalisation des données agricoles.
+Module implémentant Normalizer pour la normalisation des données agricoles.
 
 Ce module fournit des outils de normalisation orientés AgriTech béninoise :
 conversion snake_case des noms de colonnes, harmonisation des unités de mesure
@@ -11,6 +11,7 @@ selon les codes FAO, géocodage des marchés, et création de géométries shape
 import logging
 import re
 import unicodedata
+import warnings
 from typing import Dict, Optional
 
 import pandas as pd
@@ -107,7 +108,7 @@ _FACTEURS_UNITE_KG: Dict[str, float] = {
 }
 
 
-class DataNormalizer:
+class Normalizer:
     """Classe de normalisation des données agricoles pour le contexte béninois.
 
     Fournit des méthodes de transformation pour uniformiser les conventions
@@ -115,21 +116,32 @@ class DataNormalizer:
     et de marchés, et pour créer des géométries GPS.
 
     Toutes les opérations sont tracées dans un mapping interne récupérable
-    via get_normalization_mapping().
+    via mappings().
 
     Attributs:
         df (pd.DataFrame): Le DataFrame en cours de normalisation.
         _mappings (dict): Historique des transformations appliquées.
 
     Exemple:
-        >>> normalizer = DataNormalizer(df)
+        >>> normalizer = Normalizer(df)
         >>> df_norm = (
         ...     normalizer
-        ...     .normalize_column_names()
-        ...     .normalize_crop_names(col='culture')
-        ...     .normalize_units(unit_map={'production': 'tonne'})
+        ...     .norm_cols()
+        ...     .std_crops(col='culture')
+        ...     .convert_units(unit_map={'production': 'tonne'})
         ... )
     """
+
+    # Table de rétrocompatibilité des méthodes d'instance.
+    _METHODES_DEPRECATED = {
+        "normalize_column_names": "norm_cols",
+        "normalize_units":        "convert_units",
+        "normalize_currencies":   "convert_currency",
+        "normalize_crop_names":   "std_crops",
+        "normalize_market_names": "std_markets",
+        "normalize_geometry":     "std_coords",
+        "get_normalization_mapping": "mappings",
+    }
 
     def __init__(self, df: pd.DataFrame) -> None:
         """Initialise le normaliseur avec le DataFrame à transformer.
@@ -144,7 +156,7 @@ class DataNormalizer:
         # Vérification du type d'entrée
         if not isinstance(df, pd.DataFrame):
             raise CleanError(
-                f"DataNormalizer attend un pandas DataFrame, "
+                f"Normalizer attend un pandas DataFrame, "
                 f"reçu : {type(df).__name__}."
             )
 
@@ -161,21 +173,21 @@ class DataNormalizer:
         }
 
     @staticmethod
-    def _vers_snake_case(texte: str) -> str:
+    def _to_snake(text: str) -> str:
         """Convertit une chaîne de caractères en snake_case.
 
         Supprime les accents, remplace les espaces et tirets par des
         underscores, et convertit en minuscules.
 
         Args:
-            texte (str): La chaîne à convertir.
+            text (str): La chaîne à convertir.
 
         Returns:
             str: La chaîne en snake_case, sans accents ni caractères spéciaux.
         """
         # Suppression des accents via NFD + encodage ASCII
         sans_accent = (
-            unicodedata.normalize("NFD", texte)
+            unicodedata.normalize("NFD", text)
             .encode("ascii", "ignore")
             .decode("utf-8")
         )
@@ -191,7 +203,10 @@ class DataNormalizer:
 
         return snake
 
-    def normalize_column_names(
+    # Alias interne maintenu pour la rétrocompatibilité du code interne existant
+    _vers_snake_case = _to_snake
+
+    def norm_cols(
         self,
         style: str = "snake_case",
     ) -> pd.DataFrame:
@@ -215,7 +230,7 @@ class DataNormalizer:
 
         # Construction du mapping ancien_nom → nouveau_nom
         mapping_colonnes = {
-            col: self._vers_snake_case(col)
+            col: self._to_snake(col)
             for col in self.df.columns
         }
 
@@ -239,7 +254,7 @@ class DataNormalizer:
 
         return self.df
 
-    def normalize_units(
+    def convert_units(
         self,
         unit_map: Dict[str, str],
     ) -> pd.DataFrame:
@@ -295,12 +310,13 @@ class DataNormalizer:
 
         return self.df
 
-    def normalize_currencies(
+    def convert_currency(
         self,
         col: str,
-        from_currency: str = "XOF",
-        to_currency: str = "XOF",
-        exchange_date: Optional[str] = None,
+        from_: str = "XOF",
+        to: str = "XOF",
+        date: Optional[str] = None,
+        **kwargs,
     ) -> pd.DataFrame:
         """Convertit les valeurs monétaires d'une colonne.
 
@@ -310,15 +326,24 @@ class DataNormalizer:
 
         Args:
             col (str): Nom de la colonne à convertir.
-            from_currency (str): Devise source (ex: 'USD', 'XOF', 'EUR').
-                Par défaut 'XOF'.
-            to_currency (str): Devise cible. Par défaut 'XOF'.
-            exchange_date (str | None): Date de référence pour le taux
-                de change (format 'YYYY-MM-DD'). None pour le taux actuel.
+            from_ (str): Devise source (ex: 'USD', 'XOF', 'EUR').
+                Par défaut 'XOF'. Alias accepté : from_currency= (rétrocompat.).
+            to (str): Devise cible. Par défaut 'XOF'.
+                Alias accepté : to_currency= (rétrocompat.).
+            date (str | None): Date de référence pour le taux de change
+                (format 'YYYY-MM-DD'). None pour le taux actuel.
+                Alias accepté : exchange_date= (rétrocompat.).
 
         Returns:
             pd.DataFrame: DataFrame avec la colonne convertie.
         """
+        # Rétrocompatibilité : anciens paramètres acceptés
+        if "from_currency" in kwargs:
+            from_ = kwargs.pop("from_currency")
+        if "to_currency" in kwargs:
+            to = kwargs.pop("to_currency")
+        if "exchange_date" in kwargs:
+            date = kwargs.pop("exchange_date")
         if col not in self.df.columns:
             logger.warning(
                 "Colonne '%s' introuvable pour la conversion de devises.", col
@@ -333,16 +358,16 @@ class DataNormalizer:
             "GBP": 750.0,     # Taux approximatif
         }
 
-        if from_currency not in taux_vers_xof or to_currency not in taux_vers_xof:
+        if from_ not in taux_vers_xof or to not in taux_vers_xof:
             logger.warning(
                 "Paire de devises %s/%s non disponible. Aucune conversion.",
-                from_currency,
-                to_currency,
+                from_,
+                to,
             )
             return self.df
 
         # Calcul du taux de conversion croisé
-        taux_conversion = taux_vers_xof[from_currency] / taux_vers_xof[to_currency]
+        taux_conversion = taux_vers_xof[from_] / taux_vers_xof[to]
 
         # Application de la conversion
         self.df[col] = self.df[col] * taux_conversion
@@ -350,24 +375,25 @@ class DataNormalizer:
         logger.info(
             "Colonne '%s' convertie de %s vers %s (taux: %.4f).",
             col,
-            from_currency,
-            to_currency,
+            from_,
+            to,
             taux_conversion,
         )
 
         # Traçabilité de la conversion
         self._mappings["devises"][col] = {
-            "from": from_currency,
-            "to": to_currency,
+            "from": from_,
+            "to": to,
             "taux": taux_conversion,
         }
 
         return self.df
 
-    def normalize_crop_names(
+    def std_crops(
         self,
         col: str,
-        target_standard: str = "fao",
+        std: str = "fao",
+        **kwargs,
     ) -> pd.DataFrame:
         """Normalise les noms de cultures vers un standard international.
 
@@ -376,12 +402,16 @@ class DataNormalizer:
 
         Args:
             col (str): Nom de la colonne contenant les noms de cultures.
-            target_standard (str): Standard cible. 'fao' utilise les codes
+            std (str): Standard cible. 'fao' utilise les codes
                 officiels FAO (ex: 'maize', 'cowpea'). Par défaut 'fao'.
+                Alias accepté : target_standard= (rétrocompatibilité).
 
         Returns:
             pd.DataFrame: DataFrame avec la colonne de cultures normalisée.
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "target_standard" in kwargs:
+            std = kwargs.pop("target_standard")
         if col not in self.df.columns:
             logger.warning(
                 "Colonne '%s' introuvable pour la normalisation des cultures.", col
@@ -424,14 +454,14 @@ class DataNormalizer:
         logger.info(
             "%d nom(s) de culture normalisé(s) vers standard '%s'.",
             len(mapping_applique),
-            target_standard,
+            std,
         )
 
         self._mappings["cultures"].update(mapping_applique)
 
         return self.df
 
-    def normalize_market_names(
+    def std_markets(
         self,
         col: str,
         region: str = "benin",
@@ -499,21 +529,30 @@ class DataNormalizer:
 
         return self.df
 
-    def normalize_geometry(
+    def std_coords(
         self,
-        lat_col: str,
-        lon_col: str,
+        lat: Optional[str] = None,
+        lon: Optional[str] = None,
+        **kwargs,
     ) -> pd.DataFrame:
         """Crée une colonne 'geometry' contenant des points GPS shapely.
 
         Args:
-            lat_col (str): Nom de la colonne de latitude.
-            lon_col (str): Nom de la colonne de longitude.
+            lat (str | None): Nom de la colonne de latitude.
+                Alias accepté : lat_col= (rétrocompatibilité).
+            lon (str | None): Nom de la colonne de longitude.
+                Alias accepté : lon_col= (rétrocompatibilité).
 
         Returns:
             pd.DataFrame: DataFrame avec la colonne 'geometry' ajoutée.
                 Les lignes avec lat ou lon manquante ont geometry = None.
         """
+        # Rétrocompatibilité : anciens paramètres acceptés
+        if "lat_col" in kwargs:
+            lat = kwargs.pop("lat_col")
+        if "lon_col" in kwargs:
+            lon = kwargs.pop("lon_col")
+
         try:
             # Import conditionnel de shapely (dépendance optionnelle)
             from shapely.geometry import Point
@@ -524,18 +563,18 @@ class DataNormalizer:
             )
             return self.df
 
-        if lat_col not in self.df.columns or lon_col not in self.df.columns:
+        if lat not in self.df.columns or lon not in self.df.columns:
             logger.warning(
                 "Colonnes '%s' ou '%s' introuvables pour la création de géométrie.",
-                lat_col,
-                lon_col,
+                lat,
+                lon,
             )
             return self.df
 
         # Création de la colonne 'geometry' avec des points shapely
         self.df["geometry"] = self.df.apply(
-            lambda ligne: Point(ligne[lon_col], ligne[lat_col])
-            if pd.notna(ligne[lat_col]) and pd.notna(ligne[lon_col])
+            lambda ligne: Point(ligne[lon], ligne[lat])
+            if pd.notna(ligne[lat]) and pd.notna(ligne[lon])
             else None,
             axis=1,
         )
@@ -544,13 +583,13 @@ class DataNormalizer:
         logger.info(
             "%d point(s) géométrique(s) créé(s) depuis '%s'/'%s'.",
             nb_points,
-            lat_col,
-            lon_col,
+            lat,
+            lon,
         )
 
         return self.df
 
-    def get_normalization_mapping(self) -> dict:
+    def mappings(self) -> dict:
         """Retourne l'historique complet des normalisations appliquées.
 
         Returns:
@@ -562,3 +601,61 @@ class DataNormalizer:
                 - 'devises' (dict) : colonne → {from, to, taux}.
         """
         return self._mappings.copy()
+
+    def __getattr__(self, name: str):
+        """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
+
+        Args:
+            name (str): Nom de la méthode demandée.
+
+        Returns:
+            callable: La méthode correspondant au nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est pas un alias connu.
+        """
+        if name in Normalizer._METHODES_DEPRECATED:
+            nouveau_nom = Normalizer._METHODES_DEPRECATED[name]
+            warnings.warn(
+                f"Normalizer.{name}() est obsolète et sera supprimé dans KadiPy v2.0. "
+                f"Utilisez Normalizer.{nouveau_nom}() à la place.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, nouveau_nom)
+        raise AttributeError(
+            f"'Normalizer' n'a pas de méthode '{name}'."
+        )
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+_DEPRECATED = {
+    "DataNormalizer": ("Normalizer", Normalizer),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.normalizer.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.normalizer' n'a pas d'attribut '{name}'."
+    )
