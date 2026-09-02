@@ -1,10 +1,9 @@
-# KadiPy
-
-<div style="display: flex; justify-content: center;">
-    <img src="img/logo.png" alt="KadiPy" width="20%">
+<div style="display: flex; justify-content: center; height: 300px; padding-bottom: 40px;">
+    <img src="img/kadipy-long.png" alt="KadiPy" width="100%">
 </div>
 
-**Le "pandas" de l'agriculture africaine.**
+
+# Le "pandas" de l'agriculture africaine.
 
 KadiPy est une bibliothèque Python conçue pour les agronomes, chercheurs
 et développeurs travaillant sur les données agricoles au Bénin et en
