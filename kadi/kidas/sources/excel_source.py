@@ -16,7 +16,7 @@ import pandas as pd
 
 # Import de la classe de base et des exceptions personnalisées
 from kadi.kidas.sources.base import DataSource
-from kadi.exceptions import KidasReadError, KidasWriteError, KidasConnectionError
+from kadi.exceptions import ReadError, WriteError, ConnectError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -91,11 +91,11 @@ class ExcelDataSource(DataSource):
             int: Index (0-based) de la ligne d'en-tête détectée.
 
         Raises:
-            KidasConnectionError: Si le fichier Excel n'est pas accessible.
-            KidasReadError: Si la détection échoue.
+            ConnectError: Si le fichier Excel n'est pas accessible.
+            ReadError: Si la détection échoue.
         """
         if not self.validate_connection():
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Fichier Excel introuvable : '{self.file_path}'"
             )
 
@@ -138,7 +138,7 @@ class ExcelDataSource(DataSource):
             return ligne_entete
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de détecter l'en-tête dans '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -149,11 +149,11 @@ class ExcelDataSource(DataSource):
             List[str]: Liste ordonnée des noms de feuilles dans le fichier.
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si la lecture de la structure échoue.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si la lecture de la structure échoue.
         """
         if not self.validate_connection():
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Fichier Excel introuvable : '{self.file_path}'"
             )
 
@@ -168,7 +168,7 @@ class ExcelDataSource(DataSource):
             return feuilles
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de lister les feuilles de '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -185,7 +185,7 @@ class ExcelDataSource(DataSource):
                 - 'cols' (int) : nombre de colonnes.
 
         Raises:
-            KidasReadError: Si la lecture de la feuille échoue.
+            ReadError: Si la lecture de la feuille échoue.
         """
         try:
             # Lecture de la feuille entière pour les métadonnées
@@ -197,7 +197,7 @@ class ExcelDataSource(DataSource):
                 "columns": list(df.columns),
             }
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de lire la feuille '{sheet_name}' "
                 f"dans '{self.file_path}' : {erreur}"
             ) from erreur
@@ -239,11 +239,11 @@ class ExcelDataSource(DataSource):
             pd.DataFrame: Les données de la feuille Excel.
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si la lecture échoue.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si la lecture échoue.
         """
         if not self.validate_connection():
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Fichier Excel inaccessible : '{self.file_path}'"
             )
 
@@ -287,7 +287,7 @@ class ExcelDataSource(DataSource):
             return df
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Erreur lors de la lecture de '{self.file_path}' "
                 f"(feuille '{feuille}') : {erreur}"
             ) from erreur
@@ -308,7 +308,7 @@ class ExcelDataSource(DataSource):
             bool: True si l'écriture s'est déroulée avec succès.
 
         Raises:
-            KidasWriteError: Si l'écriture vers le fichier échoue.
+            WriteError: Si l'écriture vers le fichier échoue.
         """
         try:
             # Écriture du DataFrame en format Excel
@@ -322,7 +322,7 @@ class ExcelDataSource(DataSource):
             return True
 
         except Exception as erreur:
-            raise KidasWriteError(
+            raise WriteError(
                 f"Impossible d'écrire vers '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -341,7 +341,7 @@ class ExcelDataSource(DataSource):
         # Récupération de la liste des feuilles
         try:
             feuilles = self.list_sheets()
-        except KidasReadError:
+        except ReadError:
             feuilles = []
 
         # Calcul de la taille du fichier

@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from kadi.kidas.sources.csv_source import CSVDataSource
-from kadi.exceptions import KidasConnectionError, KidasReadError
+from kadi.exceptions import ConnectError, ReadError
 
 
 class TestCSVDataSourceValidation:
@@ -85,9 +85,9 @@ class TestCSVDataSourceLecture:
         assert len(df) > 0
 
     def test_read_fichier_inexistant_leve_exception(self):
-        """Vérifie que la lecture d'un fichier absent lève KidasConnectionError."""
+        """Vérifie que la lecture d'un fichier absent lève ConnectError."""
         source = CSVDataSource("/fichier/absent.csv")
-        with pytest.raises(KidasConnectionError):
+        with pytest.raises(ConnectError):
             source.read()
 
     def test_read_met_a_jour_last_read(self, temp_csv_file):

@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from kadi.exceptions import InsufficientData, CropNotFound
+from kadi.exceptions import DataError, CropError
 from .location import Location
 
 class Phenology:
@@ -55,7 +55,7 @@ class Phenology:
         :return: Dictionnaire contenant les informations de l'onset.
         """
         if self.rainfall_data.empty:
-            raise InsufficientData("Impossible de calculer l'onset : aucune donnée de précipitation disponible.")
+            raise DataError("Impossible de calculer l'onset : aucune donnée de précipitation disponible.")
 
         # Utilise l'année du dernier enregistrement disponible
         current_year = self.rainfall_data.index[-1].year
@@ -120,7 +120,7 @@ class Phenology:
         :return: Dictionnaire avec la ou les dates de cessation.
         """
         if self.rainfall_data.empty:
-            raise InsufficientData("Impossible de calculer la cessation : aucune donnée de précipitation disponible.")
+            raise DataError("Impossible de calculer la cessation : aucune donnée de précipitation disponible.")
 
         years = sorted(list(set(self.rainfall_data.index.year)), reverse=True)
 
@@ -197,7 +197,7 @@ class Phenology:
         end_ts = pd.to_datetime(end_date)
         
         if crop.lower() not in self.crop_params:
-            raise CropNotFound(f"Culture non reconnue pour le calcul des GDD : {crop}")
+            raise CropError(f"Culture non reconnue pour le calcul des GDD : {crop}")
             
         params = self.crop_params.get(crop.lower())
         tbase = params['base_temp']
@@ -206,7 +206,7 @@ class Phenology:
         # Extrait la période
         period = self.temperature_data.loc[start_ts:end_ts]
         if period.empty:
-            raise InsufficientData("Pas assez de données de température pour la période de calcul des degrés-jours.")
+            raise DataError("Pas assez de données de température pour la période de calcul des degrés-jours.")
             
         # Calcul GDD journalier
         tmean = (period['temperature_max'] + period['temperature_min']) / 2.0

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from typing import Optional
 
-from kadi.exceptions import InsufficientData, CropNotFound, ValidationError
+from kadi.exceptions import DataError, CropError, ValidationError
 from .location import Location
 
 class Hydrology:
@@ -179,7 +179,7 @@ class Hydrology:
         :return: DataFrame contenant l'évolution du bilan.
         """
         if self.rainfall_data.empty or self.temperature_data.empty:
-            raise InsufficientData("Données météorologiques historiques manquantes pour le calcul du bilan hydrique.")
+            raise DataError("Données météorologiques historiques manquantes pour le calcul du bilan hydrique.")
             
         taw = self.soil_params['taw'] # Total Available Water
         base_cn = self.soil_params['cn_amc2']
@@ -270,6 +270,6 @@ class Hydrology:
             'tomato': {'ini': 0.6, 'mid': 1.15, 'end': 0.7}
         }
         if crop not in kcs:
-            raise CropNotFound(f"Culture non reconnue pour le coefficient FAO-56: {crop}")
+            raise CropError(f"Culture non reconnue pour le coefficient FAO-56: {crop}")
         params = kcs[crop]
         return params.get(stage, 1.0)

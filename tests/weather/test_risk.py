@@ -8,7 +8,7 @@ import pandas as pd
 
 from kadi.weather.risk import RiskIndicators
 from kadi.weather.location import Location
-from kadi.exceptions import InsufficientData
+from kadi.exceptions import DataError
 
 
 # ---------------------------------------------------------------------------
@@ -83,18 +83,18 @@ def test_spi_negatif_sur_serie_seche():
 
 
 def test_drought_index_serie_trop_courte(risk_setup):
-    """Un indice sur une série trop courte doit lever InsufficientData."""
+    """Un indice sur une série trop courte doit lever DataError."""
     location, _ = risk_setup
     dates_court = pd.date_range(start='2026-01-01', periods=20)
     precip_court = pd.Series([2.0] * 20, index=dates_court)
     risk = RiskIndicators(location, precip_court, pd.DataFrame())
 
-    with pytest.raises(InsufficientData):
+    with pytest.raises(DataError):
         risk.drought_index(window_months=3)
 
 
 def test_spi_leve_si_trop_peu_de_non_nuls():
-    """InsufficientData doit être levée si les valeurs non nulles sont insuffisantes (< 10)."""
+    """DataError doit être levée si les valeurs non nulles sont insuffisantes (< 10)."""
     location = Location(latitude=9.3041, longitude=2.0890)
     # Série de 100 jours, presque tous à 0 (seulement 5 jours avec pluie)
     dates = pd.date_range(start='2025-01-01', periods=100)
@@ -102,7 +102,7 @@ def test_spi_leve_si_trop_peu_de_non_nuls():
     precip_data = pd.Series(precip, index=dates)
     risk = RiskIndicators(location, precip_data, pd.DataFrame())
 
-    with pytest.raises(InsufficientData):
+    with pytest.raises(DataError):
         risk.spi(window_months=3)
 
 
@@ -121,13 +121,13 @@ def test_hurst_retourne_valeur_entre_0_et_1(risk_long_setup):
 
 
 def test_hurst_insufficient_data(risk_setup):
-    """Hurst sur moins de 100 jours doit lever InsufficientData."""
+    """Hurst sur moins de 100 jours doit lever DataError."""
     location, _ = risk_setup
     dates_court = pd.date_range(start='2026-01-01', periods=50)
     precip_court = pd.Series([3.0] * 50, index=dates_court)
     risk = RiskIndicators(location, precip_court, pd.DataFrame())
 
-    with pytest.raises(InsufficientData):
+    with pytest.raises(DataError):
         risk.hurst_exponent()
 
 

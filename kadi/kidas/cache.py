@@ -21,7 +21,7 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
 # Import des exceptions personnalisées
-from kadi.exceptions import KidasCacheError
+from kadi.exceptions import CacheError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class DataCache:
                 est considérée comme expirée. Par défaut 365.
 
         Raises:
-            KidasCacheError: Si le répertoire ne peut pas être créé.
+            CacheError: Si le répertoire ne peut pas être créé.
         """
         # Chemin du répertoire de cache
         self.cache_dir: str = cache_dir
@@ -92,13 +92,13 @@ class DataCache:
         """Crée le répertoire du cache s'il n'existe pas encore.
 
         Raises:
-            KidasCacheError: Si la création du répertoire échoue.
+            CacheError: Si la création du répertoire échoue.
         """
         try:
             os.makedirs(self.cache_dir, exist_ok=True)
             logger.debug("Répertoire cache kidas : '%s'.", self.cache_dir)
         except OSError as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Impossible de créer le répertoire cache '{self.cache_dir}' : {erreur}"
             ) from erreur
 
@@ -109,7 +109,7 @@ class DataCache:
             sqlite3.Connection: Objet de connexion à la base de données.
 
         Raises:
-            KidasCacheError: En cas d'échec de connexion.
+            CacheError: En cas d'échec de connexion.
         """
         try:
             conn = sqlite3.connect(self.db_path)
@@ -117,7 +117,7 @@ class DataCache:
             conn.row_factory = sqlite3.Row
             return conn
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Impossible de se connecter au cache '{self.db_path}' : {erreur}"
             ) from erreur
 
@@ -128,7 +128,7 @@ class DataCache:
         n'existent pas déjà.
 
         Raises:
-            KidasCacheError: Si la création des tables échoue.
+            CacheError: Si la création des tables échoue.
         """
         try:
             with self._obtenir_connexion() as conn:
@@ -175,7 +175,7 @@ class DataCache:
                 logger.debug("Base de données cache kidas initialisée.")
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur d'initialisation du cache SQLite : {erreur}"
             ) from erreur
 
@@ -211,7 +211,7 @@ class DataCache:
             pd.DataFrame: Le DataFrame reconstruit.
 
         Raises:
-            KidasCacheError: Si la désérialisation échoue.
+            CacheError: Si la désérialisation échoue.
         """
         try:
             # Décompression zlib
@@ -220,7 +220,7 @@ class DataCache:
             # Désérialisation pickle
             return pickle.loads(donnees_pickle)
         except Exception as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Impossible de désérialiser les données du cache : {erreur}"
             ) from erreur
 
@@ -246,7 +246,7 @@ class DataCache:
             bool: True si la sauvegarde s'est déroulée avec succès.
 
         Raises:
-            KidasCacheError: Si la sauvegarde échoue.
+            CacheError: Si la sauvegarde échoue.
         """
         import json
 
@@ -305,7 +305,7 @@ class DataCache:
             return True
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors de la sauvegarde en cache (clé '{key}') : {erreur}"
             ) from erreur
 
@@ -364,7 +364,7 @@ class DataCache:
             return df, metadata
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors du chargement depuis le cache (clé '{key}') : {erreur}"
             ) from erreur
 
@@ -384,7 +384,7 @@ class DataCache:
             return [r["key"] for r in resultats]
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors de la récupération des clés de cache : {erreur}"
             ) from erreur
 
@@ -414,7 +414,7 @@ class DataCache:
             return nb_supprimes > 0
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors de l'invalidation de la clé '{key}' : {erreur}"
             ) from erreur
 
@@ -448,7 +448,7 @@ class DataCache:
             return nb_supprimes
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors de l'invalidation par âge : {erreur}"
             ) from erreur
 
@@ -487,7 +487,7 @@ class DataCache:
             }
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors du calcul de la taille du cache : {erreur}"
             ) from erreur
 
@@ -508,7 +508,7 @@ class DataCache:
             return True
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors du vidage du cache : {erreur}"
             ) from erreur
 
@@ -549,6 +549,6 @@ class DataCache:
             return historique
 
         except sqlite3.Error as erreur:
-            raise KidasCacheError(
+            raise CacheError(
                 f"Erreur lors de la récupération de l'historique pour '{key}' : {erreur}"
             ) from erreur

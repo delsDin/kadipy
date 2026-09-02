@@ -18,7 +18,7 @@ import xarray as xr
 
 # Import de la classe de base et des exceptions personnalisées
 from kadi.kidas.sources.base import DataSource
-from kadi.exceptions import KidasReadError, KidasWriteError, KidasConnectionError
+from kadi.exceptions import ReadError, WriteError, ConnectError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -90,15 +90,15 @@ class NetCDFDataSource(DataSource):
             xr.Dataset: Le dataset xarray chargé.
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si le fichier NetCDF est corrompu.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si le fichier NetCDF est corrompu.
         """
         # Retour du cache si déjà chargé
         if self._dataset is not None:
             return self._dataset
 
         if not self.validate_connection():
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Fichier NetCDF introuvable : '{self.file_path}'"
             )
 
@@ -118,7 +118,7 @@ class NetCDFDataSource(DataSource):
             return self._dataset
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de lire le fichier NetCDF '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -130,8 +130,8 @@ class NetCDFDataSource(DataSource):
                 Exemple : {'lat': 240, 'lon': 360, 'time': 1461}.
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si la lecture du dataset échoue.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si la lecture du dataset échoue.
         """
         # Chargement du dataset (depuis le cache ou le disque)
         ds = self._charger_dataset()
@@ -167,8 +167,8 @@ class NetCDFDataSource(DataSource):
             xr.DataArray: Le sous-ensemble de données extrait.
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si l'extraction du sous-ensemble échoue.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si l'extraction du sous-ensemble échoue.
         """
         # Chargement du dataset
         ds = self._charger_dataset()
@@ -221,7 +221,7 @@ class NetCDFDataSource(DataSource):
             return da
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Erreur lors de l'extraction du sous-ensemble NetCDF : {erreur}"
             ) from erreur
 
@@ -236,7 +236,7 @@ class NetCDFDataSource(DataSource):
                 les dimensions comme colonnes (lat, lon, time, valeur).
 
         Raises:
-            KidasReadError: Si la conversion échoue.
+            ReadError: Si la conversion échoue.
         """
         # Si read() n'a pas été appelé, effectuer une lecture par défaut
         if self._last_data_array is None:
@@ -253,7 +253,7 @@ class NetCDFDataSource(DataSource):
             return df
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de convertir le DataArray en DataFrame : {erreur}"
             ) from erreur
 
@@ -271,7 +271,7 @@ class NetCDFDataSource(DataSource):
             bool: True si l'écriture s'est déroulée avec succès.
 
         Raises:
-            KidasWriteError: Si l'écriture échoue.
+            WriteError: Si l'écriture échoue.
         """
         try:
             # Conversion du DataFrame en Dataset xarray puis sauvegarde
@@ -283,7 +283,7 @@ class NetCDFDataSource(DataSource):
             return True
 
         except Exception as erreur:
-            raise KidasWriteError(
+            raise WriteError(
                 f"Impossible d'écrire vers '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -305,7 +305,7 @@ class NetCDFDataSource(DataSource):
             ds = self._charger_dataset()
             dimensions = self.get_dimensions()
             variables = list(ds.data_vars)
-        except (KidasReadError, KidasConnectionError):
+        except (ReadError, ConnectError):
             dimensions = {}
             variables = []
 

@@ -28,7 +28,7 @@ from kadi._sources.chirps import (
     _extraire_valeur_ponctuelle,
     fetch_historical_precipitation,
 )
-from kadi.exceptions import DataSourceError
+from kadi.exceptions import SourceError
 from kadi.weather.data import WeatherData
 from kadi.weather.location import Location
 
@@ -143,7 +143,7 @@ def test_fetch_precipitation_erreur_reseau_retourne_none(tmp_path):
     la fonction doit retourner None après avoir émis des avertissements.
     """
     # On utilise une date ancienne (janvier 2020) qui est certifiée disponible
-    avec_erreur = DataSourceError("Serveur CHC inaccessible")
+    avec_erreur = SourceError("Serveur CHC inaccessible")
 
     with patch(
         "kadi._sources.chirps._telecharger_et_decouper_raster",
@@ -466,7 +466,7 @@ def test_telecharger_et_decouper_raster_ok(tmp_path):
 
 def test_telecharger_et_decouper_raster_erreur_http(tmp_path):
     """
-    Une erreur HTTP 404 du serveur CHC doit lever DataSourceError,
+    Une erreur HTTP 404 du serveur CHC doit lever SourceError,
     pas une exception générique urllib.
     """
     import urllib.error
@@ -485,7 +485,7 @@ def test_telecharger_et_decouper_raster_erreur_http(tmp_path):
 
     with patch("urllib.request.urlopen", side_effect=erreur_404), \
          patch("rioxarray.open_rasterio", MagicMock()):
-        with pytest.raises(DataSourceError, match="404"):
+        with pytest.raises(SourceError, match="404"):
             _telecharger_et_decouper_raster(date(2020, 6, 15), chemin_cache)
 
     # Aucun fichier corrompu ne doit subsister dans le cache
@@ -494,7 +494,7 @@ def test_telecharger_et_decouper_raster_erreur_http(tmp_path):
 
 def test_telecharger_et_decouper_raster_erreur_reseau(tmp_path):
     """
-    Une OSError (timeout, DNS, etc.) doit lever DataSourceError avec un
+    Une OSError (timeout, DNS, etc.) doit lever SourceError avec un
     message indiquant l'impossibilité de joindre le serveur.
     """
     from unittest.mock import patch
@@ -502,7 +502,7 @@ def test_telecharger_et_decouper_raster_erreur_reseau(tmp_path):
     chemin_cache = tmp_path / "chirps-v2.0.2020.07.10.tif"
 
     with patch("urllib.request.urlopen", side_effect=OSError("Connection refused")):
-        with pytest.raises(DataSourceError, match="serveur CHIRPS"):
+        with pytest.raises(SourceError, match="serveur CHIRPS"):
             _telecharger_et_decouper_raster(date(2020, 7, 10), chemin_cache)
 
 
@@ -526,7 +526,7 @@ def test_telecharger_et_decouper_raster_erreur_traitement_nettoyage(tmp_path):
     with patch("urllib.request.urlopen", return_value=mock_reponse), \
          patch("gzip.decompress", return_value=b"DATA"), \
          patch("xarray.open_dataset", side_effect=RuntimeError("rasterio error")):
-        with pytest.raises(DataSourceError):
+        with pytest.raises(SourceError):
             _telecharger_et_decouper_raster(date(2020, 8, 1), chemin_cache)
 
     # Le fichier partiel ne doit pas subsister
@@ -608,7 +608,7 @@ def test_extraire_valeur_ponctuelle_valeur_negative_remplacee(tmp_path):
 
 def test_extraire_valeur_ponctuelle_leve_data_source_error(tmp_path):
     """
-    Une exception lors de la lecture du raster doit lever DataSourceError.
+    Une exception lors de la lecture du raster doit lever SourceError.
     """
     from unittest.mock import patch
 
@@ -616,5 +616,5 @@ def test_extraire_valeur_ponctuelle_leve_data_source_error(tmp_path):
     chemin_raster.write_bytes(b"NOT_A_REAL_TIF")
 
     with patch("xarray.open_dataset", side_effect=Exception("rasterio: invalid file")):
-        with pytest.raises(DataSourceError, match="extraire la valeur"):
+        with pytest.raises(SourceError, match="extraire la valeur"):
             _extraire_valeur_ponctuelle(chemin_raster, lat=9.337, lon=2.630)

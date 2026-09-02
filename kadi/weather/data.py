@@ -319,7 +319,7 @@ class WeatherData:
         :param source: Source de précipitation à utiliser.
         :return: DataFrame normalisé avec les données historiques.
         """
-        from kadi.exceptions import InsufficientData
+        from kadi.exceptions import DataError
         from datetime import date as date_type
 
         # Calcul des bornes de la plage demandée

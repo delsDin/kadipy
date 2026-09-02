@@ -1,7 +1,7 @@
 import pytest
 import os
 from kadi.weather.session import WeatherSession
-from kadi.exceptions import InsufficientData
+from kadi.exceptions import DataError
 
 @pytest.fixture
 def session():
@@ -53,7 +53,7 @@ def test_phenology_and_hydrology_integration(session):
         )
         assert gdd['crop'] == 'maize'
         assert gdd['gdd_accumulated'] >= 0
-    except InsufficientData:
+    except DataError:
         # En cas d'absence de données locales complètes, on ignore gracieusement
         pytest.skip("Données historiques insuffisantes pour le calcul GDD.")
 
@@ -62,7 +62,7 @@ def test_phenology_and_hydrology_integration(session):
         assert not wb.empty
         assert 'deficit_eau' in wb.columns
         assert 'reserve_utile' in wb.columns
-    except InsufficientData:
+    except DataError:
         pytest.skip("Données historiques insuffisantes pour le calcul du bilan hydrique.")
 
 @pytest.mark.integration
@@ -73,5 +73,5 @@ def test_risk_indicators_integration(session):
         assert 'message' in prob
         assert 'recommendation' in prob
         assert 'tomorrow' in prob
-    except InsufficientData:
+    except DataError:
         pytest.skip("Données de prévision insuffisantes pour la probabilité de pluie.")

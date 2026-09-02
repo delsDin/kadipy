@@ -9,7 +9,7 @@ import time
 import logging
 from typing import Callable, Any
 
-from kadi.exceptions import DataSourceError
+from kadi.exceptions import SourceError
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ def fetch_with_retry(
         Any: Les données retournées par fetch_func.
         
     Raises:
-        DataSourceError: Si toutes les tentatives échouent.
+        SourceError: Si toutes les tentatives échouent.
     """
     last_exception = None
     
@@ -51,4 +51,4 @@ def fetch_with_retry(
                 
     # Si on sort de la boucle, c'est que toutes les tentatives ont échoué
     logger.error(f"Toutes les tentatives ({attempts}) ont échoué.")
-    raise DataSourceError(f"Échec définitif de récupération : {last_exception}")
+    raise SourceError(f"Échec définitif de récupération : {last_exception}")

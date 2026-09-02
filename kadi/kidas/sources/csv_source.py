@@ -17,7 +17,7 @@ import pandas as pd
 
 # Import de la classe de base et des exceptions personnalisées
 from kadi.kidas.sources.base import DataSource
-from kadi.exceptions import KidasReadError, KidasWriteError, KidasConnectionError
+from kadi.exceptions import ReadError, WriteError, ConnectError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -97,11 +97,11 @@ class CSVDataSource(DataSource):
             str: L'encodage détecté (ex: 'utf-8', 'ISO-8859-1').
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
+            ConnectError: Si le fichier n'est pas accessible.
         """
         # Vérification de l'existence du fichier avant de lire
         if not os.path.isfile(self.file_path):
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Fichier CSV introuvable : '{self.file_path}'"
             )
 
@@ -126,7 +126,7 @@ class CSVDataSource(DataSource):
             return encodage
 
         except OSError as erreur:
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Impossible de lire le fichier CSV '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -141,7 +141,7 @@ class CSVDataSource(DataSource):
             str: Le délimiteur détecté (ex: ',', ';', '\\t', '|').
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
+            ConnectError: Si le fichier n'est pas accessible.
         """
         # Détermination de l'encodage pour ouvrir le fichier correctement
         encodage = self._detected_encoding or self.detect_encoding()
@@ -177,7 +177,7 @@ class CSVDataSource(DataSource):
             return delimiteur
 
         except OSError as erreur:
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Impossible d'accéder au fichier '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -202,12 +202,12 @@ class CSVDataSource(DataSource):
             pd.DataFrame: Les données du fichier CSV.
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si la lecture échoue malgré les fallbacks.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si la lecture échoue malgré les fallbacks.
         """
         # Vérification préalable de l'accessibilité
         if not self.validate_connection():
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Le fichier CSV '{self.file_path}' n'est pas accessible."
             )
 
@@ -276,13 +276,13 @@ class CSVDataSource(DataSource):
                 continue
 
             except Exception as erreur:
-                raise KidasReadError(
+                raise ReadError(
                     f"Erreur inattendue lors de la lecture de "
                     f"'{self.file_path}' : {erreur}"
                 ) from erreur
 
         # Si tous les encodages ont échoué
-        raise KidasReadError(
+        raise ReadError(
             f"Impossible de lire '{self.file_path}' avec les encodages "
             f"testés : {encodages_a_tester}. Dernière erreur : {dernier_erreur}"
         )
@@ -302,7 +302,7 @@ class CSVDataSource(DataSource):
             bool: True si l'écriture s'est déroulée avec succès.
 
         Raises:
-            KidasWriteError: Si l'écriture vers le fichier échoue.
+            WriteError: Si l'écriture vers le fichier échoue.
         """
         # Détermination de l'encodage de sortie
         encodage_sortie = (
@@ -332,7 +332,7 @@ class CSVDataSource(DataSource):
             return True
 
         except OSError as erreur:
-            raise KidasWriteError(
+            raise WriteError(
                 f"Impossible d'écrire vers '{self.file_path}' : {erreur}"
             ) from erreur
 

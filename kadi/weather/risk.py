@@ -10,7 +10,7 @@ import pandas as pd
 import scipy.stats as stats
 from typing import Optional
 
-from kadi.exceptions import InsufficientData, ValidationError
+from kadi.exceptions import DataError, ValidationError
 from .location import Location
 
 class RiskIndicators:
@@ -93,13 +93,13 @@ class RiskIndicators:
                 cumuls sont identiques (écart-type nul).
 
         Raises:
-            InsufficientData: Si la série est vide, si le nombre de fenêtres
+            DataError: Si la série est vide, si le nombre de fenêtres
                 calculées est inférieur à 30, si les cumuls non nuls sont
                 trop peu nombreux (< 10) pour ajuster une loi Gamma, ou si
                 l'ajustement Gamma échoue numériquement.
         """
         if self.rainfall_historical.empty:
-            raise InsufficientData("Aucune donnée historique pour le calcul du SPI.")
+            raise DataError("Aucune donnée historique pour le calcul du SPI.")
 
         # Calcul des cumuls glissants sur la fenêtre temporelle
         days = window_months * 30
@@ -110,7 +110,7 @@ class RiskIndicators:
 
         # Vérification du nombre minimal de fenêtres
         if len(rolling_sum) < 30:
-            raise InsufficientData(
+            raise DataError(
                 "Pas assez de jours de données pour ajuster le modèle SPI "
                 "(minimum 30 fenêtres requises)."
             )
@@ -131,7 +131,7 @@ class RiskIndicators:
         valid_data = rolling_sum[rolling_sum > 0].values
 
         if len(valid_data) < 10:
-            raise InsufficientData(
+            raise DataError(
                 "Pas assez de cumuls non nuls pour ajuster une loi Gamma "
                 f"(trouvé {len(valid_data)}, minimum 10 requis). "
                 "La période analysée est peut-être trop sèche."
@@ -141,7 +141,7 @@ class RiskIndicators:
         try:
             shape, loc, scale = stats.gamma.fit(valid_data, floc=0)
         except Exception as exc:
-            raise InsufficientData(
+            raise DataError(
                 f"L'ajustement de la loi Gamma a échoué : {exc}. "
                 "Vérifiez la qualité de la série pluviométrique."
             ) from exc
@@ -178,10 +178,10 @@ class RiskIndicators:
                 - 'p_wet_wet'  : P(humide | humide précédent)
 
         Raises:
-            InsufficientData: Si la série historique est vide.
+            DataError: Si la série historique est vide.
         """
         if self.rainfall_historical.empty:
-            raise InsufficientData("Aucune donnée historique pour le calcul des probabilités de transition de Markov.")
+            raise DataError("Aucune donnée historique pour le calcul des probabilités de transition de Markov.")
             
         # États : 0 = sec, 1 = humide
         states = (self.rainfall_historical >= threshold_mm).astype(int)
@@ -233,10 +233,10 @@ class RiskIndicators:
                 Retourne 0.5 si la série est trop courte pour une régression fiable.
 
         Raises:
-            InsufficientData: Si la série historique contient moins de 100 jours.
+            DataError: Si la série historique contient moins de 100 jours.
         """
         if len(self.rainfall_historical) < 100:
-            raise InsufficientData("Pas assez de données pour l'exposant de Hurst (minimum 100 jours requis).")
+            raise DataError("Pas assez de données pour l'exposant de Hurst (minimum 100 jours requis).")
 
         data = self.rainfall_historical.values
         n_total = len(data)
@@ -312,10 +312,10 @@ class RiskIndicators:
                 - 'recommendation' : recommandation agronomique.
 
         Raises:
-            InsufficientData: Si les données de prévision sont absentes ou vides.
+            DataError: Si les données de prévision sont absentes ou vides.
         """
         if self.forecast_data is None or self.forecast_data.empty:
-            raise InsufficientData("Données de prévision indisponibles pour estimer la probabilité de pluie.")
+            raise DataError("Données de prévision indisponibles pour estimer la probabilité de pluie.")
 
         # Construction de la matrice de Markov depuis l'historique local
         try:

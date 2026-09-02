@@ -6,7 +6,7 @@ une position géographique (latitude, longitude) au Bénin et
 de déduire automatiquement sa zone agro-climatique.
 """
 
-from kadi.exceptions import LocationNotFound
+from kadi.exceptions import LocationError
 from kadi.config import CONFIG
 
 class Location:
@@ -29,7 +29,7 @@ class Location:
         # Validation de la localisation par rapport à la zone d'étude V1 (Bénin)
         bbox = CONFIG["weather"]["gps_validation_bbox"]
         if not (bbox["min_lat"] <= latitude <= bbox["max_lat"] and bbox["min_lon"] <= longitude <= bbox["max_lon"]):
-            raise LocationNotFound(f"Les coordonnées GPS ({latitude}, {longitude}) sont en dehors de la zone d'étude (Bénin V1).")
+            raise LocationError(f"Les coordonnées GPS ({latitude}, {longitude}) sont en dehors de la zone d'étude (Bénin V1).")
             
         self.name = name if name else f"Point({latitude}, {longitude})"
         

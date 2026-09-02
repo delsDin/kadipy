@@ -17,7 +17,7 @@ import requests
 
 # Import de la classe de base et des exceptions personnalisées
 from kadi.kidas.sources.base import DataSource
-from kadi.exceptions import KidasReadError, KidasWriteError, KidasConnectionError
+from kadi.exceptions import ReadError, WriteError, ConnectError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -156,9 +156,9 @@ class APIDataSource(DataSource):
             dict: La réponse JSON parsée de l'API.
 
         Raises:
-            KidasConnectionError: Si l'API est inaccessible après toutes
+            ConnectError: Si l'API est inaccessible après toutes
                 les tentatives.
-            KidasReadError: Si la réponse n'est pas un JSON valide.
+            ReadError: Si la réponse n'est pas un JSON valide.
         """
         derniere_erreur: Optional[Exception] = None
 
@@ -218,18 +218,18 @@ class APIDataSource(DataSource):
 
             except requests.exceptions.HTTPError as erreur:
                 # Erreur HTTP non-réessayable
-                raise KidasConnectionError(
+                raise ConnectError(
                     f"Erreur HTTP lors de l'appel à '{self.api_url}' : {erreur}"
                 ) from erreur
 
             except ValueError as erreur:
                 # Réponse non-JSON
-                raise KidasReadError(
+                raise ReadError(
                     f"La réponse de '{self.api_url}' n'est pas du JSON valide : {erreur}"
                 ) from erreur
 
         # Toutes les tentatives ont échoué
-        raise KidasConnectionError(
+        raise ConnectError(
             f"API '{self.api_url}' inaccessible après {max_retries + 1} tentatives. "
             f"Dernière erreur : {derniere_erreur}"
         )
@@ -248,8 +248,8 @@ class APIDataSource(DataSource):
             pd.DataFrame: Les données de la réponse API sous forme tabulaire.
 
         Raises:
-            KidasConnectionError: Si l'API est inaccessible.
-            KidasReadError: Si la conversion en DataFrame échoue.
+            ConnectError: Si l'API est inaccessible.
+            ReadError: Si la conversion en DataFrame échoue.
         """
         # Paramètres de requête par défaut
         parametres = params or {}
@@ -272,7 +272,7 @@ class APIDataSource(DataSource):
                     # Pas de clé standard : utilise le dict entier
                     enregistrements = [donnees_brutes]
             else:
-                raise KidasReadError(
+                raise ReadError(
                     f"Format de réponse non supporté : {type(donnees_brutes).__name__}"
                 )
 
@@ -290,10 +290,10 @@ class APIDataSource(DataSource):
             self._update_last_read()
             return df
 
-        except KidasReadError:
+        except ReadError:
             raise
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de convertir la réponse de '{self.api_url}' "
                 f"en DataFrame : {erreur}"
             ) from erreur
@@ -308,7 +308,7 @@ class APIDataSource(DataSource):
             bool: True si l'envoi a réussi (code 200 ou 201).
 
         Raises:
-            KidasWriteError: Si la requête POST échoue.
+            WriteError: Si la requête POST échoue.
         """
         try:
             # Conversion du DataFrame en liste de dictionnaires JSON
@@ -337,11 +337,11 @@ class APIDataSource(DataSource):
             return True
 
         except requests.exceptions.HTTPError as erreur:
-            raise KidasWriteError(
+            raise WriteError(
                 f"Erreur HTTP lors du POST vers '{self.api_url}' : {erreur}"
             ) from erreur
         except Exception as erreur:
-            raise KidasWriteError(
+            raise WriteError(
                 f"Impossible d'envoyer les données vers '{self.api_url}' : {erreur}"
             ) from erreur
 

@@ -10,7 +10,7 @@ from kadi.kidas.cleaner import DataCleaner
 from kadi.kidas.validator import DataValidator
 from kadi.kidas.normalizer import DataNormalizer
 from kadi.kidas.pipeline import DataPipeline
-from kadi.exceptions import KidasCleaningError, KidasValidationError, KidasPipelineError
+from kadi.exceptions import CleanError, ValidationError, PipelineError
 
 
 # =============================================================================
@@ -22,7 +22,7 @@ class TestDataCleaner:
 
     def test_init_invalide_leve_exception(self):
         """Vérifie que DataCleaner lève une erreur avec un argument non-DataFrame."""
-        with pytest.raises(KidasCleaningError):
+        with pytest.raises(CleanError):
             DataCleaner("pas_un_dataframe")
 
     def test_remove_duplicates_supprime_doublons(self, sample_df_with_duplicates):
@@ -55,9 +55,9 @@ class TestDataCleaner:
         assert len(df) < nb_avant
 
     def test_handle_missing_strategie_invalide(self, sample_df):
-        """Vérifie qu'une stratégie invalide lève KidasCleaningError."""
+        """Vérifie qu'une stratégie invalide lève CleanError."""
         cleaner = DataCleaner(sample_df)
-        with pytest.raises(KidasCleaningError):
+        with pytest.raises(CleanError):
             cleaner.handle_missing_values(strategy="invalide")
 
     def test_remove_outliers_iqr_detecte_outliers(self, sample_df_with_outliers):
@@ -69,9 +69,9 @@ class TestDataCleaner:
         assert 15000 in list(sample_df_with_outliers["rendement_kg"])
 
     def test_remove_outliers_methode_invalide(self, sample_df):
-        """Vérifie qu'une méthode invalide lève KidasCleaningError."""
+        """Vérifie qu'une méthode invalide lève CleanError."""
         cleaner = DataCleaner(sample_df)
-        with pytest.raises(KidasCleaningError):
+        with pytest.raises(CleanError):
             cleaner.remove_outliers(method="methode_invalide")
 
     def test_fix_dates_convertit_colonne(self, sample_df):
@@ -153,7 +153,7 @@ class TestDataValidator:
 
     def test_init_invalide_leve_exception(self):
         """Vérifie que DataValidator lève une erreur avec un non-DataFrame."""
-        with pytest.raises(KidasValidationError):
+        with pytest.raises(ValidationError):
             DataValidator([1, 2, 3])
 
     def test_validate_schema_valide(self, sample_df):
@@ -237,7 +237,7 @@ class TestDataNormalizer:
 
     def test_init_invalide_leve_exception(self):
         """Vérifie que DataNormalizer lève une erreur avec un non-DataFrame."""
-        with pytest.raises(KidasCleaningError):
+        with pytest.raises(CleanError):
             DataNormalizer("pas_un_dataframe")
 
     def test_normalize_column_names_snake_case(self):
@@ -267,10 +267,10 @@ class TestDataNormalizer:
         assert df_norm["production"].iloc[1] == pytest.approx(2500.0)
 
     def test_normalize_units_unite_inconnue_leve_exception(self):
-        """Vérifie qu'une unité inconnue lève KidasCleaningError."""
+        """Vérifie qu'une unité inconnue lève CleanError."""
         df = pd.DataFrame({"production": [1.0]})
         normalizer = DataNormalizer(df)
-        with pytest.raises(KidasCleaningError):
+        with pytest.raises(CleanError):
             normalizer.normalize_units({"production": "caisse_inconnue"})
 
     def test_normalize_crop_names_mais(self, sample_df):
@@ -317,9 +317,9 @@ class TestDataPipeline:
     """Tests unitaires pour la classe DataPipeline."""
 
     def test_execute_sans_source_leve_exception(self):
-        """Vérifie que execute() sans source lève KidasPipelineError."""
+        """Vérifie que execute() sans source lève PipelineError."""
         pipeline = DataPipeline()
-        with pytest.raises(KidasPipelineError):
+        with pytest.raises(PipelineError):
             pipeline.execute()
 
     def test_detecter_type_source_csv(self):
@@ -335,8 +335,8 @@ class TestDataPipeline:
         assert DataPipeline._detecter_type_source("https://api.example.com") == "api"
 
     def test_detecter_type_source_inconnu_leve_exception(self):
-        """Vérifie qu'une extension inconnue lève KidasPipelineError."""
-        with pytest.raises(KidasPipelineError):
+        """Vérifie qu'une extension inconnue lève PipelineError."""
+        with pytest.raises(PipelineError):
             DataPipeline._detecter_type_source("fichier.inconnu")
 
     def test_pipeline_csv_complet(self, temp_csv_file, tmp_path):

@@ -20,24 +20,24 @@ seule l'interface exposée aux utilisateurs change.
 
 ---
 
-## Phase 0 — Préparation
+## Phase 0 — Préparation (4/4 Terminé)
 
 Avant de toucher au code, il faut poser les bases pour travailler en sécurité.
 
-- `[ ]` **0.1** Vérifier que toute la suite de tests passe sur la branche `main`.
+- `[x]` **0.1** Vérifier que toute la suite de tests passe sur la branche `main`.
   ```bash
   source .kadi_venv/bin/activate
   pytest --tb=short -q
   ```
-- `[ ]` **0.2** Créer une branche dédiée.
+- `[x]` **0.2** Créer une branche dédiée.
   ```bash
   git checkout -b refactor/api-simplification
   ```
-- `[ ]` **0.3** Installer `rope` (outil de refactoring Python) dans l'environnement.
+- `[x]` **0.3** Installer `rope` (outil de refactoring Python) dans l'environnement.
   ```bash
   pip install rope
   ```
-- `[ ]` **0.4** Prendre un snapshot du taux de couverture actuel pour le comparer
+- `[x]` **0.4** Prendre un snapshot du taux de couverture actuel pour le comparer
   en fin de phase.
   ```bash
   pytest --cov=kadi --cov-report=term-missing -q > .refactor_coverage_before.txt
@@ -45,7 +45,7 @@ Avant de toucher au code, il faut poser les bases pour travailler en sécurité.
 
 ---
 
-## Phase 1 — Exceptions (`kadi/exceptions.py`)
+## Phase 1 — Exceptions (`kadi/exceptions.py`) (3/3 Terminé)
 
 Priorité haute : les exceptions sont importées partout dans le package. Les
 corriger en premier simplifie toutes les phases suivantes.
@@ -58,17 +58,19 @@ corriger en premier simplifie toutes les phases suivantes.
 - Renommer `InsufficientData` en `DataError`, `LocationNotFound` en
   `LocationError`, `CropNotFound` en `CropError`.
 
-### Fichiers à modifier
-- `[ ]` **1.1** `kadi/exceptions.py` : appliquer tous les renommages.
-- `[ ]` **1.2** Chercher et remplacer toutes les occurrences dans le package.
+### Fichiers modifiés
+- `[x]` **1.1** `kadi/exceptions.py` : appliquer tous les renommages.
+- `[x]` **1.2** Chercher et remplacer toutes les occurrences dans le package.
   ```bash
   grep -rn "KadiException\|KidasReadError\|KidasWriteError\|KidasConnectionError\|KidasCleaningError\|KidasValidationError\|KidasCacheError\|KidasPipelineError\|InsufficientData\|LocationNotFound\|CropNotFound\|DataSourceError" kadi/ tests/
   ```
-- `[ ]` **1.3** Lancer les tests pour valider.
+- `[x]` **1.3** Lancer les tests pour valider.
+
+> **Rétrocompatibilité** : Les anciens noms (KadiException, DataSourceError, etc.) restent disponibles comme alias dans `exceptions.py` — les scripts externes ne cassent pas.
 
 ---
 
-## Phase 2 — Sources de données (`kadi/kidas/sources/`)
+## Phase 2 — Sources de données (`kadi/kidas/sources/`) (3/6 En cours)
 
 ### Règles
 - Renommer `DataSource` en `Source` (classe de base abstraite).

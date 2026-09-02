@@ -18,7 +18,7 @@ import pandas as pd
 from scipy import stats
 
 # Import des exceptions personnalisées
-from kadi.exceptions import KidasCleaningError
+from kadi.exceptions import CleanError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -64,11 +64,11 @@ class DataCleaner:
                 interne est créée pour ne pas modifier l'original.
 
         Raises:
-            KidasCleaningError: Si l'argument fourni n'est pas un DataFrame.
+            CleanError: Si l'argument fourni n'est pas un DataFrame.
         """
         # Vérification du type d'entrée
         if not isinstance(df, pd.DataFrame):
-            raise KidasCleaningError(
+            raise CleanError(
                 f"DataCleaner attend un pandas DataFrame, "
                 f"reçu : {type(df).__name__}."
             )
@@ -149,11 +149,11 @@ class DataCleaner:
             pd.DataFrame: DataFrame avec les valeurs manquantes traitées.
 
         Raises:
-            KidasCleaningError: Si la stratégie fournie est invalide.
+            CleanError: Si la stratégie fournie est invalide.
         """
         # Validation de la stratégie
         if strategy not in _STRATEGIES_MISSING:
-            raise KidasCleaningError(
+            raise CleanError(
                 f"Stratégie '{strategy}' invalide. Valeurs acceptées : "
                 f"{_STRATEGIES_MISSING}."
             )
@@ -233,11 +233,11 @@ class DataCleaner:
                 - Le DataFrame des lignes identifiées comme outliers.
 
         Raises:
-            KidasCleaningError: Si la méthode fournie est invalide.
+            CleanError: Si la méthode fournie est invalide.
         """
         # Validation de la méthode
         if method not in _METHODES_OUTLIERS:
-            raise KidasCleaningError(
+            raise CleanError(
                 f"Méthode '{method}' invalide. Valeurs acceptées : "
                 f"{_METHODES_OUTLIERS}."
             )

@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 # Import des exceptions personnalisées
-from kadi.exceptions import KidasValidationError
+from kadi.exceptions import ValidationError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -70,11 +70,11 @@ class DataValidator:
             df (pd.DataFrame): Le DataFrame à valider.
 
         Raises:
-            KidasValidationError: Si l'argument fourni n'est pas un DataFrame.
+            ValidationError: Si l'argument fourni n'est pas un DataFrame.
         """
         # Vérification du type d'entrée
         if not isinstance(df, pd.DataFrame):
-            raise KidasValidationError(
+            raise ValidationError(
                 f"DataValidator attend un pandas DataFrame, "
                 f"reçu : {type(df).__name__}."
             )
@@ -304,12 +304,12 @@ class DataValidator:
                 - DataFrame des lignes avec coordonnées invalides.
 
         Raises:
-            KidasValidationError: Si les colonnes lat/lon sont absentes.
+            ValidationError: Si les colonnes lat/lon sont absentes.
         """
         # Vérification de la présence des colonnes
         for colonne in (lat_col, lon_col):
             if colonne not in self.df.columns:
-                raise KidasValidationError(
+                raise ValidationError(
                     f"Colonne de coordonnées '{colonne}' introuvable dans le DataFrame."
                 )
 
@@ -406,10 +406,10 @@ class DataValidator:
                 - DataFrame des lignes avec des références manquantes.
 
         Raises:
-            KidasValidationError: Si la colonne de clé est absente.
+            ValidationError: Si la colonne de clé est absente.
         """
         if fk_col not in self.df.columns:
-            raise KidasValidationError(
+            raise ValidationError(
                 f"Colonne de clé étrangère '{fk_col}' introuvable."
             )
 

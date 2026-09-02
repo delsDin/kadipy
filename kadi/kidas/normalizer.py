@@ -16,7 +16,7 @@ from typing import Dict, Optional
 import pandas as pd
 
 # Import des exceptions personnalisées
-from kadi.exceptions import KidasCleaningError
+from kadi.exceptions import CleanError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -139,11 +139,11 @@ class DataNormalizer:
                 interne est créée pour préserver l'original.
 
         Raises:
-            KidasCleaningError: Si l'argument fourni n'est pas un DataFrame.
+            CleanError: Si l'argument fourni n'est pas un DataFrame.
         """
         # Vérification du type d'entrée
         if not isinstance(df, pd.DataFrame):
-            raise KidasCleaningError(
+            raise CleanError(
                 f"DataNormalizer attend un pandas DataFrame, "
                 f"reçu : {type(df).__name__}."
             )
@@ -256,7 +256,7 @@ class DataNormalizer:
             pd.DataFrame: DataFrame avec les valeurs converties en kg.
 
         Raises:
-            KidasCleaningError: Si une unité source est inconnue.
+            CleanError: Si une unité source est inconnue.
         """
         for colonne, unite_source in unit_map.items():
             if colonne not in self.df.columns:
@@ -270,7 +270,7 @@ class DataNormalizer:
             unite_normalisee = unite_source.lower().strip()
 
             if unite_normalisee not in _FACTEURS_UNITE_KG:
-                raise KidasCleaningError(
+                raise CleanError(
                     f"Unité '{unite_source}' inconnue. Unités supportées : "
                     f"{list(_FACTEURS_UNITE_KG.keys())}."
                 )

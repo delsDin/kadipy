@@ -37,7 +37,7 @@ from kadi.kidas.normalizer import DataNormalizer
 from kadi.kidas.cache import DataCache
 
 # Import des exceptions personnalisées
-from kadi.exceptions import KidasPipelineError, KidasReadError
+from kadi.exceptions import PipelineError, ReadError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class DataPipeline:
             str: Type détecté parmi 'csv', 'excel', 'json', 'netcdf', 'api'.
 
         Raises:
-            KidasPipelineError: Si le type de source ne peut pas être déterminé.
+            PipelineError: Si le type de source ne peut pas être déterminé.
         """
         # Détection des APIs par préfixe HTTP/HTTPS
         if source.startswith("http://") or source.startswith("https://"):
@@ -138,7 +138,7 @@ class DataPipeline:
         elif extension in _EXT_NETCDF:
             return "netcdf"
         else:
-            raise KidasPipelineError(
+            raise PipelineError(
                 f"Impossible de détecter le type de source pour '{source}'. "
                 f"Extensions supportées : CSV {_EXT_CSV}, Excel {_EXT_EXCEL}, "
                 f"JSON {_EXT_JSON}, NetCDF {_EXT_NETCDF}, ou URL HTTP."
@@ -164,7 +164,7 @@ class DataPipeline:
             DataPipeline: L'instance courante (pour le chaînage).
 
         Raises:
-            KidasPipelineError: Si le type de source est indéterminable.
+            PipelineError: Si le type de source est indéterminable.
         """
         if isinstance(source, DataSource):
             # Utilisation directe d'une DataSource existante
@@ -308,12 +308,12 @@ class DataPipeline:
                       validation, normalisation).
 
         Raises:
-            KidasPipelineError: Si aucune source n'a été configurée.
-            KidasReadError: Si la lecture de la source échoue.
+            PipelineError: Si aucune source n'a été configurée.
+            ReadError: Si la lecture de la source échoue.
         """
         # Vérification qu'une source a été configurée
         if self._source is None:
-            raise KidasPipelineError(
+            raise PipelineError(
                 "Aucune source configurée. Appelez load_data() avant execute()."
             )
 
@@ -361,7 +361,7 @@ class DataPipeline:
                 self._source.source_path,
             )
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Échec de lecture dans le pipeline : {erreur}"
             ) from erreur
 
@@ -441,7 +441,7 @@ class DataPipeline:
             pd.DataFrame: Le DataFrame résultant de l'étape.
 
         Raises:
-            KidasPipelineError: Si la méthode de l'étape est inconnue.
+            PipelineError: Si la méthode de l'étape est inconnue.
         """
         type_etape = etape["type"]
         nom_methode = etape["nom"]
@@ -453,7 +453,7 @@ class DataPipeline:
                 cleaner = DataCleaner(self._df)
 
                 if not hasattr(cleaner, nom_methode):
-                    raise KidasPipelineError(
+                    raise PipelineError(
                         f"Méthode de nettoyage '{nom_methode}' inconnue. "
                         f"Méthodes disponibles : remove_duplicates, "
                         f"handle_missing_values, remove_outliers, fix_dates, "
@@ -513,10 +513,10 @@ class DataPipeline:
                 self._df = normalizer.df
                 self._rapports["normalisation"] = normalizer.get_normalization_mapping()
 
-        except KidasPipelineError:
+        except PipelineError:
             raise
         except Exception as erreur:
-            raise KidasPipelineError(
+            raise PipelineError(
                 f"Erreur lors de l'exécution de l'étape '{nom_methode}' : {erreur}"
             ) from erreur
 
@@ -548,7 +548,7 @@ class DataPipeline:
             bool: True si l'export s'est déroulé avec succès.
 
         Raises:
-            KidasPipelineError: Si l'extension n'est pas supportée.
+            PipelineError: Si l'extension n'est pas supportée.
         """
         import json
 
@@ -575,7 +575,7 @@ class DataPipeline:
                     f.write(html)
 
             else:
-                raise KidasPipelineError(
+                raise PipelineError(
                     f"Format d'export '{extension}' non supporté. "
                     f"Utilisez '.json' ou '.html'."
                 )
@@ -584,6 +584,6 @@ class DataPipeline:
             return True
 
         except OSError as erreur:
-            raise KidasPipelineError(
+            raise PipelineError(
                 f"Impossible d'écrire le rapport vers '{filepath}' : {erreur}"
             ) from erreur

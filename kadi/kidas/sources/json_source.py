@@ -16,7 +16,7 @@ import pandas as pd
 
 # Import de la classe de base et des exceptions personnalisées
 from kadi.kidas.sources.base import DataSource
-from kadi.exceptions import KidasReadError, KidasWriteError, KidasConnectionError
+from kadi.exceptions import ReadError, WriteError, ConnectError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -129,8 +129,8 @@ class JSONDataSource(DataSource):
             Any: Les données JSON brutes (dict, list, etc.).
 
         Raises:
-            KidasConnectionError: Si le fichier n'est pas accessible.
-            KidasReadError: Si le contenu JSON est invalide.
+            ConnectError: Si le fichier n'est pas accessible.
+            ReadError: Si le contenu JSON est invalide.
         """
         if self._dict_source is not None:
             # Source est un dictionnaire Python : retour direct
@@ -138,7 +138,7 @@ class JSONDataSource(DataSource):
 
         # Vérification de l'existence du fichier
         if not self.validate_connection():
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Fichier JSON introuvable : '{self.file_path}'"
             )
 
@@ -149,11 +149,11 @@ class JSONDataSource(DataSource):
             return donnees
 
         except json.JSONDecodeError as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Contenu JSON invalide dans '{self.file_path}' : {erreur}"
             ) from erreur
         except OSError as erreur:
-            raise KidasConnectionError(
+            raise ConnectError(
                 f"Impossible de lire '{self.file_path}' : {erreur}"
             ) from erreur
 
@@ -171,8 +171,8 @@ class JSONDataSource(DataSource):
             pd.DataFrame: Les données JSON sous forme tabulaire.
 
         Raises:
-            KidasConnectionError: Si la source n'est pas accessible.
-            KidasReadError: Si la conversion en DataFrame échoue.
+            ConnectError: Si la source n'est pas accessible.
+            ReadError: Si la conversion en DataFrame échoue.
         """
         # Chargement des données JSON brutes
         donnees_brutes = self._charger_json_brut()
@@ -185,7 +185,7 @@ class JSONDataSource(DataSource):
             # Déjà une liste d'enregistrements
             liste_enregistrements = donnees_brutes
         else:
-            raise KidasReadError(
+            raise ReadError(
                 f"Format JSON non supporté : attendu dict ou list, "
                 f"reçu {type(donnees_brutes).__name__}."
             )
@@ -215,7 +215,7 @@ class JSONDataSource(DataSource):
             return df
 
         except Exception as erreur:
-            raise KidasReadError(
+            raise ReadError(
                 f"Impossible de convertir le JSON en DataFrame : {erreur}"
             ) from erreur
 
@@ -236,12 +236,12 @@ class JSONDataSource(DataSource):
             bool: True si l'écriture s'est déroulée avec succès.
 
         Raises:
-            KidasWriteError: Si la source est un dict en mémoire (pas de fichier)
+            WriteError: Si la source est un dict en mémoire (pas de fichier)
                 ou si l'écriture échoue.
         """
         # Vérification qu'on a bien un fichier de destination
         if self.file_path is None:
-            raise KidasWriteError(
+            raise WriteError(
                 "Impossible d'écrire : la source JSON est un dictionnaire "
                 "en mémoire, aucun fichier de destination n'est défini."
             )
@@ -263,7 +263,7 @@ class JSONDataSource(DataSource):
             return True
 
         except Exception as erreur:
-            raise KidasWriteError(
+            raise WriteError(
                 f"Impossible d'écrire vers '{self.file_path}' : {erreur}"
             ) from erreur
 

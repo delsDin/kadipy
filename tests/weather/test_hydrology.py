@@ -8,7 +8,7 @@ import pandas as pd
 
 from kadi.weather.hydrology import Hydrology
 from kadi.weather.location import Location
-from kadi.exceptions import InsufficientData
+from kadi.exceptions import DataError
 
 
 # ---------------------------------------------------------------------------
@@ -51,12 +51,12 @@ def test_compute_water_balance(mock_resolve_soil, hydrology_setup):
 
 @patch('kadi.weather.hydrology.Hydrology._resolve_soil_type_from_cache')
 def test_insufficient_data(mock_resolve_soil, hydrology_setup):
-    """Un bilan sur des données vides doit lever InsufficientData."""
+    """Un bilan sur des données vides doit lever DataError."""
     mock_resolve_soil.return_value = 'ferrugineux'
     location, _, _ = hydrology_setup
 
     hydro = Hydrology(location, pd.Series(dtype=float), pd.DataFrame())
-    with pytest.raises(InsufficientData):
+    with pytest.raises(DataError):
         hydro.compute_water_balance()
 
 

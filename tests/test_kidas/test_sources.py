@@ -15,7 +15,7 @@ from kadi.kidas.sources.excel_source import ExcelDataSource
 from kadi.kidas.sources.json_source import JSONDataSource
 from kadi.kidas.sources.api_source import APIDataSource
 from kadi.kidas.cache import DataCache
-from kadi.exceptions import KidasConnectionError, KidasReadError, KidasCacheError
+from kadi.exceptions import ConnectError, ReadError, CacheError
 
 
 # =============================================================================
@@ -52,7 +52,7 @@ class TestExcelDataSource:
     def test_read_fichier_absent_leve_exception(self):
         """Vérifie que la lecture d'un fichier absent lève une exception."""
         source = ExcelDataSource("/absent.xlsx")
-        with pytest.raises(KidasConnectionError):
+        with pytest.raises(ConnectError):
             source.read()
 
     def test_unmerge_cells_forward_fill(self):

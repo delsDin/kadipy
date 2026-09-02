@@ -77,9 +77,9 @@ class DataSource(ABC):
             pd.DataFrame: Les données lues depuis la source.
 
         Raises:
-            KidasReadError: Si la lecture échoue (fichier corrompu,
+            ReadError: Si la lecture échoue (fichier corrompu,
                 format invalide, etc.).
-            KidasConnectionError: Si la source n'est pas accessible.
+            ConnectError: Si la source n'est pas accessible.
         """
         pass
 
@@ -98,7 +98,7 @@ class DataSource(ABC):
             bool: True si l'écriture s'est déroulée avec succès.
 
         Raises:
-            KidasWriteError: Si l'écriture échoue.
+            WriteError: Si l'écriture échoue.
         """
         pass
 

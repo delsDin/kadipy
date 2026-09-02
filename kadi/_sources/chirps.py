@@ -24,7 +24,7 @@ from typing import Optional
 import pandas as pd
 
 from kadi.config import CHIRPS_BASE_URL, CONFIG
-from kadi.exceptions import DataSourceError
+from kadi.exceptions import SourceError
 
 # Journaliseur dédié à ce module
 logger = logging.getLogger(__name__)
@@ -101,14 +101,14 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
 
     :param jour: Date du raster à télécharger.
     :param chemin_cache: Chemin de destination du GeoTIFF découpé.
-    :raises DataSourceError: Si le serveur est inaccessible ou si le fichier
+    :raises SourceError: Si le serveur est inaccessible ou si le fichier
         n'existe pas pour cette date sur le serveur CHC.
     """
     # Import conditionnel : rioxarray n'est requis que pour ce connecteur
     try:
         import rioxarray  # noqa: F401 (import utilisé via xarray accessor)
     except ImportError as exc:
-        raise DataSourceError(
+        raise SourceError(
             "Le connecteur CHIRPS nécessite rioxarray et rasterio. "
             "Installez-les avec : pip install rioxarray rasterio"
         ) from exc
@@ -135,13 +135,13 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
 
     except urllib.error.HTTPError as exc:
         # Erreur 404 : la date demandée n'existe pas (jour hors plage CHIRPS)
-        raise DataSourceError(
+        raise SourceError(
             f"Données CHIRPS introuvables pour le {jour.isoformat()} "
             f"(HTTP {exc.code}). URL : {url}"
         ) from exc
     except OSError as exc:
         # Erreur réseau générique (timeout, DNS, etc.)
-        raise DataSourceError(
+        raise SourceError(
             f"Impossible de joindre le serveur CHIRPS pour le {jour.isoformat()}. "
             f"Vérifiez la connexion Internet. Détail : {exc}"
         ) from exc
@@ -175,7 +175,7 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
         if chemin_cache.exists():
             chemin_cache.unlink()
             logger.warning("Fichier CHIRPS partiel supprimé : %s", chemin_cache)
-        raise DataSourceError(
+        raise SourceError(
             f"Erreur lors du traitement du raster CHIRPS pour le {jour.isoformat()} : {exc}"
         ) from exc
 
@@ -188,7 +188,7 @@ def _extraire_valeur_ponctuelle(chemin_raster: Path, lat: float, lon: float) -> 
     :param lat: Latitude du point d'extraction.
     :param lon: Longitude du point d'extraction.
     :return: Valeur de précipitation en millimètres (float).
-    :raises DataSourceError: Si la lecture du raster échoue.
+    :raises SourceError: Si la lecture du raster échoue.
     """
     try:
         import xarray as xr
@@ -211,7 +211,7 @@ def _extraire_valeur_ponctuelle(chemin_raster: Path, lat: float, lon: float) -> 
         return precip
 
     except Exception as exc:
-        raise DataSourceError(
+        raise SourceError(
             f"Impossible d'extraire la valeur ponctuelle depuis {chemin_raster} : {exc}"
         ) from exc
 
@@ -281,7 +281,7 @@ def fetch_historical_precipitation(
         if not chemin_cache.exists():
             try:
                 _telecharger_et_decouper_raster(jour_courant, chemin_cache)
-            except DataSourceError as exc:
+            except SourceError as exc:
                 # On enregistre l'erreur mais on continue sur les autres dates
                 logger.warning(
                     "CHIRPS indisponible pour le %s (repli sur Open-Meteo prévu). "
@@ -296,7 +296,7 @@ def fetch_historical_precipitation(
         # Extraction de la valeur ponctuelle depuis le raster en cache
         try:
             precip = _extraire_valeur_ponctuelle(chemin_cache, lat, lon)
-        except DataSourceError as exc:
+        except SourceError as exc:
             logger.warning(
                 "Extraction CHIRPS impossible pour le %s : %s",
                 jour_courant.isoformat(),
