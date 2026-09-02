@@ -112,7 +112,7 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ---
 
-## Phase 3 — Pipeline KIDAS (`kadi/kidas/`)
+## Phase 3 — Pipeline KIDAS (`kadi/kidas/`) (7/7 Terminé)
 
 ### Règles
 - `DataCleaner` -> `Cleaner`, `DataValidator` -> `Validator`,
@@ -122,14 +122,14 @@ corriger en premier simplifie toutes les phases suivantes.
 - Traduire en anglais tous les noms restants en français.
 - Exposer les classes dans `kadi/kidas/__init__.py`.
 
-### Fichiers à modifier
+### Fichiers modifiés
 
-- `[ ]` **3.1** `kadi/kidas/cleaner.py`
-- `[ ]` **3.2** `kadi/kidas/validator.py`
-- `[ ]` **3.3** `kadi/kidas/normalizer.py`
-- `[ ]` **3.4** `kadi/kidas/cache.py`
-- `[ ]` **3.5** `kadi/kidas/pipeline.py`
-- `[ ]` **3.6** `kadi/kidas/__init__.py` : exporter toutes les classes.
+- `[x]` **3.1** `kadi/kidas/cleaner.py` : renommer classe `DataCleaner` -> `Cleaner` et méthodes (`drop_dupes`, `fill_missing`, `drop_outliers`, `parse_dates`, etc.).
+- `[x]` **3.2** `kadi/kidas/validator.py` : renommer classe `DataValidator` -> `Validator` et méthodes (`check_schema`, `check_types`, `check_ranges`, etc.).
+- `[x]` **3.3** `kadi/kidas/normalizer.py` : renommer classe `DataNormalizer` -> `Normalizer` et méthodes (`norm_cols`, `convert_units`, `std_crops`, etc.).
+- `[x]` **3.4** `kadi/kidas/cache.py` : renommer classe `DataCache` -> `Cache` et méthodes (`set`, `get`, `keys`, `purge`, etc.).
+- `[x]` **3.5** `kadi/kidas/pipeline.py` : renommer classe `DataPipeline` -> `Pipeline`, méthodes et ajouter raccourcis `load()`, `clean()`, `validate()`, `normalize()`.
+- `[x]` **3.6** `kadi/kidas/__init__.py` : exporter toutes les classes (`Cleaner`, `Validator`, `Normalizer`, `Cache`, `Pipeline`, `load_clean`).
   ```python
   from .cleaner import Cleaner
   from .validator import Validator
@@ -145,7 +145,7 @@ corriger en premier simplifie toutes les phases suivantes.
       NetCDFSource,
   )
   ```
-- `[ ]` **3.7** Lancer les tests.
+- `[x]` **3.7** Lancer les tests (`pytest tests/test_kidas/ -v` : 98/98 tests validés).
 
 ---
 
