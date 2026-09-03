@@ -1,7 +1,7 @@
 """
 Tests unitaires pour le module kadi._sources.wfp_client.
 
-Vérifie le comportement de WFPDataBridgesClient :
+Vérifie le comportement de WFPClient :
 - la structure et le schéma du DataFrame retourné,
 - la normalisation des colonnes HAPI vers le format interne,
 - le fallback en mode simulation (réseau indisponible ou identifiant absent),
@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from kadi._sources.wfp_client import WFPDataBridgesClient
+from kadi._sources import WFPClient
 
 
 # CSV minimaliste simulant une réponse de l'API HAPI
@@ -62,7 +62,7 @@ class TestGetMarketPricesStructure:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert isinstance(df, pd.DataFrame)
@@ -72,7 +72,7 @@ class TestGetMarketPricesStructure:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         colonnes_attendues = {"date", "price", "unit", "is_simulated", "source", "fetched_at"}
@@ -83,7 +83,7 @@ class TestGetMarketPricesStructure:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert pd.api.types.is_numeric_dtype(df["price"])
@@ -93,7 +93,7 @@ class TestGetMarketPricesStructure:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert pd.api.types.is_datetime64_any_dtype(df["date"])
@@ -107,7 +107,7 @@ class TestNormalisationColonnes:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         # Vérification que les noms HAPI ont été remplacés par les noms internes
@@ -123,7 +123,7 @@ class TestNormalisationColonnes:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert not df["is_simulated"].any()
@@ -133,7 +133,7 @@ class TestNormalisationColonnes:
         reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
 
         with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert (df["confidence_score"] == 1.0).all()
@@ -145,7 +145,7 @@ class TestFallbackSimulation:
     def test_fallback_si_identifiant_absent(self):
         """Sans identifiant HAPI, les données doivent être simulées (is_simulated=True)."""
         # Client instancié sans identifiant
-        client = WFPDataBridgesClient(app_identifier=None)
+        client = WFPClient(app_identifier=None)
         df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert isinstance(df, pd.DataFrame)
@@ -159,7 +159,7 @@ class TestFallbackSimulation:
             "kadi._sources.wfp_client.requests.get",
             side_effect=requests.exceptions.Timeout("Timeout"),
         ):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert df["is_simulated"].all()
@@ -172,14 +172,14 @@ class TestFallbackSimulation:
             "kadi._sources.wfp_client.requests.get",
             side_effect=requests.exceptions.ConnectionError("Pas de réseau"),
         ):
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert df["is_simulated"].all()
 
     def test_fallback_contient_colonnes_standards(self):
         """Le DataFrame de simulation doit respecter le schéma standard."""
-        client = WFPDataBridgesClient(app_identifier=None)
+        client = WFPClient(app_identifier=None)
         df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         colonnes_attendues = {"date", "price", "unit", "is_simulated", "source", "fetched_at"}
@@ -187,7 +187,7 @@ class TestFallbackSimulation:
 
     def test_fallback_source_est_simulated(self):
         """La colonne 'source' doit valoir 'simulated' en mode fallback."""
-        client = WFPDataBridgesClient(app_identifier=None)
+        client = WFPClient(app_identifier=None)
         df = client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
         assert (df["source"] == "simulated").all()
@@ -203,7 +203,7 @@ class TestFiltresAPI:
         with patch(
             "kadi._sources.wfp_client.requests.get", return_value=reponse_mock
         ) as mock_get:
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             client.get_market_prices(
                 "cotonou", "maize", _TIME_RANGE, location_code="BEN"
             )
@@ -219,7 +219,7 @@ class TestFiltresAPI:
         with patch(
             "kadi._sources.wfp_client.requests.get", return_value=reponse_mock
         ) as mock_get:
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             client.get_market_prices("parakou", "maize", _TIME_RANGE)
 
             params_appel = mock_get.call_args[1]["params"]
@@ -232,7 +232,7 @@ class TestFiltresAPI:
         with patch(
             "kadi._sources.wfp_client.requests.get", return_value=reponse_mock
         ) as mock_get:
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             client.get_market_prices("cotonou", "rice", _TIME_RANGE)
 
             params_appel = mock_get.call_args[1]["params"]
@@ -245,7 +245,7 @@ class TestFiltresAPI:
         with patch(
             "kadi._sources.wfp_client.requests.get", return_value=reponse_mock
         ) as mock_get:
-            client = WFPDataBridgesClient(app_identifier="identifiant_test")
+            client = WFPClient(app_identifier="identifiant_test")
             client.get_market_prices("cotonou", "maize", _TIME_RANGE)
 
             params_appel = mock_get.call_args[1]["params"]

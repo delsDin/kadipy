@@ -117,7 +117,7 @@ _WRB_VERS_SOL_KADIPY = {
 }
 
 
-def _charger_cache() -> list:
+def _load_cache() -> list:
     """Charge le cache local SoilGrids depuis le fichier JSON.
 
     Returns:
@@ -137,7 +137,7 @@ def _charger_cache() -> list:
         return []
 
 
-def _sauvegarder_cache(points: list) -> None:
+def _save_cache(points: list) -> None:
     """Persiste la liste de points dans le fichier de cache JSON.
 
     Args:
@@ -152,7 +152,7 @@ def _sauvegarder_cache(points: list) -> None:
         logger.warning("Sauvegarde du cache SoilGrids échouée : %s", exc)
 
 
-def _chercher_dans_cache(lat: float, lon: float) -> Optional[str]:
+def _lookup_cache(lat: float, lon: float) -> Optional[str]:
     """Recherche le type de sol le plus proche dans le cache local.
 
     Utilise la distance euclidienne en degrés. Un point est considéré
@@ -165,7 +165,7 @@ def _chercher_dans_cache(lat: float, lon: float) -> Optional[str]:
     Returns:
         str ou None: Type de sol KadiPy si un point proche est trouvé, sinon None.
     """
-    points = _charger_cache()
+    points = _load_cache()
 
     if not points:
         return None
@@ -193,7 +193,7 @@ def _chercher_dans_cache(lat: float, lon: float) -> Optional[str]:
     return None
 
 
-def _traduire_classe_wrb(wrb_class: str) -> str:
+def _wrb_to_soil(wrb_class: str) -> str:
     """Traduit une classe WRB en type de sol KadiPy.
 
     Tente d'abord une correspondance exacte, puis une correspondance par
@@ -227,7 +227,7 @@ def _traduire_classe_wrb(wrb_class: str) -> str:
     return _SOL_DEFAUT
 
 
-def _appeler_api_soilgrids(lat: float, lon: float) -> Optional[str]:
+def _call_api(lat: float, lon: float) -> Optional[str]:
     """Appelle l'API SoilGrids v2.0 pour obtenir la classe WRB d'un point GPS.
 
     Effectue jusqu'à _MAX_TENTATIVES appels avec backoff exponentiel en cas
@@ -366,26 +366,26 @@ def fetch_soil_type(
         default_soil = _SOL_DEFAUT
 
     # --- Étape 1 : vérification du cache local ---
-    soil_depuis_cache = _chercher_dans_cache(lat, lon)
+    soil_depuis_cache = _lookup_cache(lat, lon)
     if soil_depuis_cache is not None:
         return soil_depuis_cache
 
     # --- Étape 2 : appel à l'API SoilGrids ---
-    wrb_class = _appeler_api_soilgrids(lat, lon)
+    wrb_class = _call_api(lat, lon)
 
     if wrb_class is not None:
         # Traduction WRB -> type KadiPy
-        soil_type = _traduire_classe_wrb(wrb_class)
+        soil_type = _wrb_to_soil(wrb_class)
 
         # Sauvegarde dans le cache pour les futurs appels
-        points = _charger_cache()
+        points = _load_cache()
         points.append({
             "lat": lat,
             "lon": lon,
             "wrb_class": wrb_class,
             "soil_type": soil_type,
         })
-        _sauvegarder_cache(points)
+        _save_cache(points)
 
         return soil_type
 
@@ -396,3 +396,41 @@ def fetch_soil_type(
         lat, lon, default_soil,
     )
     return default_soil
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+_DEPRECATED = {
+    "_charger_cache": ("_load_cache", _load_cache),
+    "_sauvegarder_cache": ("_save_cache", _save_cache),
+    "_chercher_dans_cache": ("_lookup_cache", _lookup_cache),
+    "_traduire_classe_wrb": ("_wrb_to_soil", _wrb_to_soil),
+    "_appeler_api_soilgrids": ("_call_api", _call_api),
+}
+
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.cache.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.cache' n'a pas d'attribut '{name}'."
+    )

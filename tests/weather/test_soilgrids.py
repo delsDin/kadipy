@@ -52,44 +52,44 @@ class TestTraductionWRB:
 
     def test_lixisol_donne_ferrugineux(self):
         """Lixisol est le sol ferrugineux tropical lessivé, dominant au Bénin."""
-        assert sg._traduire_classe_wrb("Lixisol") == "ferrugineux"
+        assert sg._wrb_to_soil("Lixisol") == "ferrugineux"
 
     def test_ferralsol_donne_ferrallitique(self):
         """Ferralsol correspond aux sols fortement altérés du Sud-Bénin."""
-        assert sg._traduire_classe_wrb("Ferralsol") == "ferrallitique"
+        assert sg._wrb_to_soil("Ferralsol") == "ferrallitique"
 
     def test_arenosol_donne_sableux(self):
         """Arenosol correspond aux sables côtiers et dunaires."""
-        assert sg._traduire_classe_wrb("Arenosol") == "sableux"
+        assert sg._wrb_to_soil("Arenosol") == "sableux"
 
     def test_luvisol_donne_limoneux(self):
         """Luvisol correspond aux sols de texture fine des couloirs fluviaux."""
-        assert sg._traduire_classe_wrb("Luvisol") == "limoneux"
+        assert sg._wrb_to_soil("Luvisol") == "limoneux"
 
     def test_classe_inconnue_retourne_ferrugineux(self):
         """Une classe WRB inconnue retourne le sol dominant béninois par défaut."""
-        assert sg._traduire_classe_wrb("ClasseInexistante") == "ferrugineux"
+        assert sg._wrb_to_soil("ClasseInexistante") == "ferrugineux"
 
     def test_chaine_vide_retourne_ferrugineux(self):
         """Une chaîne vide retourne le sol de repli."""
-        assert sg._traduire_classe_wrb("") == "ferrugineux"
+        assert sg._wrb_to_soil("") == "ferrugineux"
 
     def test_none_retourne_ferrugineux(self):
         """None retourne le sol de repli sans lever d'exception."""
-        assert sg._traduire_classe_wrb(None) == "ferrugineux"
+        assert sg._wrb_to_soil(None) == "ferrugineux"
 
     def test_classe_avec_qualificatif_haplic(self):
         """'Haplic Lixisol' doit être reconnu par correspondance partielle."""
         # Les classes WRB contiennent souvent un qualificatif préfixe (ex: "Haplic")
-        assert sg._traduire_classe_wrb("Haplic Lixisol") == "ferrugineux"
+        assert sg._wrb_to_soil("Haplic Lixisol") == "ferrugineux"
 
     def test_acrisol_donne_ferrugineux(self):
         """Acrisol est apparenté au Lixisol dans les sols béninois."""
-        assert sg._traduire_classe_wrb("Acrisol") == "ferrugineux"
+        assert sg._wrb_to_soil("Acrisol") == "ferrugineux"
 
     def test_gleysol_donne_limoneux(self):
         """Gleysol correspond aux zones hydromorphes (alluvions de l'Ouémé)."""
-        assert sg._traduire_classe_wrb("Gleysol") == "limoneux"
+        assert sg._wrb_to_soil("Gleysol") == "limoneux"
 
     def test_tous_les_types_kadipy_sont_couverts(self):
         """La table de correspondance doit couvrir les 4 types de sols KadiPy."""
@@ -107,13 +107,13 @@ class TestCache:
 
     def test_cache_vide_retourne_liste_vide(self):
         """Un cache inexistant doit retourner une liste vide sans erreur."""
-        assert sg._charger_cache() == []
+        assert sg._load_cache() == []
 
     def test_sauvegarde_puis_chargement(self):
         """Les données sauvegardées doivent être relisibles correctement."""
         points = [{"lat": 9.33, "lon": 2.35, "wrb_class": "Lixisol", "soil_type": "ferrugineux"}]
-        sg._sauvegarder_cache(points)
-        recharge = sg._charger_cache()
+        sg._save_cache(points)
+        recharge = sg._load_cache()
         assert len(recharge) == 1
         assert recharge[0]["soil_type"] == "ferrugineux"
 
@@ -122,40 +122,40 @@ class TestCache:
         # Écriture d'un fichier JSON invalide à l'emplacement du cache
         with open(sg._CACHE_FICHIER, "w") as f:
             f.write("ceci n'est pas du JSON valide {{{")
-        assert sg._charger_cache() == []
+        assert sg._load_cache() == []
 
     def test_chercher_cache_hit_proche(self):
         """Un point à distance inférieure au seuil doit être trouvé dans le cache."""
         # Point sauvegardé à (9.33, 2.35)
         points = [{"lat": 9.33, "lon": 2.35, "wrb_class": "Lixisol", "soil_type": "ferrugineux"}]
-        sg._sauvegarder_cache(points)
+        sg._save_cache(points)
 
         # Point recherché à seulement 0.01° du point enregistré (bien en dessous du seuil)
-        resultat = sg._chercher_dans_cache(lat=9.34, lon=2.35)
+        resultat = sg._lookup_cache(lat=9.34, lon=2.35)
         assert resultat == "ferrugineux"
 
     def test_chercher_cache_miss_trop_loin(self):
         """Un point trop éloigné (> seuil) ne doit pas retourner de résultat du cache."""
         # Point sauvegardé à (9.33, 2.35)
         points = [{"lat": 9.33, "lon": 2.35, "wrb_class": "Lixisol", "soil_type": "ferrugineux"}]
-        sg._sauvegarder_cache(points)
+        sg._save_cache(points)
 
         # Point recherché à 1.0° de distance (bien au-dessus du seuil de 0.25°)
-        resultat = sg._chercher_dans_cache(lat=10.33, lon=2.35)
+        resultat = sg._lookup_cache(lat=10.33, lon=2.35)
         assert resultat is None
 
     def test_chercher_cache_vide_retourne_none(self):
         """Une recherche dans un cache vide doit retourner None."""
-        assert sg._chercher_dans_cache(lat=9.33, lon=2.35) is None
+        assert sg._lookup_cache(lat=9.33, lon=2.35) is None
 
     def test_seuil_exactement_atteint(self):
         """Un point exactement au seuil doit être considéré comme proche (<=)."""
         points = [{"lat": 9.33, "lon": 2.35, "wrb_class": "Lixisol", "soil_type": "ferrugineux"}]
-        sg._sauvegarder_cache(points)
+        sg._save_cache(points)
 
         # Distance = exactement _CACHE_DISTANCE_SEUIL (0.25°) sur la latitude seule
         lat_recherche = 9.33 + sg._CACHE_DISTANCE_SEUIL
-        resultat = sg._chercher_dans_cache(lat=lat_recherche, lon=2.35)
+        resultat = sg._lookup_cache(lat=lat_recherche, lon=2.35)
         assert resultat == "ferrugineux"
 
 
@@ -187,21 +187,21 @@ class TestAppelAPI:
     def test_appel_api_retourne_classe_wrb(self):
         """Un appel API réussi doit retourner la classe WRB la plus probable."""
         with patch("requests.get", return_value=self._reponse_mock("Lixisol")):
-            resultat = sg._appeler_api_soilgrids(lat=9.33, lon=2.35)
+            resultat = sg._call_api(lat=9.33, lon=2.35)
         assert resultat == "Lixisol"
 
     def test_appel_api_timeout_retourne_none(self):
         """Un timeout sur tous les essais doit retourner None (sans exception levée)."""
         with patch("requests.get", side_effect=requests.exceptions.Timeout), \
              patch("time.sleep"):  # accélère le test en supprimant les attentes
-            resultat = sg._appeler_api_soilgrids(lat=9.33, lon=2.35)
+            resultat = sg._call_api(lat=9.33, lon=2.35)
         assert resultat is None
 
     def test_appel_api_erreur_connexion_retourne_none(self):
         """Une erreur de connexion sur tous les essais doit retourner None."""
         with patch("requests.get", side_effect=requests.exceptions.ConnectionError), \
              patch("time.sleep"):
-            resultat = sg._appeler_api_soilgrids(lat=9.33, lon=2.35)
+            resultat = sg._call_api(lat=9.33, lon=2.35)
         assert resultat is None
 
     def test_appel_api_reponse_sans_classe_wrb(self):
@@ -211,7 +211,7 @@ class TestAppelAPI:
         mock_resp.raise_for_status = MagicMock()
 
         with patch("requests.get", return_value=mock_resp):
-            resultat = sg._appeler_api_soilgrids(lat=9.33, lon=2.35)
+            resultat = sg._call_api(lat=9.33, lon=2.35)
         assert resultat is None
 
     def test_appel_api_fallback_via_probabilities(self):
@@ -227,7 +227,7 @@ class TestAppelAPI:
         mock_resp.raise_for_status = MagicMock()
 
         with patch("requests.get", return_value=mock_resp):
-            resultat = sg._appeler_api_soilgrids(lat=6.36, lon=2.42)
+            resultat = sg._call_api(lat=6.36, lon=2.42)
         assert resultat == "Ferralsol"
 
     def test_nombre_de_tentatives_respecte(self):
@@ -240,7 +240,7 @@ class TestAppelAPI:
 
         with patch("requests.get", side_effect=side_effect), \
              patch("time.sleep"):
-            sg._appeler_api_soilgrids(lat=9.33, lon=2.35)
+            sg._call_api(lat=9.33, lon=2.35)
 
         assert compteur["n"] == sg._MAX_TENTATIVES
 
@@ -255,7 +255,7 @@ class TestFetchSoilType:
     def test_retourne_depuis_cache_si_disponible(self):
         """Si le cache contient un point proche, aucun appel API ne doit être effectué."""
         points = [{"lat": 9.33, "lon": 2.35, "wrb_class": "Lixisol", "soil_type": "ferrugineux"}]
-        sg._sauvegarder_cache(points)
+        sg._save_cache(points)
 
         with patch("requests.get") as mock_get:
             resultat = sg.fetch_soil_type(lat=9.33, lon=2.35)
@@ -295,7 +295,7 @@ class TestFetchSoilType:
             sg.fetch_soil_type(lat=6.35, lon=2.43)
 
         # Le cache doit maintenant contenir le point
-        points = sg._charger_cache()
+        points = sg._load_cache()
         assert len(points) == 1
         assert points[0]["wrb_class"] == "Arenosol"
         assert points[0]["soil_type"] == "sableux"

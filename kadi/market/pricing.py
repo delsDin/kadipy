@@ -36,7 +36,7 @@ class MarketPricing:
         Initialise le module de tarification.
 
         Args:
-            wfp_client (WFPDataBridgesClient, optional): Instance de WFPDataBridgesClient
+            wfp_client (WFPClient, optional): Instance de WFPClient
                 pour récupérer les données de prix. Si None, génère des données simulées.
             exchange_client (ExchangeRateClient, optional): Instance d'ExchangeRateClient
                 pour les taux de change dynamiques. Si None, utilise config.EXCHANGE_RATES.

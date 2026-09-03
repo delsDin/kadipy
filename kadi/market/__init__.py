@@ -18,8 +18,7 @@ from .logistics import MarketLogistics
 from .decision_support import DecisionSupport
 
 # Nouveaux clients API réels (remplacement du stub data_ingestion)
-from kadi._sources.wfp_client import WFPDataBridgesClient
-from kadi._sources.exchange_client import ExchangeRateClient
+from kadi._sources import WFPClient, ExchangeRateClient
 
 from kadi.config import CONFIG
 
@@ -200,7 +199,7 @@ class Market:
         exchange_client = ExchangeRateClient()
 
         # Client d'ingestion des données de marché (API HAPI HumData / PAM)
-        wfp_client = WFPDataBridgesClient()
+        wfp_client = WFPClient()
 
         # Module de tarification : normalisation, anomalies, agrégation
         # Les deux clients et le mode simulation sont injectés

@@ -149,32 +149,26 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ---
 
-## Phase 4 — Clients externes (`kadi/_sources/`)
+## Phase 4 : Clients externes (`kadi/_sources/`) (7/7 Terminé)
 
 ### Règles
 - Renommer `WFPDataBridgesClient` en `WFPClient` dans `_sources/wfp_client.py`.
-- Renommer `ExchangeRateClient` : conserver le nom, simplifier les méthodes
-  internes (en anglais).
-- Renommer les fonction du fichier `chirps.py` en anglais et simplifié
-- Renommer les fonctions du fichier `soilgrids.py` en anglais simplifié
-- Supprimer la classe `WFPDataBridgesClient` dans `kadi/market/data_ingestion.py`
-  et la remplacer par un import depuis `kadi._sources.wfp_client`.
-- Importer les fonctions et méthodes dans `kadi/_sources/_init__.py`
-- Mettre en place la Rétrocompatibilité
+- Renommer `ExchangeRateClient` : conserver le nom, simplifier les méthodes internes en anglais.
+- Renommer les fonctions du fichier `chirps.py` en anglais et simplifier.
+- Renommer les fonctions du fichier `soilgrids.py` en anglais et simplifier.
+- Rediriger et déprécier la classe dupliquée dans `kadi/market/data_ingestion.py` vers `kadi._sources.wfp_client.WFPClient`.
+- Exposer les fonctions et classes dans `kadi/_sources/__init__.py`.
+- Mettre en place la rétrocompatibilité via `_DEPRECATED` et `__getattr__`.
 
-### Fichiers à modifier
+### Fichiers modifiés
 
-- `[ ]` **4.1** `kadi/_sources/wfp_client.py` : renommer classe et méthodes.
-- `[ ]` **4.2** `kadi/_sources/exchange_client.py` : méthodes en anglais.
-- `[ ]` **4.2** `kadi/_sources/chirps.py` : fonction en anglais.
-- `[ ]` **4.2** `kadi/_sources/soilgrids.py` : fonction en anglais.
-- `[ ]` **4.3** `kadi/market/data_ingestion.py` : supprimer la classe dupliquée,
-  importer `WFPClient` depuis `kadi._sources.wfp_client`.
-- `[ ]` **4.4** Vérifier tous les imports qui référencent ces fonctions et méthodes.
-  ```bash
-  grep -rn "WFPDataBridgesClient\|data_ingestion" kadi/ tests/
-  ```
-- `[ ]` **4.5** Lancer les tests.
+- `[x]` **4.1** `kadi/_sources/wfp_client.py` : renommer `WFPDataBridgesClient` en `WFPClient`, passer les méthodes internes en anglais et ajouter la table `_DEPRECATED`.
+- `[x]` **4.2** `kadi/_sources/exchange_client.py` : simplifier les méthodes internes en anglais (`rates()`, `convert()`, `refresh()`) et ajouter la table `_DEPRECATED`.
+- `[x]` **4.3** `kadi/_sources/chirps.py` : traduire et simplifier les fonctions internes (`_is_available`, `_cache_path`, `_build_url`, `_download_and_clip`, `_extract_point`) et ajouter `_DEPRECATED`.
+- `[x]` **4.4** `kadi/_sources/soilgrids.py` : traduire et simplifier les fonctions internes (`_wrb_to_soil`, `_load_cache`, `_save_cache`, `_lookup_cache`, `_call_api`) et ajouter `_DEPRECATED`.
+- `[x]` **4.5** `kadi/market/data_ingestion.py` : nettoyer la classe dupliquée et mettre en place la rétrocompatibilité vers `kadi._sources.wfp_client.WFPClient`.
+- `[x]` **4.6** `kadi/_sources/__init__.py` : exporter `WFPClient`, `ExchangeRateClient`, `fetch_historical_precipitation`, `fetch_soil_type` et ajouter la table `_DEPRECATED`.
+- `[x]` **4.7** Lancer les tests et vérifier le maintien de la rétrocompatibilité.
 
 ---
 

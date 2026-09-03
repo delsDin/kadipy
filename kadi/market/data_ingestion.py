@@ -8,7 +8,7 @@ déplacés dans kadi._sources, qui est la localisation canonique depuis v1.1.0.
 Pour tout nouveau code, utilisez :
 
     # Client WFP DataBridges
-    from kadi._sources.wfp_client import WFPDataBridgesClient
+    from kadi._sources.wfp_client import WFPClient
 
     # Taux de change dynamiques
     from kadi._sources.exchange_client import ExchangeRateClient

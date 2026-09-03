@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from kadi.market import Market
-from kadi._sources.wfp_client import WFPDataBridgesClient
+from kadi._sources import WFPClient
 from kadi.market._cache import (
     initialiser_base,
     sauvegarder_prix,
@@ -242,7 +242,7 @@ class TestWFPClientAvecCache:
             lambda m, c, max_age_jours: recuperer_prix(m, c, max_age_jours, db_temporaire),
         )
 
-        client = WFPDataBridgesClient()
+        client = WFPClient()
         client.token = "fake_token"
         client.cache["commodities"] = {"maize": 51}
         client.cache["markets"] = {"cotonou": 1001}
@@ -280,7 +280,7 @@ class TestWFPClientAvecCache:
             lambda m, c, df, source, **kw: sauvegarder_prix(m, c, df, source, db_temporaire),
         )
 
-        client = WFPDataBridgesClient()
+        client = WFPClient()
         client.token = "fake_token"
         client.cache["commodities"] = {"maize": 51}
         client.cache["markets"] = {"savalou": 1234}
@@ -299,7 +299,7 @@ class TestWFPClientAvecCache:
     @responses.activate
     def test_fallback_simule_sans_token(self):
         """Sans token WFP, le client retourne des données simulées."""
-        client = WFPDataBridgesClient()
+        client = WFPClient()
         # Pas de token : client.token == ""
         assert client.token == ""
 

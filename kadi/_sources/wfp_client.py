@@ -16,6 +16,7 @@ de 10 000 lignes maximum. Ce client gère la pagination automatiquement.
 import datetime
 import logging
 import time
+import warnings
 from io import StringIO
 from typing import Optional, Tuple
 
@@ -47,7 +48,7 @@ _LOCATION_CODE_DEFAUT = "BEN"
 logger = logging.getLogger(__name__)
 
 
-class WFPDataBridgesClient:
+class WFPClient:
     """
     Client de récupération des prix de marché via l'API HAPI HumData (PAM).
 
@@ -68,11 +69,17 @@ class WFPDataBridgesClient:
             Défaut : config.HAPI_APP_IDENTIFIER.
 
     Exemples:
-        >>> client = WFPDataBridgesClient()
-        >>> df = client.get_market_prices("cotonou", "maize", ("2024-01-01", "2024-12-31"))
+        >>> client = WFPClient()
+        >>> df = client.prices("cotonou", "maize", ("2024-01-01", "2024-12-31"))
         >>> print(df.columns.tolist())
         ['date', 'price', 'unit', 'is_simulated', 'source', 'fetched_at', 'confidence_score']
     """
+
+    # Table des anciens noms de méthodes -> nouveau nom
+    # Utilisée par __getattr__ pour intercepter les appels aux méthodes dépréciées.
+    _METHODES_DEPRECATED = {
+        "get_market_prices": "prices",
+    }
 
     def __init__(
         self,
@@ -100,12 +107,42 @@ class WFPDataBridgesClient:
                 "HAPI_APP_IDENTIFIER pour accéder aux données réelles."
             )
 
-    def get_market_prices(
+    def __getattr__(self, name: str):
+        """
+        Intercepte les appels aux anciennes méthodes pour émettre un avertissement.
+
+        Args:
+            name (str): Nom de la méthode demandée.
+
+        Returns:
+            callable: La méthode correspondant à l'ancien nom.
+
+        Raises:
+            AttributeError: Si le nom n'est ni courant ni un ancien nom connu.
+        """
+        if name in WFPClient._METHODES_DEPRECATED:
+            # Récupération du nouveau nom de méthode
+            nouveau_nom = WFPClient._METHODES_DEPRECATED[name]
+            warnings.warn(
+                f"WFPClient.{name} est obsolète et sera supprimé "
+                f"dans KadiPy v2.0. Utilisez WFPClient.{nouveau_nom} à la place.",
+                category=DeprecationWarning,
+                # stacklevel=2 pointe vers la ligne de code de l'utilisateur,
+                # pas vers cette fonction interne
+                stacklevel=2,
+            )
+            return getattr(self, nouveau_nom)
+        raise AttributeError(
+            f"'{type(self).__name__}' n'a pas d'attribut '{name}'."
+        )
+
+    def prices(
         self,
         market: str,
         commodity: str,
-        time_range: Tuple[str, str],
-        location_code: str = _LOCATION_CODE_DEFAUT,
+        range_: Tuple[str, str],
+        location: str = _LOCATION_CODE_DEFAUT,
+        location_code: str = None,
     ) -> pd.DataFrame:
         """
         Récupère les prix de marché pour une marchandise et un marché donnés.
@@ -120,9 +157,11 @@ class WFPDataBridgesClient:
         Args:
             market (str): Nom du marché (ex: 'cotonou', 'Dantokpa').
             commodity (str): Nom de la marchandise en anglais (ex: 'maize', 'rice').
-            time_range (Tuple[str, str]): Tuple (start_date, end_date) au format
+            range_ (Tuple[str, str]): Tuple (start_date, end_date) au format
                 'YYYY-MM-DD'.
-            location_code (str): Code ISO-3 du pays. Défaut : 'BEN' (Bénin).
+            location (str): Code ISO-3 du pays. Défaut : 'BEN' (Bénin).
+            location_code (str, optional): Alias de ``location`` conservé pour
+                la rétrocompatibilité. Prioritaire sur ``location`` si fourni.
 
         Returns:
             pd.DataFrame: DataFrame avec les colonnes :
@@ -134,16 +173,20 @@ class WFPDataBridgesClient:
                 - ``fetched_at`` (str) : horodatage ISO de la récupération.
                 - ``confidence_score`` (float) : score de confiance (0.0-1.0).
         """
+        # Rétrocompatibilité : location_code (ancienne API) prioritaire sur location
+        if location_code is not None:
+            location = location_code
+
         # Si l'identifiant est absent, on tombe directement en simulation
         if not self._app_identifier:
             logger.warning(
                 f"Données simulées pour {commodity}/{market} "
                 "(HAPI_APP_IDENTIFIER non configuré)."
             )
-            return self._generer_donnees_simulees(commodity, time_range)
+            return self._simulate(commodity, range_)
 
         # Tentative de récupération depuis l'API avec retry
-        df = self._recuperer_avec_retry(market, commodity, time_range, location_code)
+        df = self._fetch_with_retry(market, commodity, range_, location)
 
         if df is not None:
             return df
@@ -153,14 +196,14 @@ class WFPDataBridgesClient:
             f"Toutes les tentatives HAPI ont échoué pour {commodity}/{market}. "
             "Données simulées retournées."
         )
-        return self._generer_donnees_simulees(commodity, time_range)
+        return self._simulate(commodity, range_)
 
-    def _recuperer_avec_retry(
+    def _fetch_with_retry(
         self,
         market: str,
         commodity: str,
-        time_range: Tuple[str, str],
-        location_code: str,
+        range_: Tuple[str, str],
+        location: str,
     ) -> Optional[pd.DataFrame]:
         """
         Effectue les appels à l'API avec retry et backoff exponentiel.
@@ -171,17 +214,15 @@ class WFPDataBridgesClient:
         Args:
             market (str): Nom du marché ciblé.
             commodity (str): Nom de la marchandise.
-            time_range (Tuple[str, str]): Plage de dates (start, end).
-            location_code (str): Code pays ISO-3.
+            range_ (Tuple[str, str]): Plage de dates (start, end).
+            location (str): Code pays ISO-3.
 
         Returns:
             pd.DataFrame si l'appel réussit, None si toutes les tentatives échouent.
         """
         for tentative in range(1, _MAX_TENTATIVES + 1):
             try:
-                df = self._paginer_et_recuperer(
-                    market, commodity, time_range, location_code
-                )
+                df = self._paginate(market, commodity, range_, location)
                 return df
 
             except requests.exceptions.Timeout:
@@ -210,12 +251,12 @@ class WFPDataBridgesClient:
 
         return None
 
-    def _paginer_et_recuperer(
+    def _paginate(
         self,
         market: str,
         commodity: str,
-        time_range: Tuple[str, str],
-        location_code: str,
+        range_: Tuple[str, str],
+        location: str,
     ) -> pd.DataFrame:
         """
         Interroge l'API HAPI en paginant automatiquement les résultats.
@@ -227,8 +268,8 @@ class WFPDataBridgesClient:
         Args:
             market (str): Nom du marché.
             commodity (str): Nom de la marchandise.
-            time_range (Tuple[str, str]): Tuple (start_date, end_date).
-            location_code (str): Code pays ISO-3.
+            range_ (Tuple[str, str]): Tuple (start_date, end_date).
+            location (str): Code pays ISO-3.
 
         Returns:
             pd.DataFrame: Toutes les lignes récupérées, normalisées.
@@ -247,9 +288,9 @@ class WFPDataBridgesClient:
             "app_identifier": self._app_identifier,
             "market_name": market,
             "commodity_name": commodity,
-            "location_code": location_code,
-            "start_date": time_range[0],
-            "end_date": time_range[1],
+            "location_code": location,
+            "start_date": range_[0],
+            "end_date": range_[1],
             "output_format": "csv",
             "limit": _HAPI_PAGE_SIZE,
         }
@@ -287,19 +328,19 @@ class WFPDataBridgesClient:
         if not pages:
             logger.info(
                 f"Aucune donnée retournée par HAPI pour {commodity}/{market} "
-                f"sur la période {time_range[0]} -> {time_range[1]}."
+                f"sur la période {range_[0]} -> {range_[1]}."
             )
-            return self._generer_donnees_simulees(commodity, time_range)
+            return self._simulate(commodity, range_)
 
         # Concaténation de toutes les pages
         df_brut = pd.concat(pages, ignore_index=True)
 
         # Normalisation des colonnes vers le format interne KadiPy
-        return self._normaliser_colonnes(df_brut, fetched_at)
+        return self._normalize(df_brut, fetched_at)
 
-    def _normaliser_colonnes(
+    def _normalize(
         self,
-        df_brut: pd.DataFrame,
+        df: pd.DataFrame,
         fetched_at: str,
     ) -> pd.DataFrame:
         """
@@ -314,7 +355,7 @@ class WFPDataBridgesClient:
         Ajoute les colonnes calculées : is_simulated, fetched_at, confidence_score.
 
         Args:
-            df_brut (pd.DataFrame): DataFrame brut issu de l'API HAPI.
+            df (pd.DataFrame): DataFrame brut issu de l'API HAPI.
             fetched_at (str): Horodatage ISO de la récupération.
 
         Returns:
@@ -332,9 +373,9 @@ class WFPDataBridgesClient:
         colonnes_disponibles = {
             col_hapi: col_interne
             for col_hapi, col_interne in mapping_colonnes.items()
-            if col_hapi in df_brut.columns
+            if col_hapi in df.columns
         }
-        df = df_brut.rename(columns=colonnes_disponibles)
+        df = df.rename(columns=colonnes_disponibles)
 
         # Conversion de la colonne date en datetime
         if "date" in df.columns:
@@ -360,10 +401,10 @@ class WFPDataBridgesClient:
         colonnes_presentes = [c for c in colonnes_finales if c in df.columns]
         return df[colonnes_presentes].dropna(subset=["date", "price"])
 
-    def _generer_donnees_simulees(
+    def _simulate(
         self,
         commodity: str,
-        time_range: Tuple[str, str],
+        range_: Tuple[str, str],
     ) -> pd.DataFrame:
         """
         Génère un DataFrame de données de prix simulées en mode fallback.
@@ -375,15 +416,15 @@ class WFPDataBridgesClient:
 
         Args:
             commodity (str): Code de la marchandise (utilisé pour les logs).
-            time_range (Tuple[str, str]): Plage de dates (start, end).
+            range_ (Tuple[str, str]): Plage de dates (start, end).
 
         Returns:
             pd.DataFrame: DataFrame simulé avec is_simulated=True.
         """
         # Construction de la plage de dates quotidienne
         try:
-            start = datetime.date.fromisoformat(time_range[0])
-            end = datetime.date.fromisoformat(time_range[1])
+            start = datetime.date.fromisoformat(range_[0])
+            end = datetime.date.fromisoformat(range_[1])
         except ValueError:
             # En cas de format de date invalide, simulation sur 365 jours
             end = datetime.date.today()
@@ -410,3 +451,41 @@ class WFPDataBridgesClient:
             "fetched_at": fetched_at,
             "confidence_score": 0.1,
         })
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+# Utilisée par __getattr__ pour intercepter les imports de l'ancien nom.
+_DEPRECATED = {
+    "WFPDataBridgesClient": ("WFPClient", WFPClient),
+}
+
+
+def __getattr__(name: str):
+    """
+    Intercepte l'accès aux anciens noms de classes pour émettre un avertissement.
+
+    Args:
+        name (str): Nom de l'attribut demandé dans ce module.
+
+    Returns:
+        type: La classe correspondant à l'ancien nom.
+
+    Raises:
+        AttributeError: Si le nom demandé n'est ni un symbole courant
+            ni un ancien nom connu.
+    """
+    if name in _DEPRECATED:
+        # Récupère le nouveau nom et la classe cible
+        new_name, cls = _DEPRECATED[name]
+        warnings.warn(
+            f"kadi._sources.wfp_client.{name} est obsolète et sera supprimé "
+            f"dans KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            # stacklevel=2 pointe vers la ligne de code de l'utilisateur,
+            # pas vers cette fonction interne
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
+    )
