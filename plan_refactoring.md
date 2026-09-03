@@ -155,16 +155,22 @@ corriger en premier simplifie toutes les phases suivantes.
 - Renommer `WFPDataBridgesClient` en `WFPClient` dans `_sources/wfp_client.py`.
 - Renommer `ExchangeRateClient` : conserver le nom, simplifier les méthodes
   internes (en anglais).
+- Renommer les fonction du fichier `chirps.py` en anglais et simplifié
+- Renommer les fonctions du fichier `soilgrids.py` en anglais simplifié
 - Supprimer la classe `WFPDataBridgesClient` dans `kadi/market/data_ingestion.py`
   et la remplacer par un import depuis `kadi._sources.wfp_client`.
+- Importer les fonctions et méthodes dans `kadi/_sources/_init__.py`
+- Mettre en place la Rétrocompatibilité
 
 ### Fichiers à modifier
 
 - `[ ]` **4.1** `kadi/_sources/wfp_client.py` : renommer classe et méthodes.
 - `[ ]` **4.2** `kadi/_sources/exchange_client.py` : méthodes en anglais.
+- `[ ]` **4.2** `kadi/_sources/chirps.py` : fonction en anglais.
+- `[ ]` **4.2** `kadi/_sources/soilgrids.py` : fonction en anglais.
 - `[ ]` **4.3** `kadi/market/data_ingestion.py` : supprimer la classe dupliquée,
   importer `WFPClient` depuis `kadi._sources.wfp_client`.
-- `[ ]` **4.4** Vérifier tous les imports qui référencent `WFPDataBridgesClient`.
+- `[ ]` **4.4** Vérifier tous les imports qui référencent ces fonctions et méthodes.
   ```bash
   grep -rn "WFPDataBridgesClient\|data_ingestion" kadi/ tests/
   ```

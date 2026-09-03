@@ -63,6 +63,7 @@ __all__ = [
     "Cache",
     "Pipeline",
     "load_clean",
+    "load_and_clean"
 ]
 
 
@@ -119,6 +120,7 @@ _DEPRECATED_KIDAS = {
     "DataNormalizer":  ("Normalizer",  lambda: Normalizer),
     "DataCache":       ("Cache",       lambda: Cache),
     "DataPipeline":    ("Pipeline",    lambda: Pipeline),
+    "load_and_clean":  ("load_clean",  lambda: load_clean)
 }
 
 
