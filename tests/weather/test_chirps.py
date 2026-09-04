@@ -29,7 +29,7 @@ from kadi._sources.chirps import (
     fetch_historical_precipitation,
 )
 from kadi.exceptions import SourceError
-from kadi.weather.data import WeatherData
+from kadi.weather.data import WeatherLoader
 from kadi.weather.location import Location
 
 
@@ -226,13 +226,13 @@ def test_fetch_precipitation_structure_dataframe(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_openmeteo_utilise_open_meteo_uniquement(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j
 ):
     """
-    Avec source='openmeteo', fetch_historical doit utiliser exclusivement Open-Meteo.
+    Avec source='openmeteo', get_historical doit utiliser exclusivement Open-Meteo.
     CHIRPS ne doit pas être appelé.
     """
     mock_cache.return_value = pd.DataFrame()
@@ -243,8 +243,8 @@ def test_source_openmeteo_utilise_open_meteo_uniquement(
     ), patch(
         "kadi._sources.chirps.fetch_historical_precipitation"
     ) as mock_chirps:
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="openmeteo")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="openmeteo")
 
     # CHIRPS ne doit pas avoir été appelé
     mock_chirps.assert_not_called()
@@ -253,8 +253,8 @@ def test_source_openmeteo_utilise_open_meteo_uniquement(
     assert (result["data_source"] == "open-meteo").all()
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_chirps_met_a_jour_precipitation(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j, df_chirps_3j
 ):
@@ -275,8 +275,8 @@ def test_source_chirps_met_a_jour_precipitation(
         "kadi._sources.chirps.fetch_historical_precipitation",
         return_value=df_chirps_3j
     ):
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="chirps")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="chirps")
 
     # Les lignes couvertes par CHIRPS doivent indiquer 'chirps'
     dates_chirps = pd.to_datetime(df_chirps_3j["date"])
@@ -287,8 +287,8 @@ def test_source_chirps_met_a_jour_precipitation(
     assert result.loc[~masque, "data_source"].eq("open-meteo").all()
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_chirps_repli_openmeteo_si_chirps_echoue(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j
 ):
@@ -307,8 +307,8 @@ def test_source_chirps_repli_openmeteo_si_chirps_echoue(
         "kadi._sources.chirps.fetch_historical_precipitation",
         return_value=None  # Aucune donnée CHIRPS disponible
     ):
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="chirps")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="chirps")
 
     # Le DataFrame ne doit pas être vide (repli sur Open-Meteo)
     assert not result.empty
@@ -316,8 +316,8 @@ def test_source_chirps_repli_openmeteo_si_chirps_echoue(
     assert (result["data_source"] == "open-meteo").all()
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_both_combine_chirps_et_openmeteo(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j, df_chirps_3j
 ):
@@ -336,8 +336,8 @@ def test_source_both_combine_chirps_et_openmeteo(
         "kadi._sources.chirps.fetch_historical_precipitation",
         return_value=df_chirps_3j
     ):
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="both")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="both")
 
     dates_chirps = pd.to_datetime(df_chirps_3j["date"])
     masque_chirps = result.index.isin(dates_chirps)
@@ -352,14 +352,14 @@ def test_source_both_combine_chirps_et_openmeteo(
 # ---------------------------------------------------------------------------
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_session_historical_propage_source(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j
 ):
     """
     WeatherSession.historical(source='openmeteo') doit propager le paramètre
-    source à WeatherData.fetch_historical().
+    source à WeatherLoader.get_historical().
     """
     from kadi.weather.session import WeatherSession
 
@@ -374,11 +374,11 @@ def test_session_historical_propage_source(
         "kadi._sources.chirps.fetch_historical_precipitation"
     ) as mock_chirps:
         session = WeatherSession(
-            latitude=location_parakou.latitude,
-            longitude=location_parakou.longitude,
+            latitude=location_parakou.lat,
+            longitude=location_parakou.lon,
             name=location_parakou.name,
         )
-        result = session.historical(months_back=1, source="openmeteo")
+        result = session.historical(months=1, source="openmeteo")
 
     # CHIRPS ne doit pas avoir été appelé
     mock_chirps.assert_not_called()

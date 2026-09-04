@@ -189,10 +189,16 @@ class MarketLogistics:
         # Initialisation du chemin du fichier de cache
         if cache_file is None:
             cache_dir = os.path.expanduser("~/.kadi")
-            os.makedirs(cache_dir, exist_ok=True)
-            self.cache_file = os.path.join(cache_dir, "osrm_cache.json")
+            try:
+                os.makedirs(cache_dir, exist_ok=True)
+                self.cache_file = os.path.join(cache_dir, "osrm_cache.json")
+            except OSError:
+                import tempfile
+                cache_dir = tempfile.gettempdir()
+                self.cache_file = os.path.join(cache_dir, "osrm_cache.json")
         else:
             self.cache_file = cache_file
+
 
         # Structure du cache en mémoire (coordonnées et distances routières)
         self.cache = {"coords": {}, "distances": {}}
