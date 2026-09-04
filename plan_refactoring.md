@@ -182,20 +182,20 @@ corriger en premier simplifie toutes les phases suivantes.
 - Renommer les méthodes et attributs selon les propositions.
 - Toutes les méthodes internes encore en français passent en anglais.
 
-### Fichiers à modifier
+### Fichiers modifié
 
-- `[ ]` **5.1** `kadi/weather/location.py`
-- `[ ]` **5.2** `kadi/weather/data.py`
-- `[ ]` **5.3** `kadi/weather/hydrology.py`
-- `[ ]` **5.4** `kadi/weather/phenology.py`
-- `[ ]` **5.5** `kadi/weather/risk.py`
-- `[ ]` **5.6** `kadi/weather/session.py` : renommer la classe en `Weather`.
-- `[ ]` **5.7** `kadi/weather/__init__.py` : exporter `Weather`.
+- `[x]` **5.1** `kadi/weather/location.py`
+- `[x]` **5.2** `kadi/weather/data.py`
+- `[x]` **5.3** `kadi/weather/hydrology.py`
+- `[x]` **5.4** `kadi/weather/phenology.py`
+- `[x]` **5.5** `kadi/weather/risk.py`
+- `[x]` **5.6** `kadi/weather/session.py` : renommer la classe en `Weather`.
+- `[x]` **5.7** `kadi/weather/__init__.py` : exporter `Weather`.
   ```python
   from .session import Weather
   from .location import Location
   ```
-- `[ ]` **5.8** Lancer les tests.
+- `[x]` **5.8** Lancer les tests.
 
 ---
 
