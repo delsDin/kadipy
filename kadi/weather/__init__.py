@@ -5,7 +5,7 @@ Ce module expose les fonctionnalités de climatologie agronomique
 pour le package KadiPy, adaptées au contexte béninois.
 
 Les anciens noms (WeatherData, RiskIndicators, WeatherSession) restent accessibles
-via rétrocompatibilité mais sont dépréciés depuis la version 1.1.0.
+via rétrocompatibilité mais sont dépréciés depuis la version 1.2.0.
 """
 
 import warnings
@@ -17,7 +17,7 @@ from .phenology import Phenology
 from .hydrology import Hydrology
 from .risk import Risk
 
-# Noms publics officiels (v1.1.0+)
+# Noms publics officiels (v1.2.0+)
 __all__ = [
     "Weather",
     "Location",

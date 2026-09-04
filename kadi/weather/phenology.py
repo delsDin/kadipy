@@ -294,7 +294,7 @@ class Phenology:
         end_date: Union[str, pd.Timestamp] = None,
     ) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``gdd(crop, start, end)`` à la place.
 
@@ -527,7 +527,7 @@ class Phenology:
 
     @property
     def rainfall_data(self) -> pd.Series:
-        """Ancien nom de ``rainfall``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``rainfall``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.rainfall_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.rainfall à la place.",
@@ -538,7 +538,7 @@ class Phenology:
 
     @rainfall_data.setter
     def rainfall_data(self, value: pd.Series) -> None:
-        """Ancien setter de ``rainfall``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``rainfall``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.rainfall_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.rainfall à la place.",
@@ -549,7 +549,7 @@ class Phenology:
 
     @property
     def temperature_data(self) -> pd.DataFrame:
-        """Ancien nom de ``temperature``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``temperature``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.temperature_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.temperature à la place.",
@@ -560,7 +560,7 @@ class Phenology:
 
     @temperature_data.setter
     def temperature_data(self, value: pd.DataFrame) -> None:
-        """Ancien setter de ``temperature``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``temperature``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.temperature_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.temperature à la place.",
@@ -571,7 +571,7 @@ class Phenology:
 
     @property
     def onset_date(self) -> Optional[pd.Timestamp]:
-        """Ancien nom de ``onset_ts``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``onset_ts``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.onset_date est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.onset_ts à la place.",
@@ -582,7 +582,7 @@ class Phenology:
 
     @onset_date.setter
     def onset_date(self, value: Optional[pd.Timestamp]) -> None:
-        """Ancien setter de ``onset_ts``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``onset_ts``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.onset_date est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.onset_ts à la place.",
@@ -593,7 +593,7 @@ class Phenology:
 
     @property
     def crop_params(self) -> dict:
-        """Ancien nom de ``crop``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``crop``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.crop_params est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.crop à la place.",
@@ -604,7 +604,7 @@ class Phenology:
 
     @crop_params.setter
     def crop_params(self, value: dict) -> None:
-        """Ancien setter de ``crop``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``crop``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Phenology.crop_params est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Phenology.crop à la place.",

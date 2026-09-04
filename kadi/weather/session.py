@@ -124,7 +124,7 @@ class Weather:
         require_historical: bool = False,
     ) -> None:
         """
-        Ancien nom de ``_load_data``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_load_data``. Déprécié depuis v1.2.0.
 
         Args:
             require_forecast (bool): Ancien nom de forecast.
@@ -174,7 +174,7 @@ class Weather:
 
     def _ensure_components(self, component: str) -> None:
         """
-        Ancien nom de ``_init_component``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_init_component``. Déprécié depuis v1.2.0.
 
         Args:
             component (str): Identifiant du composant.
@@ -285,7 +285,7 @@ class Weather:
         end_date: str = None,
     ) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``gdd(crop, start, end)`` à la place.
 
@@ -347,7 +347,7 @@ class Weather:
 
     def drought_index(self, method: str = "spi", window_months: int = 3) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``drought(method, window)`` à la place.
 
@@ -408,7 +408,7 @@ class Weather:
 
     def rain_probability(self, days_ahead: int = 1, min_rainfall_mm: float = 1.0) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``rain_prob(days, min_mm)`` à la place.
 
@@ -479,7 +479,7 @@ class Weather:
 
     def _init_all_components(self) -> None:
         """
-        Ancien nom de ``_setup``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_setup``. Déprécié depuis v1.2.0.
         """
         warnings.warn(
             "Weather._init_all_components est obsolète et sera supprimé dans "
@@ -495,7 +495,7 @@ class Weather:
 
     @property
     def cache_dir(self) -> Optional[str]:
-        """Ancien nom de ``cache``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``cache``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Weather.cache_dir est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Weather.cache à la place.",
@@ -506,7 +506,7 @@ class Weather:
 
     @cache_dir.setter
     def cache_dir(self, value: Optional[str]) -> None:
-        """Ancien setter de ``cache``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``cache``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Weather.cache_dir est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Weather.cache à la place.",
@@ -517,7 +517,7 @@ class Weather:
 
     @property
     def weather_data(self) -> WeatherLoader:
-        """Ancien nom de ``loader``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``loader``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Weather.weather_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Weather.loader à la place.",
@@ -528,7 +528,7 @@ class Weather:
 
     @weather_data.setter
     def weather_data(self, value: WeatherLoader) -> None:
-        """Ancien setter de ``loader``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``loader``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Weather.weather_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Weather.loader à la place.",
@@ -539,7 +539,7 @@ class Weather:
 
     @property
     def risk_indicators(self) -> Optional[Risk]:
-        """Ancien nom de ``risk``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``risk``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Weather.risk_indicators est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Weather.risk à la place.",
@@ -550,7 +550,7 @@ class Weather:
 
     @risk_indicators.setter
     def risk_indicators(self, value: Optional[Risk]) -> None:
-        """Ancien setter de ``risk``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``risk``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Weather.risk_indicators est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Weather.risk à la place.",

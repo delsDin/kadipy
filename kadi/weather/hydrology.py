@@ -379,7 +379,7 @@ class Hydrology:
 
     def compute_water_balance(self) -> pd.DataFrame:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``water_balance()`` à la place.
 
@@ -396,7 +396,7 @@ class Hydrology:
 
     def get_soil_params(self, soil_type: str) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``soil_params(soil_type)`` à la place.
 
@@ -416,7 +416,7 @@ class Hydrology:
 
     def get_crop_coefficients(self, crop: str, stage: str) -> float:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``crop_kc(crop, stage)`` à la place.
 
@@ -441,7 +441,7 @@ class Hydrology:
 
     @property
     def rainfall_data(self) -> pd.Series:
-        """Ancien nom de ``rainfall``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``rainfall``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Hydrology.rainfall_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Hydrology.rainfall à la place.",
@@ -452,7 +452,7 @@ class Hydrology:
 
     @rainfall_data.setter
     def rainfall_data(self, value: pd.Series) -> None:
-        """Ancien setter de ``rainfall``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``rainfall``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Hydrology.rainfall_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Hydrology.rainfall à la place.",
@@ -463,7 +463,7 @@ class Hydrology:
 
     @property
     def temperature_data(self) -> pd.DataFrame:
-        """Ancien nom de ``temperature``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``temperature``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Hydrology.temperature_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Hydrology.temperature à la place.",
@@ -474,7 +474,7 @@ class Hydrology:
 
     @temperature_data.setter
     def temperature_data(self, value: pd.DataFrame) -> None:
-        """Ancien setter de ``temperature``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``temperature``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Hydrology.temperature_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Hydrology.temperature à la place.",
@@ -485,7 +485,7 @@ class Hydrology:
 
     @property
     def balance_result(self) -> Optional[pd.DataFrame]:
-        """Ancien nom de ``balance``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``balance``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Hydrology.balance_result est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Hydrology.balance à la place.",
@@ -496,7 +496,7 @@ class Hydrology:
 
     @balance_result.setter
     def balance_result(self, value: Optional[pd.DataFrame]) -> None:
-        """Ancien setter de ``balance``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``balance``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Hydrology.balance_result est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Hydrology.balance à la place.",
@@ -512,7 +512,7 @@ class Hydrology:
 
     def _resolve_soil_type_from_cache(self, location: Location) -> str:
         """
-        Ancien nom de ``_resolve_soil``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_resolve_soil``. Déprécié depuis v1.2.0.
 
         Args:
             location (Location): Instance de Location.

@@ -242,7 +242,7 @@ def _call_api(lat: float, lon: float) -> Optional[str]:
     """
     url = f"{_SOILGRIDS_BASE_URL}/classification/query"
     params = {"lon": lon, "lat": lat, "number_classes": 3}
-    headers = {"User-Agent": "KadiPy/1.1.0 (Agritech Research, Benin; ISRIC SoilGrids)"}
+    headers = {"User-Agent": "KadiPy/1.2.0 (Agritech Research, Benin; ISRIC SoilGrids)"}
 
     for tentative in range(1, _MAX_TENTATIVES + 1):
         try:

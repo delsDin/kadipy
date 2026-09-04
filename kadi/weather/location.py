@@ -45,8 +45,8 @@ class Location:
             lat (float): Latitude en degrés décimaux.
             lon (float): Longitude en degrés décimaux.
             name (str): Nom de la localité (optionnel).
-            latitude (float): Ancien nom de lat. Déprécié depuis v1.1.0.
-            longitude (float): Ancien nom de lon. Déprécié depuis v1.1.0.
+            latitude (float): Ancien nom de lat. Déprécié depuis v1.2.0.
+            longitude (float): Ancien nom de lon. Déprécié depuis v1.2.0.
         """
         # Gestion des anciens paramètres avec avertissement de déprécation
         if latitude is not None:
@@ -159,7 +159,7 @@ class Location:
 
     def detect_zone(self) -> str:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez l'attribut ``self.zone`` à la place.
 
@@ -176,7 +176,7 @@ class Location:
 
     def get_climate_params(self) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``Location.climate()`` à la place.
 
@@ -197,7 +197,7 @@ class Location:
 
     @property
     def latitude(self) -> float:
-        """Ancien nom de ``lat``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``lat``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Location.latitude est obsolète et sera supprimé dans KadiPy v2.0. "
             "Utilisez Location.lat à la place.",
@@ -208,7 +208,7 @@ class Location:
 
     @latitude.setter
     def latitude(self, value: float) -> None:
-        """Ancien setter de ``lat``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``lat``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Location.latitude est obsolète et sera supprimé dans KadiPy v2.0. "
             "Utilisez Location.lat à la place.",
@@ -219,7 +219,7 @@ class Location:
 
     @property
     def longitude(self) -> float:
-        """Ancien nom de ``lon``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``lon``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Location.longitude est obsolète et sera supprimé dans KadiPy v2.0. "
             "Utilisez Location.lon à la place.",
@@ -230,7 +230,7 @@ class Location:
 
     @longitude.setter
     def longitude(self, value: float) -> None:
-        """Ancien setter de ``lon``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``lon``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Location.longitude est obsolète et sera supprimé dans KadiPy v2.0. "
             "Utilisez Location.lon à la place.",
@@ -241,7 +241,7 @@ class Location:
 
     @property
     def climate_regime(self) -> str:
-        """Ancien nom de ``regime``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``regime``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Location.climate_regime est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Location.regime à la place.",
@@ -252,7 +252,7 @@ class Location:
 
     @climate_regime.setter
     def climate_regime(self, value: str) -> None:
-        """Ancien setter de ``regime``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``regime``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Location.climate_regime est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Location.regime à la place.",

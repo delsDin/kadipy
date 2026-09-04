@@ -458,7 +458,7 @@ class Risk:
 
     def drought_index(self, method: str = "spi", window_months: int = 3) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``drought(method, window)`` à la place.
 
@@ -479,7 +479,7 @@ class Risk:
 
     def markov_transition(self, threshold_mm: float = 1.0) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``markov(thresh)`` à la place.
 
@@ -499,7 +499,7 @@ class Risk:
 
     def hurst_exponent(self, window: int = 1095) -> float:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``hurst(window)`` à la place.
 
@@ -519,7 +519,7 @@ class Risk:
 
     def rain_probability(self, days_ahead: int = 1, min_rainfall_mm: float = 1.0) -> dict:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``rain_prob(days, min_mm)`` à la place.
 
@@ -544,7 +544,7 @@ class Risk:
 
     @property
     def rainfall_historical(self) -> pd.Series:
-        """Ancien nom de ``rainfall``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``rainfall``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Risk.rainfall_historical est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Risk.rainfall à la place.",
@@ -555,7 +555,7 @@ class Risk:
 
     @rainfall_historical.setter
     def rainfall_historical(self, value: pd.Series) -> None:
-        """Ancien setter de ``rainfall``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``rainfall``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Risk.rainfall_historical est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Risk.rainfall à la place.",
@@ -566,7 +566,7 @@ class Risk:
 
     @property
     def forecast_data(self) -> pd.DataFrame:
-        """Ancien nom de ``forecast``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``forecast``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Risk.forecast_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Risk.forecast à la place.",
@@ -577,7 +577,7 @@ class Risk:
 
     @forecast_data.setter
     def forecast_data(self, value: pd.DataFrame) -> None:
-        """Ancien setter de ``forecast``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``forecast``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "Risk.forecast_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez Risk.forecast à la place.",

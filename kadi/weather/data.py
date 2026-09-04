@@ -553,7 +553,7 @@ class WeatherLoader:
 
     def fetch_forecast(self, days: int = 7, force_refresh: bool = False) -> pd.DataFrame:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``get_forecast(days, refresh)`` à la place.
 
@@ -579,7 +579,7 @@ class WeatherLoader:
         source: str = None,
     ) -> pd.DataFrame:
         """
-        Ancienne méthode publique. Dépréciée depuis v1.1.0.
+        Ancienne méthode publique. Dépréciée depuis v1.2.0.
 
         Utilisez ``get_historical(months, refresh, source)`` à la place.
 
@@ -601,7 +601,7 @@ class WeatherLoader:
 
     @property
     def forecast_data(self) -> Optional[pd.DataFrame]:
-        """Ancien nom de ``forecast``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``forecast``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "WeatherLoader.forecast_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez WeatherLoader.forecast à la place.",
@@ -612,7 +612,7 @@ class WeatherLoader:
 
     @forecast_data.setter
     def forecast_data(self, value: Optional[pd.DataFrame]) -> None:
-        """Ancien setter de ``forecast``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``forecast``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "WeatherLoader.forecast_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez WeatherLoader.forecast à la place.",
@@ -623,7 +623,7 @@ class WeatherLoader:
 
     @property
     def historical_data(self) -> Optional[pd.DataFrame]:
-        """Ancien nom de ``historical``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``historical``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "WeatherLoader.historical_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez WeatherLoader.historical à la place.",
@@ -634,7 +634,7 @@ class WeatherLoader:
 
     @historical_data.setter
     def historical_data(self, value: Optional[pd.DataFrame]) -> None:
-        """Ancien setter de ``historical``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``historical``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "WeatherLoader.historical_data est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez WeatherLoader.historical à la place.",
@@ -645,7 +645,7 @@ class WeatherLoader:
 
     @property
     def data_source(self) -> str:
-        """Ancien nom de ``source``. Déprécié depuis v1.1.0."""
+        """Ancien nom de ``source``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "WeatherLoader.data_source est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez WeatherLoader.source à la place.",
@@ -656,7 +656,7 @@ class WeatherLoader:
 
     @data_source.setter
     def data_source(self, value: str) -> None:
-        """Ancien setter de ``source``. Déprécié depuis v1.1.0."""
+        """Ancien setter de ``source``. Déprécié depuis v1.2.0."""
         warnings.warn(
             "WeatherLoader.data_source est obsolète et sera supprimé dans "
             "KadiPy v2.0. Utilisez WeatherLoader.source à la place.",
@@ -671,7 +671,7 @@ class WeatherLoader:
 
     def _normalize_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Ancien nom de ``_normalize``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_normalize``. Déprécié depuis v1.2.0.
 
         Args:
             df (pd.DataFrame): DataFrame à normaliser.
@@ -689,7 +689,7 @@ class WeatherLoader:
 
     def _get_from_cache(self, start: str, end: str) -> pd.DataFrame:
         """
-        Ancien nom de ``_from_cache``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_from_cache``. Déprécié depuis v1.2.0.
 
         Args:
             start (str): Date de début ISO.
@@ -708,7 +708,7 @@ class WeatherLoader:
 
     def _save_to_cache(self, data: pd.DataFrame, kind: str) -> None:
         """
-        Ancien nom de ``_to_cache``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_to_cache``. Déprécié depuis v1.2.0.
 
         Args:
             data (pd.DataFrame): Données à sauvegarder.
@@ -724,7 +724,7 @@ class WeatherLoader:
 
     def _fetch_forecast_data(self, days: int = 7) -> pd.DataFrame:
         """
-        Ancien nom de ``_fetch_forecast``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_fetch_forecast``. Déprécié depuis v1.2.0.
 
         Args:
             days (int): Jours de prévision.
@@ -742,7 +742,7 @@ class WeatherLoader:
 
     def _fetch_historical_data(self, days: int = 7, source: str = "both") -> pd.DataFrame:
         """
-        Ancien nom de ``_fetch_historical``. Déprécié depuis v1.1.0.
+        Ancien nom de ``_fetch_historical``. Déprécié depuis v1.2.0.
 
         Args:
             days (int): Jours d'historique.

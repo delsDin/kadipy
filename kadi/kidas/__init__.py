@@ -47,7 +47,7 @@ from kadi.kidas.cache import Cache
 from kadi.kidas.pipeline import Pipeline
 
 # Version du module kidas
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # API publique exposée par le package
 __all__ = [
