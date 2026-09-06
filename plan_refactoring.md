@@ -228,7 +228,7 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ---
 
-## Phase 7 — Point d'entrée racine (`kadi/__init__.py`)
+## Phase 7 — Point d'entrée racine (`kadi/__init__.py`) (2/2 Terminé)
 
 Cette phase expose l'API simplifiée de premier niveau, qui sera le point
 d'entrée principal pour les utilisateurs du package.
@@ -257,7 +257,7 @@ from kadi.kidas import Cleaner, Validator, Normalizer, Pipeline, Cache
 
 ### Fichiers à modifier
 
-- `[ ]` **7.1** `kadi/__init__.py` : ajouter les exports de premier niveau.
+- `[x]` **7.1** `kadi/__init__.py` : ajouter les exports de premier niveau.
   ```python
   from .weather.session import Weather
   from .market import Market
@@ -274,7 +274,7 @@ from kadi.kidas import Cleaner, Validator, Normalizer, Pipeline, Cache
   def read_json(path, **kwargs):
       return JSONSource(path, **kwargs).read()
   ```
-- `[ ]` **7.2** Lancer les tests complets.
+- `[x]` **7.2** Lancer les tests complets.
 
 ---
 
