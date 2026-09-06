@@ -172,7 +172,7 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ---
 
-## Phase 5 — Module weather (`kadi/weather/`)
+## Phase 5 — Module weather (`kadi/weather/`) (8/8 Terminé)
 
 ### Règles
 - `WeatherSession` -> `Weather` (façade principale, exposée à `kadi.Weather`).
@@ -199,7 +199,7 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ---
 
-## Phase 6 — Module market (`kadi/market/`)
+## Phase 6 — Module market (`kadi/market/`) (7/7 Terminé)
 
 ### Règles
 - `MarketPricing` -> `Pricing`, `MarketForecasting` -> `Forecasting`,
@@ -211,12 +211,12 @@ corriger en premier simplifie toutes les phases suivantes.
 
 ### Fichiers à modifier
 
-- `[ ]` **6.1** `kadi/market/pricing.py`
-- `[ ]` **6.2** `kadi/market/forecasting.py`
-- `[ ]` **6.3** `kadi/market/logistics.py`
-- `[ ]` **6.4** `kadi/market/decision_support.py`
-- `[ ]` **6.5** `kadi/market/backtesting.py`
-- `[ ]` **6.6** `kadi/market/__init__.py` : exposer toutes les classes internes.
+- `[x]` **6.1** `kadi/market/pricing.py`
+- `[x]` **6.2** `kadi/market/forecasting.py`
+- `[x]` **6.3** `kadi/market/logistics.py`
+- `[x]` **6.4** `kadi/market/decision_support.py`
+- `[x]` **6.5** `kadi/market/backtesting.py`
+- `[x]` **6.6** `kadi/market/__init__.py` : exposer toutes les classes internes. Pour les anciennes classes, utiliser la rétrocompatibilité, avec un tableau _DEPRECATED et la méthode __getattr__.
   ```python
   from .pricing import Pricing
   from .forecasting import Forecasting
@@ -224,7 +224,7 @@ corriger en premier simplifie toutes les phases suivantes.
   from .decision_support import Advisor
   from .backtesting import Backtester
   ```
-- `[ ]` **6.7** Lancer les tests.
+- `[x]` **6.7** Lancer les tests.
 
 ---
 

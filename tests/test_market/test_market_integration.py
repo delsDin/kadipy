@@ -504,13 +504,13 @@ class TestWeatherMarketIntegration:
         gamma_effectif doit être strictement supérieur à gamma_base quand
         la probabilité de pluie est élevée (0.9).
         """
-        from kadi.market.logistics import MarketLogistics, _calculer_gamma_effectif
+        from kadi.market.logistics import Logistics, _calculer_gamma_effectif
         from kadi.config import CONFIG
 
         # Instanciation du module logistique avec la session météo mockée
-        logistics = MarketLogistics(
+        logistics = Logistics(
             cache_file="/tmp/test_osrm_cache.json",
-            weather_session=mock_weather_session_pluie_elevee,
+            weather=mock_weather_session_pluie_elevee,
         )
 
         # Récupération du gamma de base depuis la configuration
@@ -587,9 +587,9 @@ class TestWeatherMarketIntegration:
         Un horizon de 1 mois doit donner un résultat différent d'un horizon
         de 6 mois (coûts de stockage et prix futur différents).
         """
-        from kadi.market.decision_support import DecisionSupport
+        from kadi.market.decision_support import Advisor
 
-        ds = DecisionSupport()  # Pas de modules : utilise les valeurs par défaut
+        ds = Advisor()  # Pas de modules : utilise les valeurs par défaut
 
         res_1_mois = ds.storage_vs_sell_now(
             crop="maize",
@@ -619,9 +619,9 @@ class TestWeatherMarketIntegration:
         """
         arbitrage_decision() doit inclure la clé 'confidence_score' dans son résultat.
         """
-        from kadi.market.decision_support import DecisionSupport
+        from kadi.market.decision_support import Advisor
 
-        ds = DecisionSupport()
+        ds = Advisor()
         resultat = ds.arbitrage_decision(
             crop="rice",
             market_from="Savalou",
@@ -641,9 +641,9 @@ class TestWeatherMarketIntegration:
         En mode sans API (is_simulated=True), le confidence_score doit être
         inférieur à 0.5 (données peu fiables).
         """
-        from kadi.market.decision_support import DecisionSupport
+        from kadi.market.decision_support import Advisor
 
-        ds = DecisionSupport()  # Pas de pricing_module : données simulées
+        ds = Advisor()  # Pas de pricing_module : données simulées
         resultat = ds.arbitrage_decision(
             crop="maize",
             market_from="Parakou",
@@ -663,9 +663,9 @@ class TestWeatherMarketIntegration:
         portfolio_optimization() avec scipy doit retourner une répartition
         valide : toutes les cultures >= 0 et la somme <= available_land_ha.
         """
-        from kadi.market.decision_support import DecisionSupport
+        from kadi.market.decision_support import Advisor
 
-        ds = DecisionSupport()
+        ds = Advisor()
 
         # Prévisions de prix simulées (XOF/kg)
         market_forecast = {"maize": 285.0, "cowpea": 580.0, "sorghum": 210.0}
@@ -723,7 +723,7 @@ class TestWeatherMarketIntegration:
         """
         marche = Market(
             lat=9.337, lon=2.627, location="Parakou",
-            weather_session=mock_weather_session_pluie_elevee,
+            weather=mock_weather_session_pluie_elevee,
         )
 
         resultat = marche.assess_climate_risk(days_ahead=1)

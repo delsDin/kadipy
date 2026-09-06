@@ -3,6 +3,8 @@ Module responsable de l'agrégation multi-sources, de la normalisation
 des données de marché, et de la détection d'anomalies de prix.
 """
 
+import warnings
+
 import pandas as pd
 import numpy as np
 import datetime
@@ -19,8 +21,17 @@ logger = logging.getLogger(__name__)
 # Ils seront remplacés dynamiquement par ExchangeRateClient si fourni
 _EXCHANGE_RATES = dict(_EXCHANGE_RATES_FALLBACK)
 
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (méthodes publiques)
+_DEPRECATED_METHODS = {
+    "fetch_prices": "fetch",
+    "normalize_units": "convert_unit",
+    "detect_anomalies": "anomalies",
+    "interpolate_gaps": "fill_gaps",
+    "get_data_source": "source",
+}
 
-class MarketPricing:
+
+class Pricing:
     """
     Classe gérant l'ingestion, la normalisation et la détection d'anomalies
     pour les données de prix de marché agricole au Bénin.
@@ -28,78 +39,118 @@ class MarketPricing:
 
     def __init__(
         self,
-        wfp_client=None,
-        exchange_client=None,
-        simulated: bool = False,
+        wfp=None,
+        exchange=None,
+        sim: bool = False,
+        **kwargs,
     ):
         """
         Initialise le module de tarification.
 
         Args:
-            wfp_client (WFPClient, optional): Instance de WFPClient
-                pour récupérer les données de prix. Si None, génère des données simulées.
-            exchange_client (ExchangeRateClient, optional): Instance d'ExchangeRateClient
+            wfp (WFPClient, optional): Instance de WFPClient pour récupérer les données de prix.
+            exchange (ExchangeRateClient, optional): Instance d'ExchangeRateClient
                 pour les taux de change dynamiques. Si None, utilise config.EXCHANGE_RATES.
-            simulated (bool, optional): Si True, force le mode simulation pour
+            sim (bool, optional): Si True, force le mode simulation pour
                 toutes les opérations de tarification. Défaut : False.
+            sim (bool, optional): Si True, force le mode simulation.
+            **kwargs: Arguments obsolètes acceptés pour rétrocompatibilité.
         """
+        # Prise en charge des anciens noms d'arguments
+        if "wfp_client" in kwargs:
+            wfp = kwargs.pop("wfp_client")
+        if "exchange_client" in kwargs:
+            exchange = kwargs.pop("exchange_client")
+        if "simulated" in kwargs:
+            sim = kwargs.pop("simulated")
+        
         # Instance du client WFP DataBridges
-        self.wfp_client = wfp_client
+        self.client = wfp
 
         # Mode simulation explicite
-        self.simulated = simulated
+        self.sim = sim
 
         # Récupération des taux de change dynamiques ou statiques
-        if exchange_client is not None:
+        if exchange is not None:
             # Le client retourne toujours un dictionnaire valide (fallback intégré)
-            self._exchange_rates = exchange_client.get_rates()
+            self._fx = exchange.get_rates()
             logger.debug(
                 f"Taux de change chargés depuis ExchangeRateClient : "
-                f"{self._exchange_rates}"
+                f"{self._fx}"
             )
         else:
             # Pas de client : on utilise les taux statiques de config.py
-            self._exchange_rates = dict(_EXCHANGE_RATES_FALLBACK)
+            self._fx = dict(_EXCHANGE_RATES_FALLBACK)
             logger.debug(
                 "ExchangeRateClient non fourni. Taux de repli de config.py utilisés."
             )
 
-    def fetch_prices(
+    # ------------------------------------------------------------------
+    # Rétrocompatibilité : méthodes publiques renommées
+    # ------------------------------------------------------------------
+
+    def __getattr__(self, name: str):
+        """Intercepte les accès aux anciens noms de méthodes publiques.
+
+        Délègue vers le nouveau nom et émet un DeprecationWarning.
+
+        Args:
+            name (str): Nom de l'attribut ou méthode demandé.
+
+        Returns:
+            callable: La méthode correspondante sous son nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est ni nouveau ni ancien.
+        """
+        # Vérification dans la table de rétrocompatibilité
+        if name in _DEPRECATED_METHODS:
+            new_name = _DEPRECATED_METHODS[name]
+            warnings.warn(
+                f"Pricing.{name}() est obsolète et sera supprimé dans "
+                f"KadiPy v2.0. Utilisez Pricing.{new_name}() à la place.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_name)
+        raise AttributeError(f"'Pricing' n'a pas d'attribut '{name}'.") 
+
+    def fetch(
         self,
         crop: str,
         market: str,
-        days_back: int = 365,
-        simulated: bool = None,
+        days: int = 365,
+        sim: bool = None,
     ) -> pd.DataFrame:
         """
         Récupère les prix historiques pour une culture et un marché donnés.
 
-        Le paramètre ``simulated`` permet de choisir explicitement entre
+        Le paramètre ``sim`` permet de choisir explicitement entre
         les données réelles de l'API HAPI HumData (PAM) et des données
         générées mathématiquement à des fins de test ou de démonstration.
 
         En mode simulé, aucun appel réseau n'est effectué. Les données générées
         suivent une distribution normale centrée sur 300 XOF/kg (ecart-type 20)
-        et sont clairement marquées ``is_simulated=True`` avec un score de
+        et sont clairement marquées ``sim=True`` avec un score de
         confiance de 0.1 pour signaler leur origine fictive.
 
         Args:
             crop (str): Code de la culture (ex: 'maize', 'rice').
             market (str): Nom normalisé du marché (ex: 'cotonou').
-            days_back (int, optional): Nombre de jours d'historique. Défaut à 365.
-            simulated (bool, optional): Surcharge le mode simulation.
-                Si None, hérite de self.simulated. Défaut : None.
+            days (int, optional): Nombre de jours d'historique. Défaut à 365.
+            sim (bool, optional): Surcharge le mode simulation.
+                Si None, hérite de self.sim. Défaut : None.
 
         Returns:
             pd.DataFrame: DataFrame avec les colonnes 'date', 'price', 'unit',
-                'is_simulated', 'source', 'fetched_at', 'confidence_score'.
+                'sim', 'source', 'fetched_at', 'confidence_score'.
         """
         # Résolution du mode simulation : paramètre local ou instance
-        mode_simule = self.simulated if simulated is None else simulated
+        mode_simule = self.sim if sim is None else sim
 
         # Calcul de la plage de dates pour la requête API
         end_date = datetime.date.today()
-        start_date = end_date - datetime.timedelta(days=days_back)
+        start_date = end_date - datetime.timedelta(days=days)
         time_range = (start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))
 
         # --- Mode simulation explicitement demandé par l'utilisateur ---
@@ -107,31 +158,37 @@ class MarketPricing:
             logger.info(
                 f"Mode simulation activé pour '{crop}' / '{market}'. "
                 "Aucune requête réseau ne sera effectuée. "
-                "Les données retournées sont fictives (is_simulated=True, "
+                "Les données retournées sont fictives (sim=True, "
                 "confidence_score=0.1). Ne pas utiliser pour des décisions "
                 "commerciales réelles."
             )
-            return self._generer_donnees_simulees(crop, market, days_back, end_date)
+            return self._simulate(crop, market, days, end_date)
 
-        if self.wfp_client is not None:
+        if self.client is not None:
             # Appel au client WFP (qui gère lui-même le retry, le cache et le fallback)
-            df_prices = self.wfp_client.get_market_prices(market, crop, time_range)
+            df_prices = self.client.get_market_prices(market, crop, time_range)
         else:
             # Pas de client configuré : on génère des données de simulation
             logger.warning(
                 f"Aucun client WFP configuré pour '{crop}' / '{market}'. "
                 "Données simulées utilisées en remplacement "
-                "(is_simulated=True, confidence_score=0.1)."
+                "(sim=True, confidence_score=0.1)."
             )
-            df_prices = self._generer_donnees_simulees(crop, market, days_back, end_date)
+            df_prices = self._simulate(crop, market, days, end_date)
+
+        # Rétrocompatibilité : synchronisation des colonnes sim et is_simulated
+        if "sim" in df_prices.columns and "is_simulated" not in df_prices.columns:
+            df_prices["is_simulated"] = df_prices["sim"]
+        elif "is_simulated" in df_prices.columns and "sim" not in df_prices.columns:
+            df_prices["sim"] = df_prices["is_simulated"]
 
         return df_prices
 
-    def _generer_donnees_simulees(
+    def _simulate(
         self,
         crop: str,
         market: str,
-        days_back: int,
+        days: int,
         end_date: datetime.date,
     ) -> pd.DataFrame:
         """
@@ -145,22 +202,22 @@ class MarketPricing:
         Args:
             crop (str): Code de la culture (pour les logs).
             market (str): Nom du marche (pour les logs).
-            days_back (int): Nombre de jours de données à générer.
+            days (int): Nombre de jours de données à générer.
             end_date (datetime.date): Date de fin de la serie.
 
         Returns:
-            pd.DataFrame: Données simulées avec is_simulated=True.
+            pd.DataFrame: Données simulées avec sim=True.
         """
         # Série de dates quotidiennes terminant aujourd'hui
-        dates = pd.date_range(end=end_date, periods=days_back, freq="D")
+        dates = pd.date_range(end=end_date, periods=days, freq="D")
 
         # Prix générés par distribution normale centrée sur 300 XOF/kg
-        prix_aleatoires = np.random.normal(loc=300, scale=20, size=days_back)
+        prix_aleatoires = np.random.normal(loc=300, scale=20, size=days)
         maintenant = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
         logger.debug(
             f"Données simulées générées pour '{crop}' / '{market}' "
-            f"({days_back} observations, moy=300 XOF/kg, ecart-type=20)."
+            f"({days} observations, moy=300 XOF/kg, ecart-type=20)."
         )
 
         return pd.DataFrame({
@@ -168,32 +225,32 @@ class MarketPricing:
             "price": prix_aleatoires,
             "unit": "XOF/kg",
             # Marqueurs explicites d'origine simulée
-            "is_simulated": True,
+            "sim": True,
             "source": "simulated",
             "fetched_at": maintenant,
             "confidence_score": 0.1,
         })
 
-    def normalize_units(self, value: float, unit_orig: str, crop: str = None) -> float:
+    def convert_unit(self, value: float, unit: str, crop: str = None) -> float:
         """
         Convertit une valeur de prix vers le standard XOF/kg.
 
         Gère les conversions suivantes :
-        - XOF/Tonne  -> XOF/kg (division par 1000)
-        - USD/kg     -> XOF/kg (multiplication par le taux de change)
-        - EUR/kg     -> XOF/kg (multiplication par le taux de change)
-        - XOF/sac    -> XOF/kg (division par le poids du sac en kg)
+        - XOF/Tonne    -> XOF/kg (division par 1000)
+        - USD/kg       -> XOF/kg (multiplication par le taux de change)
+        - EUR/kg       -> XOF/kg (multiplication par le taux de change)
+        - XOF/sac      -> XOF/kg (division par le poids du sac en kg)
         - XOF/boisseau -> XOF/kg (division par le poids du boisseau)
-        - XOF/tine   -> XOF/kg
-        - XOF/caisse -> XOF/kg (pour les produits frais comme la tomate)
-        - XOF/kg     -> sans changement (déjà à l'unité standard)
+        - XOF/tine     -> XOF/kg
+        - XOF/caisse   -> XOF/kg (pour les produits frais comme la tomate)
+        - XOF/kg       -> sans changement (déjà à l'unité standard)
 
         Si l'unité est inconnue, la valeur est retournée sans modification
         et un avertissement est enregistré.
 
         Args:
             value (float): La valeur du prix à convertir.
-            unit_orig (str): L'unité d'origine (ex: 'XOF/Tonne', 'USD/kg', 'XOF/sac').
+            unit (str): L'unité d'origine (ex: 'XOF/Tonne', 'USD/kg', 'XOF/sac').
             crop (str, optional): Code de la culture, utilisé pour les poids
                 de contenants spécifiques (ex: poids d'un sac de maïs vs riz).
 
@@ -203,7 +260,7 @@ class MarketPricing:
         valeur = float(value)
 
         # Normalisation de l'unité pour la comparaison
-        unite = unit_orig.strip().lower()
+        unite = unit.strip().lower()
 
         # --- Conversion des tonnes ---
         if "tonne" in unite or "/t" == unite[-2:]:
@@ -213,12 +270,12 @@ class MarketPricing:
         # --- Conversion des devises étrangères ---
         if unite.startswith("usd"):
             # USD vers XOF : lecture des taux de l'instance
-            taux = self._exchange_rates.get("USD_TO_XOF", _EXCHANGE_RATES_FALLBACK["USD_TO_XOF"])
+            taux = self._fx.get("USD_TO_XOF", _EXCHANGE_RATES_FALLBACK["USD_TO_XOF"])
             return valeur * taux
 
         if unite.startswith("eur"):
             # EUR vers XOF (taux fixe UEMOA ou taux dynamique)
-            taux = self._exchange_rates.get("EUR_TO_XOF", _EXCHANGE_RATES_FALLBACK["EUR_TO_XOF"])
+            taux = self._fx.get("EUR_TO_XOF", _EXCHANGE_RATES_FALLBACK["EUR_TO_XOF"])
             return valeur * taux
 
         # --- Conversion des contenants locaux ---
@@ -240,12 +297,12 @@ class MarketPricing:
 
         # --- Unité inconnue ---
         logger.warning(
-            f"Unité inconnue : '{unit_orig}'. "
+            f"Unité inconnue : '{unit}'. "
             "Le prix est retourné sans conversion."
         )
         return valeur
 
-    def detect_anomalies(self, price_series: pd.DataFrame, z_threshold: float = 3.0) -> pd.DataFrame:
+    def anomalies(self, series: pd.DataFrame, z: float = 3.0) -> pd.DataFrame:
         """
         Détecte les anomalies dans une série de prix par la méthode du Z-score.
 
@@ -253,14 +310,14 @@ class MarketPricing:
         le seuil configuré (par défaut : 3, soit environ 99.7% de la distribution).
 
         Args:
-            price_series (pd.DataFrame): DataFrame contenant une colonne 'price'.
-            z_threshold (float, optional): Seuil d'anomalie. Défaut à 3.0.
+            series (pd.DataFrame): DataFrame contenant une colonne 'price'.
+            z (float, optional): Seuil d'anomalie. Défaut à 3.0.
 
         Returns:
             pd.DataFrame: DataFrame original avec une colonne booléenne 'is_anomaly'.
         """
         # Copie pour ne pas modifier le DataFrame d'entrée
-        df_result = price_series.copy()
+        df_result = series.copy()
 
         if "price" not in df_result.columns:
             logger.warning("Colonne 'price' absente du DataFrame. Aucune détection effectuée.")
@@ -275,14 +332,14 @@ class MarketPricing:
             # Calcul du Z-score pour chaque observation
             z_scores = (df_result["price"] - moyenne) / ecart_type
             # Marquage des anomalies au-delà du seuil
-            df_result["is_anomaly"] = np.abs(z_scores) > z_threshold
+            df_result["is_anomaly"] = np.abs(z_scores) > z
         else:
             # Série constante : aucune variabilité, donc pas d'anomalie
             df_result["is_anomaly"] = False
 
         return df_result
 
-    def interpolate_gaps(self, price_series: pd.DataFrame, max_gap_days: int = 7) -> pd.DataFrame:
+    def fill_gaps(self, series: pd.DataFrame, max_gap: int = 7) -> pd.DataFrame:
         """
         Comble les valeurs manquantes dans une série de prix par interpolation linéaire.
 
@@ -291,41 +348,41 @@ class MarketPricing:
         un trou important dans les données.
 
         Args:
-            price_series (pd.DataFrame): DataFrame contenant une colonne 'price'.
-            max_gap_days (int, optional): Nombre maximum de jours à interpoler. Défaut à 7.
+            series (pd.DataFrame): DataFrame contenant une colonne 'price'.
+            max_gap (int, optional): Nombre maximum de jours à interpoler. Défaut à 7.
 
         Returns:
             pd.DataFrame: DataFrame avec les trous courts comblés par interpolation.
         """
         # Copie pour préserver le DataFrame d'entrée
-        df_interpolated = price_series.copy()
+        df_interpolated = series.copy()
 
         if "price" in df_interpolated.columns:
             # Interpolation linéaire avec limite sur la longueur des trous
             df_interpolated["price"] = df_interpolated["price"].interpolate(
                 method="linear",
-                limit=max_gap_days,
+                limit=max_gap,
                 limit_direction="both",
             )
 
         return df_interpolated
 
-    def get_data_source(self, price_series: pd.DataFrame) -> str:
+    def source(self, series: pd.DataFrame) -> str:
         """
         Identifie la source des données d'une série de prix.
 
-        Si le DataFrame contient la colonne ``is_simulated``, la méthode
+        Si le DataFrame contient la colonne ``sim``, la méthode
         retourne 'simulated' ou 'wfp-vam' selon le cas.
 
         Args:
-            price_series (pd.DataFrame): DataFrame retourné par fetch_prices().
+            series (pd.DataFrame): DataFrame retourné par fetch().
 
         Returns:
             str: La source identifiée ('wfp-vam', 'ratin', 'scrape-local', 'simulated').
         """
-        # Vérification de la colonne is_simulated
-        if "is_simulated" in price_series.columns:
-            if price_series["is_simulated"].any():
+        # Vérification de la colonne sim
+        if "sim" in series.columns:
+            if series["sim"].any():
                 return "simulated"
 
         # Par défaut, on suppose WFP VAM (source primaire du V1)
@@ -381,7 +438,7 @@ class MarketPricing:
                 - ``confiance`` (float) : score de confiance de 0 à 1.
                   Reflète la densité des données (1.0 = 2+ ans de données
                   hebdomadaires, 0.0 = moins d'un mois de données).
-                - ``is_simulated`` (bool) : True si l'historique source
+                - ``sim`` (bool) : True si l'historique source
                   contient des données simulées.
                 - ``message`` (str | None) : avertissement si les données
                   sont insuffisantes pour un calcul fiable. None sinon.
@@ -489,9 +546,11 @@ class MarketPricing:
         facteur_densite = min(1.0, nb_observations / 104.0)
         confiance = round((facteur_couverture + facteur_densite) / 2.0, 3)
 
-        # --- Propagation du flag is_simulated depuis la source ---
+        # --- Propagation du flag sim depuis la source ---
         est_simule = False
-        if "is_simulated" in historique.columns:
+        if "sim" in historique.columns:
+            est_simule = bool(historique["sim"].any())
+        elif "is_simulated" in historique.columns:
             est_simule = bool(historique["is_simulated"].any())
 
         # --- Message d'avertissement si données insuffisantes ---
@@ -528,6 +587,42 @@ class MarketPricing:
             "nb_observations": nb_observations,
             "nb_mois_couverts": nb_mois_couverts,
             "confiance": confiance,
+            "sim": est_simule,
             "is_simulated": est_simule,
             "message": message,
         }
+
+
+# Alias de rétrocompatibilité
+# MarketPricing = Pricing
+
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (Classe publique)
+_DEPRECATED = {
+    "MarketPricing": ("Pricing", Pricing),
+}
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.pricing.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.pricing' n'a pas d'attribut '{name}'."
+    )

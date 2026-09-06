@@ -1,7 +1,7 @@
 """
 Tests unitaires pour les sous-modules de kadi.market.
 Vérifie le bon fonctionnement des classes Pricing, Forecasting,
-Logistics et DecisionSupport, ainsi que les nouvelles fonctionnalités
+Logistics et Advisor, ainsi que les nouvelles fonctionnalités
 de la Phase 1 (validation, normalisation, retry, is_simulated).
 """
 
@@ -11,10 +11,10 @@ import pandas as pd
 import responses
 
 from kadi.market import Market
-from kadi.market.pricing import MarketPricing
-from kadi.market.forecasting import MarketForecasting
-from kadi.market.logistics import MarketLogistics
-from kadi.market.decision_support import DecisionSupport
+from kadi.market.pricing import Pricing
+from kadi.market.forecasting import Forecasting
+from kadi.market.logistics import Logistics
+from kadi.market.decision_support import Advisor
 from kadi.market.data_ingestion import WFPDataBridgesClient, _get_with_retry
 from kadi.market._cache import vider_cache
 from kadi.market._normalization import (
@@ -31,26 +31,26 @@ from kadi.market._normalization import (
 
 def test_pricing_normalize_units_tonne():
     """Teste la conversion XOF/Tonne vers XOF/kg."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # 100 000 XOF/Tonne doit devenir 100 XOF/kg
-    result = pricing.normalize_units(100000.0, "XOF/Tonne", "maize")
+    result = pricing.convert_unit(100000.0, "XOF/Tonne", "maize")
     assert result == 100.0
 
 
 def test_pricing_normalize_units_kg_inchange():
     """Teste qu'un prix déjà en XOF/kg reste inchangé."""
-    pricing = MarketPricing()
-    result = pricing.normalize_units(300.0, "XOF/kg", "maize")
+    pricing = Pricing()
+    result = pricing.convert_unit(300.0, "XOF/kg", "maize")
     assert result == 300.0
 
 
 def test_pricing_detect_anomalies():
     """Teste la détection d'anomalies par Z-score."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # Série avec beaucoup de valeurs normales et une valeur aberrante
     prices = [100, 105, 95, 102, 98] * 10 + [1000]
     df = pd.DataFrame({"price": prices})
-    df_result = pricing.detect_anomalies(df)
+    df_result = pricing.anomalies(df)
 
     # La valeur aberrante (index 50) doit être marquée
     assert df_result.iloc[50]["is_anomaly"] == True
@@ -60,8 +60,8 @@ def test_pricing_detect_anomalies():
 
 def test_forecasting_predict_price():
     """Teste la structure de retour du module de prévision."""
-    forecaster = MarketForecasting()
-    res = forecaster.predict_price("maize", "cotonou", days_ahead=7)
+    forecaster = Forecasting()
+    res = forecaster.predict("maize", "cotonou", ahead=7)
 
     # Présence des clés essentielles
     assert "predicted_price" in res
@@ -80,7 +80,7 @@ def test_logistics_transfer_cost_and_distance():
     if os.path.exists(test_cache_file):
         os.remove(test_cache_file)
 
-    logistics = MarketLogistics(cache_file=test_cache_file)
+    logistics = Logistics(cache_file=test_cache_file)
 
     # Mock Nominatim pour Cotonou
     responses.add(
@@ -111,7 +111,7 @@ def test_logistics_transfer_cost_and_distance():
         match=[responses.matchers.query_param_matcher({"overview": "false"})],
     )
 
-    res = logistics.calculate_transfer_cost("Cotonou", "Parakou")
+    res = logistics.transfer_cost("Cotonou", "Parakou")
 
     assert res["details"]["distance_km"] == 263.0
     assert res["total_cost_cfa"] > 0
@@ -122,8 +122,8 @@ def test_logistics_transfer_cost_and_distance():
 
 def test_decision_support_arbitrage():
     """Teste la structure de la recommandation d'arbitrage."""
-    decision = DecisionSupport()
-    res = decision.arbitrage_decision("maize", "Cotonou", "Parakou", qty_tons=10.0)
+    decision = Advisor()
+    res = decision.arbitrage("maize", "Cotonou", "Parakou", qty=10.0)
 
     assert "recommandation" in res
     assert "gain_net_percent" in res
@@ -135,9 +135,9 @@ def test_market_facade():
 
     assert market.location == "Abomey"
     assert market.pricing is not None
-    assert market.forecasting is not None
+    assert market.forecast is not None
     assert market.logistics is not None
-    assert market.decision_support is not None
+    assert market.advisor is not None
 
 
 @responses.activate
@@ -249,7 +249,7 @@ def test_logistics_fuel_price_fetch_success(monkeypatch):
     """Teste la récupération du prix du carburant depuis GitHub (mockée)."""
     monkeypatch.delenv("BENIN_FUEL_PRICE", raising=False)
 
-    logistics = MarketLogistics()
+    logistics = Logistics()
 
     responses.add(
         responses.GET,
@@ -267,7 +267,7 @@ def test_logistics_fuel_price_fetch_fallback(monkeypatch):
     """Teste le repli sur la valeur de config si GitHub échoue."""
     monkeypatch.delenv("BENIN_FUEL_PRICE", raising=False)
 
-    logistics = MarketLogistics()
+    logistics = Logistics()
 
     responses.add(
         responses.GET,
@@ -284,7 +284,7 @@ def test_logistics_fuel_price_env(monkeypatch):
     """Teste que la variable d'environnement a la priorité sur les autres sources."""
     monkeypatch.setenv("BENIN_FUEL_PRICE", "720.5")
 
-    logistics = MarketLogistics()
+    logistics = Logistics()
     price = logistics._fetch_fuel_price()
     assert price == 720.5
 
@@ -404,7 +404,7 @@ def test_normalize_market_name():
 
 def test_normalize_units_usd():
     """Teste la conversion USD/kg vers XOF/kg."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # 1 USD/kg avec taux 620 XOF = 620 XOF/kg
     result = pricing.normalize_units(1.0, "USD/kg")
     assert result == pytest.approx(620.0, abs=1.0)
@@ -412,7 +412,7 @@ def test_normalize_units_usd():
 
 def test_normalize_units_eur():
     """Teste la conversion EUR/kg vers XOF/kg (taux fixe UEMOA)."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # 1 EUR/kg = 655.957 XOF/kg (taux fixe)
     result = pricing.normalize_units(1.0, "EUR/kg")
     assert result == pytest.approx(655.957, abs=0.01)
@@ -420,7 +420,7 @@ def test_normalize_units_eur():
 
 def test_normalize_units_sac_maize():
     """Teste la conversion XOF/sac (maïs) vers XOF/kg."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # 10 000 XOF pour un sac de maïs (100 kg) = 100 XOF/kg
     result = pricing.normalize_units(10000.0, "XOF/sac", crop="maize")
     assert result == 100.0
@@ -428,7 +428,7 @@ def test_normalize_units_sac_maize():
 
 def test_normalize_units_boisseau_maize():
     """Teste la conversion XOF/boisseau (maïs) vers XOF/kg."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # 5 000 XOF pour un boisseau de maïs (25 kg) = 200 XOF/kg
     result = pricing.normalize_units(5000.0, "XOF/boisseau", crop="maize")
     assert result == 200.0
@@ -438,7 +438,7 @@ def test_normalize_units_boisseau_maize():
 
 def test_is_simulated_true_sans_client():
     """Teste que les données sans client WFP ont is_simulated=True."""
-    pricing = MarketPricing(wfp_client=None)
+    pricing = Pricing(wfp_client=None)
     df = pricing.fetch_prices("maize", "cotonou")
     assert "is_simulated" in df.columns
     assert bool(df["is_simulated"].all()) is True
@@ -652,7 +652,7 @@ def _creer_historique_reel(nb_jours: int = 120, is_simulated: bool = False) -> p
 
 def test_predict_price_avec_historique_reel():
     """Teste que predict_price() retourne is_simulated=False avec un historique réel."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
     historique = _creer_historique_reel(nb_jours=120, is_simulated=False)
 
     res = forecaster.predict_price(
@@ -668,7 +668,7 @@ def test_predict_price_avec_historique_reel():
 
 def test_predict_price_sans_historique_active_fallback():
     """Teste que predict_price() sans historique active le fallback simulé."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
 
     # Appel sans historique : doit basculer sur le fallback
     res = forecaster.predict_price(
@@ -686,7 +686,7 @@ def test_predict_price_sans_historique_active_fallback():
 
 def test_predict_price_historique_insuffisant():
     """Teste que predict_price() bascule sur le fallback si l'historique est trop court."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
 
     # Historique trop court (5 points < seuil de 20)
     historique_court = _creer_historique_reel(nb_jours=5, is_simulated=False)
@@ -705,7 +705,7 @@ def test_predict_price_historique_insuffisant():
 
 def test_predict_price_structure_retour_complete():
     """Teste que le dictionnaire de retour contient tous les champs attendus."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
     historique = _creer_historique_reel(nb_jours=120)
 
     res = forecaster.predict_price(
@@ -726,7 +726,7 @@ def test_predict_price_structure_retour_complete():
 
 def test_predict_price_intervalles_coherents():
     """Teste que low_90 <= predicted_price <= high_90."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
     historique = _creer_historique_reel(nb_jours=120)
 
     res = forecaster.predict_price(
@@ -742,7 +742,7 @@ def test_predict_price_intervalles_coherents():
 
 def test_predict_price_rmse_reel_positif():
     """Teste que le RMSE calculé par validation croisée est un float positif."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
 
     # Historique suffisamment long pour la cross-validation (3 folds * 2 minimum)
     historique = _creer_historique_reel(nb_jours=120)
@@ -761,7 +761,7 @@ def test_predict_price_rmse_reel_positif():
 
 def test_predict_price_prix_positif():
     """Teste que le prix prédit est toujours positif."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
     historique = _creer_historique_reel(nb_jours=120)
 
     for horizon in [7, 14, 30]:
@@ -778,7 +778,7 @@ def test_predict_price_prix_positif():
 
 def test_predict_price_propagation_is_simulated():
     """Teste que is_simulated=True se propage depuis l'historique simulé."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
 
     # Historique marqué comme simulé
     historique_simule = _creer_historique_reel(nb_jours=120, is_simulated=True)
@@ -796,7 +796,7 @@ def test_predict_price_propagation_is_simulated():
 
 def test_predict_price_modele_identifie():
     """Teste que le modèle est bien identifié comme linear_regression_fourier."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
     historique = _creer_historique_reel(nb_jours=120)
 
     res = forecaster.predict_price(
@@ -811,7 +811,7 @@ def test_predict_price_modele_identifie():
 
 def test_predict_price_nb_history_pts_correct():
     """Teste que nb_history_pts reflète le nombre réel de points utilisés."""
-    forecaster = MarketForecasting()
+    forecaster = Forecasting()
     nb_jours = 80
     historique = _creer_historique_reel(nb_jours=nb_jours)
 
@@ -943,7 +943,7 @@ def _creer_historique_saisonnier(
 
 def test_seasonality_structure_retour_complete():
     """Teste que seasonality() retourne un dictionnaire avec tous les champs attendus."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique = _creer_historique_saisonnier(nb_annees=2)
 
     res = pricing.seasonality(historique)
@@ -959,7 +959,7 @@ def test_seasonality_structure_retour_complete():
 
 def test_seasonality_indices_couvrent_12_mois():
     """Teste que le dictionnaire des indices contient exactement 12 entrées (mois 1 à 12)."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique = _creer_historique_saisonnier(nb_annees=2)
 
     res = pricing.seasonality(historique)
@@ -970,7 +970,7 @@ def test_seasonality_indices_couvrent_12_mois():
 
 def test_seasonality_indices_sont_positifs():
     """Teste que tous les indices saisonniers calculés sont des valeurs positives."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique = _creer_historique_saisonnier(nb_annees=2)
 
     res = pricing.seasonality(historique)
@@ -982,7 +982,7 @@ def test_seasonality_indices_sont_positifs():
 
 def test_seasonality_prix_moyen_par_mois_coherent():
     """Teste que les prix moyens par mois sont cohérents avec le prix moyen global."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique = _creer_historique_saisonnier(nb_annees=2)
 
     res = pricing.seasonality(historique)
@@ -1003,7 +1003,7 @@ def test_seasonality_prix_moyen_par_mois_coherent():
 
 def test_seasonality_propagation_is_simulated():
     """Teste que is_simulated=True se propage depuis l'historique simulé."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique_simule = _creer_historique_saisonnier(nb_annees=2, is_simulated=True)
 
     res = pricing.seasonality(historique_simule)
@@ -1013,7 +1013,7 @@ def test_seasonality_propagation_is_simulated():
 
 def test_seasonality_non_simule_avec_source_reelle():
     """Teste que is_simulated=False quand la source est réelle."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique_reel = _creer_historique_saisonnier(nb_annees=2, is_simulated=False)
 
     res = pricing.seasonality(historique_reel)
@@ -1023,7 +1023,7 @@ def test_seasonality_non_simule_avec_source_reelle():
 
 def test_seasonality_mois_pic_et_creux_sont_des_listes():
     """Teste que mois_pic et mois_creux sont des listes d'entiers valides."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique = _creer_historique_saisonnier(nb_annees=2)
 
     res = pricing.seasonality(historique)
@@ -1039,7 +1039,7 @@ def test_seasonality_mois_pic_et_creux_sont_des_listes():
 
 def test_seasonality_historique_suffisant_confiance_haute():
     """Teste que la confiance est élevée avec 2 ans de données hebdomadaires."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     # 2 ans de données hebdomadaires = 104 observations (optimal selon la formule)
     historique = _creer_historique_saisonnier(nb_annees=2)
 
@@ -1054,7 +1054,7 @@ def test_seasonality_historique_suffisant_confiance_haute():
 
 def test_seasonality_historique_insuffisant_message_avertissement():
     """Teste qu'un message d'avertissement est émis si l'historique couvre moins de 6 mois."""
-    pricing = MarketPricing()
+    pricing = Pricing()
 
     # Seulement 3 mois de données
     dates = pd.date_range(end=pd.Timestamp.today(), periods=12, freq="W")
@@ -1073,7 +1073,7 @@ def test_seasonality_historique_insuffisant_message_avertissement():
 
 def test_seasonality_erreur_historique_vide():
     """Teste que seasonality() lève ValueError sur un historique vide."""
-    pricing = MarketPricing()
+    pricing = Pricing()
 
     with pytest.raises(ValueError, match="vide"):
         pricing.seasonality(pd.DataFrame())
@@ -1081,7 +1081,7 @@ def test_seasonality_erreur_historique_vide():
 
 def test_seasonality_erreur_colonnes_manquantes():
     """Teste que seasonality() lève ValueError si les colonnes requises sont absentes."""
-    pricing = MarketPricing()
+    pricing = Pricing()
 
     # DataFrame sans la colonne 'price'
     df_incomplet = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=5, freq="W")})
@@ -1092,7 +1092,7 @@ def test_seasonality_erreur_colonnes_manquantes():
 
 def test_seasonality_12_mois_couverts_avec_deux_ans():
     """Teste que 2 ans de données hebdomadaires couvrent bien les 12 mois."""
-    pricing = MarketPricing()
+    pricing = Pricing()
     historique = _creer_historique_saisonnier(nb_annees=2)
 
     res = pricing.seasonality(historique)
@@ -1153,7 +1153,7 @@ def test_portfolio_heuristique_revenu_calcule_si_prix_connus():
     quelle que soit la surface ou les prix de marché fournis. Ce test vérifie
     que le calcul réel est appliqué.
     """
-    decision = DecisionSupport()
+    decision = Advisor()
 
     # Prix de marché connus pour les trois cultures de la répartition heuristique
     market_forecast = {
@@ -1189,7 +1189,7 @@ def test_portfolio_heuristique_revenu_fallback_si_pas_de_prix():
     Vérifie que le fallback de 150 000 XOF/ha est appliqué proprement et
     produit un résultat proportionnel à la surface disponible.
     """
-    decision = DecisionSupport()
+    decision = Advisor()
 
     # Appel sans prix de marché disponibles
     resultat = decision._portfolio_heuristique(

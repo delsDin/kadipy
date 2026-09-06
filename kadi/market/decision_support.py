@@ -3,9 +3,9 @@ Module d'aide à la décision stratégique pour l'arbitrage spatial,
 le stockage temporel et l'optimisation de portefeuille de cultures.
 
 Phase 4 :
-    - Horizon de stockage configurable dans storage_vs_sell_now().
+    - Horizon de stockage configurable dans store_sell().
     - Score de confiance global sur chaque recommandation.
-    - portfolio_optimization() utilise scipy.optimize.linprog.
+    - optimize() utilise scipy.optimize.linprog.
     - Les données météo (via weather_session injecté dans Market) alimentent
       directement la décision de stockage et de portefeuille.
 """
@@ -22,7 +22,7 @@ _SEUIL_RENTABILITE = CONFIG.get("logistics", {}).get("seuil_rentabilite_pct", 10
 # Horizon de stockage par défaut en mois (configurable dans config.py)
 _HORIZON_MOIS_DEFAULT = CONFIG.get("market", {}).get("horizon_stockage_mois_default", 3)
 
-# Rendements typiques au Bénin (tonnes par hectare), utilisés par portfolio_optimization
+# Rendements typiques au Bénin (tonnes par hectare), utilisés par optimize
 # Valeurs issues des rapports FAO/INSAE pour le centre-nord du Bénin.
 _RENDEMENTS_BENIN = {
     "maize": 1.8,
@@ -35,8 +35,16 @@ _RENDEMENTS_BENIN = {
     "cassava": 12.0,
 }
 
+_DEPRECATED_METHODS = {
+    "_obtenir_prix_marche":        "_get_price",
+    "_calculer_confidence_score":  "_confidence",
+    "_portfolio_heuristique":      "_heuristic",
+    "arbitrage_decision":          "arbitrage",
+    "storage_vs_sell_now":         "store_sell",
+    "portfolio_optimization":      "optimize",
+}
 
-class DecisionSupport:
+class Advisor:
     """
     Classe convertissant les prévisions de prix et les données de marché
     en recommandations opérationnelles : arbitrage spatial, stockage,
@@ -47,35 +55,61 @@ class DecisionSupport:
         calculé à partir de la qualité des données de prix, du flag
         is_simulated et de la magnitude du gain estimé.
 
-        portfolio_optimization() utilise scipy.optimize.linprog si disponible,
+        optimize() utilise scipy.optimize.linprog si disponible,
         avec un fallback heuristique si scipy est absent.
     """
 
     def __init__(
         self,
-        forecasting_module=None,
-        logistics_module=None,
-        pricing_module=None,
+        forecast=None,
+        logistics=None,
+        pricing=None,
     ):
         """
         Initialise le module d'aide à la décision.
 
         Args:
-            forecasting_module (MarketForecasting, optional): Instance de MarketForecasting pour les prévisions.
-            logistics_module (MarketLogistics, optional): Instance de MarketLogistics pour les coûts de transport.
-            pricing_module (MarketPricing, optional): Instance de MarketPricing pour les prix réels du marché.
+            forecast (Forecasting, optional): Instance de Forecasting pour les prévisions.
+            logistics (Logistics, optional): Instance de Logistics pour les coûts de transport.
+            pricing (Pricing, optional): Instance de Pricing pour les prix réels du marché.
                 Si None, les méthodes utiliseront des prix estimés par défaut.
         """
         # Références vers les sous-modules
-        self.forecasting = forecasting_module
-        self.logistics = logistics_module
-        self.pricing = pricing_module
+        self.forecast = forecast
+        self.logistics = logistics
+        self.pricing = pricing
+
+    def __getattr__(self, name: str):
+        """Intercepte les accès aux anciens noms de méthodes.
+
+        Délègue vers le nouveau nom et émet un DeprecationWarning.
+
+        Args:
+            name (str): Nom de la méthode demandée.
+
+        Returns:
+            callable: La méthode sous son nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom est inconnu.
+        """
+        import warnings
+        if name in _DEPRECATED_METHODS:
+            new_name = _DEPRECATED_METHODS[name]
+            warnings.warn(
+                f"Advisor.{name}() est obsolète et sera supprimé dans "
+                f"KadiPy v2.0. Utilisez Advisor.{new_name}() à la place.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_name)
+        raise AttributeError(f"'Advisor' n'a pas d'attribut '{name}'.")
 
     # ------------------------------------------------------------------
     # Méthodes privées : données de prix et score de confiance
     # ------------------------------------------------------------------
 
-    def _obtenir_prix_marche(self, crop: str, market: str) -> tuple:
+    def _get_price(self, crop: str, market: str) -> tuple:
         """
         Récupère le prix médian actuel pour une culture sur un marché donné.
 
@@ -92,14 +126,14 @@ class DecisionSupport:
         if self.pricing is None:
             # Pas de module pricing : retour du prix de repli avec confiance nulle
             logger.warning(
-                f"Pas de pricing_module disponible pour {crop}/{market}. "
+                f"Pas de module pricing disponible pour {crop}/{market}. "
                 "Prix de repli utilisé (300 XOF/kg)."
             )
             return 300.0, True, 0.0
 
         try:
             # Récupération des 30 derniers jours de données
-            df = self.pricing.fetch_prices(crop, market, days_back=30)
+            df = self.pricing.fetch(crop, market, days=30)
 
             if df.empty or "price" not in df.columns:
                 return 300.0, True, 0.0
@@ -129,7 +163,7 @@ class DecisionSupport:
             )
             return 300.0, True, 0.0
 
-    def _calculer_confidence_score(
+    def _confidence(
         self,
         price_confidence: float,
         is_simulated: bool,
@@ -170,17 +204,18 @@ class DecisionSupport:
     # API publique : recommandations de marché
     # ------------------------------------------------------------------
 
-    def arbitrage_decision(
+    def arbitrage(
         self,
         crop: str,
-        market_from: str,
-        market_to: str,
-        qty_tons: float,
+        m_from: str = "Parakou",
+        to: str = "Cotonou",
+        qty: float = 1.0,
+        **kwargs,
     ) -> dict:
         """
         Évalue la rentabilité d'un transfert physique de marchandises entre deux marchés.
 
-        Utilise les prix réels du marché (via pricing_module) pour calculer
+        Utilise les prix réels du marché (via pricing) pour calculer
         la marge brute. Les coûts logistiques (avec ajustement météo si disponible)
         sont calculés par le module logistics.
 
@@ -189,9 +224,10 @@ class DecisionSupport:
 
         Args:
             crop (str): La culture concernée (ex: 'maize').
-            market_from (str): Le marché d'achat (ex: 'Parakou').
-            market_to (str): Le marché de vente (ex: 'Cotonou').
-            qty_tons (float): La quantité à transporter en tonnes métriques.
+            m_from (str): Le marché d'achat (ex: 'Parakou').
+            to (str): Le marché de vente (ex: 'Cotonou').
+            qty (float): La quantité à transporter en tonnes métriques.
+            **kwargs: Anciens nom de paramètres (market_from, market_to, qty_tons).
 
         Returns:
             dict: Dictionnaire contenant :
@@ -205,12 +241,19 @@ class DecisionSupport:
                 - 'confidence_score'     : score de confiance de la recommandation (0-1)
                 - 'prob_pluie'           : probabilité de pluie utilisée (0 si sans météo)
         """
+        if "market_from" in kwargs:
+            m_from = kwargs.pop("market_from")
+        if "market_to" in kwargs:
+            to = kwargs.pop("market_to")
+        if "qty_tons" in kwargs:
+            qty = kwargs.pop("qty_tons")
+        
         # Récupération des prix réels (ou simulés) pour les deux marchés
-        prix_origine_kg, simule_origine, conf_origine = self._obtenir_prix_marche(
-            crop, market_from
+        prix_origine_kg, simule_origine, conf_origine = self._get_price(
+            crop, m_from
         )
-        prix_destination_kg, simule_destination, conf_destination = self._obtenir_prix_marche(
-            crop, market_to
+        prix_destination_kg, simule_destination, conf_destination = self._get_price(
+            crop, to
         )
 
         # Les données sont simulées si l'une des deux sources l'est
@@ -226,23 +269,23 @@ class DecisionSupport:
         prob_pluie = 0.0
         if self.logistics:
             # On passe le crop pour activer la perte de qualité par culture
-            res_logistics = self.logistics.calculate_transfer_cost(
-                market_from, market_to, crop=crop
+            res_logistics = self.logistics.transfer_cost(
+                m_from, to, crop=crop
             )
             frais_logistiques_tonne = res_logistics["total_cost_cfa"]
             prob_pluie = res_logistics.get("prob_pluie", 0.0)
         else:
             frais_logistiques_tonne = 30000.0
             logger.warning(
-                "Pas de logistics_module. Frais de transport de repli : 30 000 XOF/tonne."
+                "Pas de module logistics. Frais de transport de repli : 30 000 XOF/tonne."
             )
 
         # Gain net par tonne et total sur la quantité transportée
         gain_net_tonne = marge_brute_tonne - frais_logistiques_tonne
-        gain_net_total = gain_net_tonne * qty_tons
+        gain_net_total = gain_net_tonne * qty
 
         # Gain net en % du capital investi (achat + transport)
-        cout_total = (prix_origine_kg * 1000 + frais_logistiques_tonne) * qty_tons
+        cout_total = (prix_origine_kg * 1000 + frais_logistiques_tonne) * qty
         gain_net_pct = (gain_net_total / cout_total * 100) if cout_total > 0 else 0.0
 
         # Recommandation basée sur le seuil de rentabilité configuré
@@ -251,7 +294,7 @@ class DecisionSupport:
         )
 
         # Score de confiance global sur la recommandation
-        confidence_score = self._calculer_confidence_score(
+        confidence_score = self._confidence(
             price_confidence, est_simule, gain_net_pct
         )
 
@@ -259,7 +302,7 @@ class DecisionSupport:
             "recommandation": recommandation,
             "gain_net_total_cfa": round(gain_net_total, 2),
             "gain_net_percent": round(gain_net_pct, 2),
-            "frais_logistiques_total": round(frais_logistiques_tonne * qty_tons, 2),
+            "frais_logistiques_total": round(frais_logistiques_tonne * qty, 2),
             "prix_origine_xof_kg": round(prix_origine_kg, 2),
             "prix_destination_xof_kg": round(prix_destination_kg, 2),
             "is_simulated": est_simule,
@@ -267,19 +310,20 @@ class DecisionSupport:
             "prob_pluie": round(prob_pluie, 3),
         }
 
-    def storage_vs_sell_now(
+    def store_sell(
         self,
         crop: str,
-        market: str,
-        current_price: float,
-        qty_tons: float,
-        mois_stockage: int = None,
+        market: str = "Parakou",
+        price: float = 300000.0,
+        qty: float = 1.0,
+        months: int = None,
+        **kwargs,
     ) -> dict:
         """
         Évalue s'il est plus rentable de stocker ou de vendre immédiatement.
 
         Phase 4 : l'horizon de stockage est maintenant configurable via le
-        paramètre mois_stockage. La valeur par défaut est lue depuis config.py
+        paramètre months. La valeur par défaut est lue depuis config.py
         (clé de configuration horizon stockage mois, défaut : 3 mois).
 
         Formule :
@@ -288,9 +332,9 @@ class DecisionSupport:
         Args:
             crop (str): La culture concernée.
             market (str): Le marché de référence.
-            current_price (float): Prix actuel en XOF par tonne.
-            qty_tons (float): Quantité récoltée en tonnes.
-            mois_stockage (int, optional): Horizon de stockage en mois.
+            price (float): Prix actuel en XOF par tonne.
+            qty (float): Quantité récoltée en tonnes.
+            months (int, optional): Horizon de stockage en mois.
                 Si None, utilise la valeur par defaut configuree (3 mois).
 
         Returns:
@@ -305,26 +349,35 @@ class DecisionSupport:
                   Vaut True par défaut si aucun module de prévision n'est disponible.
                 - 'confidence_score'       : score de confiance (0-1)
         """
+        if "current_price" in kwargs:
+            price = kwargs.pop("current_price")
+        if "qty_tons" in kwargs:
+            qty = kwargs.pop("qty_tons")
+        if "storage_months" in kwargs:
+            months = kwargs.pop("storage_months")
+        if "mois_stockage" in kwargs:
+            months = kwargs.pop("mois_stockage")
+
         # Lecture de l'horizon de stockage (paramètre > config > défaut)
-        if mois_stockage is None:
-            mois_stockage = _HORIZON_MOIS_DEFAULT
-        jours_stockage = mois_stockage * 30
+        if months is None:
+            months = _HORIZON_MOIS_DEFAULT
+        jours_stockage = months * 30
 
         # Valeur par défaut : True si aucun module de prévision n'est disponible
         est_simule = True
 
         # Récupération du prix futur estimé via le module de prévision
-        if self.forecasting:
+        if self.forecast:
             try:
-                prevision = self.forecasting.predict_price(
-                    crop, market, days_ahead=jours_stockage
+                prevision = self.forecast.predict(
+                    crop, market, ahead=jours_stockage
                 )
                 # La prévision est en XOF/kg ; on convertit en XOF/tonne
                 prix_futur_tonne = prevision["predicted_price"] * 1000
                 variance = (
                     prevision.get("rmse", prevision["predicted_price"] * 0.05) * 1000
                 )
-                # Propagation du flag réel retourné par predict_price().
+                # Propagation du flag réel retourné par predict().
                 # Par défaut True si la clé est absente (comportement offline conservé).
                 est_simule = prevision.get("is_simulated", True)
             except Exception as e:
@@ -332,20 +385,20 @@ class DecisionSupport:
                     f"Erreur lors de la prévision {crop}/{market}: {e}. "
                     "Hypothèse de hausse de 15%."
                 )
-                prix_futur_tonne = current_price * 1.15
-                variance = current_price * 0.05
+                prix_futur_tonne = price * 1.15
+                variance = price * 0.05
         else:
             # Sans module de prévision : hypothèse conservative de hausse de 15%
-            prix_futur_tonne = current_price * 1.15
-            variance = current_price * 0.05
+            prix_futur_tonne = price * 1.15
+            variance = price * 0.05
 
         # Coûts de stockage : gardiennage, pertes, sacs (par mois par tonne)
         cout_stockage_mensuel_tonne = 3200.0
-        c_stockage = cout_stockage_mensuel_tonne * mois_stockage
+        c_stockage = cout_stockage_mensuel_tonne * months
 
         # Coût d'opportunité : immobilisation de la trésorerie à 1.5%/mois
         taux_opportunite_mensuel = 0.015
-        c_opportunite = current_price * (taux_opportunite_mensuel * mois_stockage)
+        c_opportunite = price * (taux_opportunite_mensuel * months)
 
         # Pénalité de risque (aversion au risque theta)
         theta_risque = 0.04
@@ -354,7 +407,7 @@ class DecisionSupport:
         # Espérance de gain net par tonne
         esperance_gain = (
             prix_futur_tonne
-            - current_price
+            - price
             - c_stockage
             - c_opportunite
             - penalite_risque
@@ -363,10 +416,10 @@ class DecisionSupport:
         recommandation = "STOCKER" if esperance_gain > 0 else "VENDRE IMMÉDIATEMENT"
 
         # Gain net en % du capital actuel (pour le score de confiance)
-        gain_pct = (esperance_gain / current_price * 100) if current_price > 0 else 0.0
+        gain_pct = (esperance_gain / price * 100) if price > 0 else 0.0
 
         # Score de confiance (prix simulés = confiance faible)
-        confidence_score = self._calculer_confidence_score(
+        confidence_score = self._confidence(
             price_confidence=0.0 if est_simule else 0.7,
             is_simulated=est_simule,
             gain_net_pct=gain_pct,
@@ -374,20 +427,21 @@ class DecisionSupport:
 
         return {
             "recommandation_binaire": recommandation,
-            "marge_nette_cfa": round(esperance_gain * qty_tons, 2),
+            "marge_nette_cfa": round(esperance_gain * qty, 2),
             "marge_nette_par_tonne": round(esperance_gain, 2),
             "prix_futur_estime": round(prix_futur_tonne, 2),
-            "horizon_mois": mois_stockage,
+            "horizon_mois": months,
             "is_simulated": est_simule,
             "confidence_score": confidence_score,
         }
 
-    def portfolio_optimization(
+    def optimize(
         self,
-        available_land_ha: float,
-        climate_forecast: dict,
-        market_forecast: dict,
-        rendements_t_ha: dict = None,
+        land_ha: float = 1.0,
+        climate: dict = None,
+        market: dict = None,
+        yields: dict = None,
+        **kwargs,
     ) -> dict:
         """
         Optimise la répartition des cultures sur la surface disponible.
@@ -400,9 +454,9 @@ class DecisionSupport:
             - Variables : x_i = hectares alloués à la culture i
             - Objectif  : maximiser sum(prix_i * rendement_i * x_i)
             - Contraintes :
-                * sum(x_i) <= available_land_ha  (surface totale)
+                * sum(x_i) <= land_ha  (surface totale)
                 * x_i >= 0
-                * x_i <= 0.7 * available_land_ha  (diversification minimale)
+                * x_i <= 0.7 * land_ha  (diversification minimale)
 
         Ajustements climatiques (SPI de sécheresse) :
             - Sécheresse sévère (drought_severity='severe') :
@@ -411,15 +465,16 @@ class DecisionSupport:
                 rendement_maïs * 0.85
 
         Args:
-            available_land_ha (float): Surface arable disponible en hectares.
-            climate_forecast (dict): Prévisions climatiques. Clés attendues :
+            land_ha (float): Surface arable disponible en hectares.
+            climate (dict): Prévisions climatiques. Clés attendues :
                 - 'secheresse_anticipee' (bool) : compatibilité V1
                 - 'drought_severity' (str)      : 'no_drought', 'mild', 'moderate', 'severe'
                 - 'prob_pluie_7j' (float)       : probabilité de pluie sur 7 jours
-            market_forecast (dict): Prix médians actuels par culture (XOF/kg).
+            market (dict): Prix médians actuels par culture (XOF/kg).
                 Exemple : {'maize': 285, 'cowpea': 580, 'sorghum': 210}
-            rendements_t_ha (dict, optional): Rendements attendus en tonnes/hectare.
+            yields (dict, optional): Rendements attendus en tonnes/hectare.
                 Si None, utilise les rendements de référence béninois.
+            **kwargs: Anciens arguments (available_land_ha, climate_forecast, market_forecast).
 
         Returns:
             dict: Dictionnaire contenant :
@@ -429,27 +484,40 @@ class DecisionSupport:
                 - 'methode'              : 'scipy_linprog' ou 'heuristique'
                 - 'confidence_score'     : score de confiance de l'optimisation
         """
+        
+        if "available_land_ha" in kwargs:
+            land_ha = kwargs.pop("available_land_ha")
+        if "climate_forecast" in kwargs:
+            climate = kwargs.pop("climate_forecast")
+        if "market_forecast" in kwargs:
+            market = kwargs.pop("market_forecast")
+
+        if climate is None:
+            climate = {}
+        if market is None:
+            market = {}
+        
         # Rendements de référence (paramètre > défauts Bénin)
         rends = dict(_RENDEMENTS_BENIN)
-        if rendements_t_ha:
-            rends.update(rendements_t_ha)
+        if yields:
+            rends.update(yields)
 
         # Cultures à optimiser : celles pour lesquelles on a un prix de marché
         # On filtre pour ne garder que les cultures connues dans les rendements
         cultures = [
-            c for c in market_forecast
-            if c in rends and market_forecast[c] > 0
+            c for c in market
+            if c in rends and market[c] > 0
         ]
 
         if not cultures:
             # Aucune culture avec données : fallback heuristique complet
-            return self._portfolio_heuristique(
-                available_land_ha, climate_forecast, market_forecast
+            return self._heuristic(
+                land_ha, climate, market
             )
 
         # Ajustement des rendements selon la sévérité de la sécheresse
-        severity = climate_forecast.get("drought_severity", "mild")
-        if climate_forecast.get("secheresse_anticipee", False):
+        severity = climate.get("drought_severity", "mild")
+        if climate.get("secheresse_anticipee", False):
             # Rétrocompatibilité V1 : bool -> sécheresse sévère
             severity = "severe"
 
@@ -470,7 +538,7 @@ class DecisionSupport:
         # Revenus attendus par hectare pour chaque culture (XOF/ha)
         # prix en XOF/kg * rendement en t/ha * 1000 kg/t = XOF/ha
         revenu_par_ha = {
-            c: market_forecast[c] * rends_ajustes[c] * 1000
+            c: market[c] * rends_ajustes[c] * 1000
             for c in cultures
         }
 
@@ -482,12 +550,12 @@ class DecisionSupport:
             # linprog minimise -> on inverse les coefficients (maximisation)
             c_obj = [-revenu_par_ha[culture] for culture in cultures]
 
-            # Contraintes d'inégalité : sum(x_i) <= available_land_ha
+            # Contraintes d'inégalité : sum(x_i) <= land_ha
             A_ub = [[1.0] * n]
-            b_ub = [available_land_ha]
+            b_ub = [land_ha]
 
             # Bornes : 0 <= x_i <= 70% de la surface (diversification minimale)
-            max_mono = 0.7 * available_land_ha
+            max_mono = 0.7 * land_ha
             bounds = [(0.0, max_mono)] * n
 
             resultat_scipy = linprog(
@@ -526,7 +594,7 @@ class DecisionSupport:
         except ImportError:
             logger.warning(
                 "scipy non disponible. Utilisation du fallback heuristique pour "
-                "portfolio_optimization()."
+                "optimize()."
             )
         except Exception as e:
             logger.warning(
@@ -534,33 +602,46 @@ class DecisionSupport:
             )
 
         # --- Fallback heuristique si scipy est absent ou échoue ----------
-        return self._portfolio_heuristique(available_land_ha, climate_forecast, market_forecast)
+        return self._heuristic(land_ha, climate, market)
 
-    def _portfolio_heuristique(
+    def _heuristic(
         self,
-        available_land_ha: float,
-        climate_forecast: dict,
-        market_forecast: dict,
+        land_ha: float = 1.0,
+        climate: dict = None,
+        market: dict = None,
+        **kwargs,
     ) -> dict:
-        """Répartition heuristique de secours pour portfolio_optimization().
+        """Répartition heuristique de secours pour optimize().
 
         Applique des règles agronomiques simples au lieu de l'optimiseur
         linéaire. Utilisé quand scipy n'est pas disponible ou quand aucune
         culture n'a de prix connus.
 
         Le revenu attendu est calculé à partir des prix disponibles dans
-        market_forecast et des rendements de référence FAO/INSAE du Bénin.
+        market et des rendements de référence FAO/INSAE du Bénin.
         Si aucun prix n'est disponible, un repli de 150 000 XOF par hectare
         est appliqué (valeur prudente pour les céréales sèches béninoises).
 
         Args:
-            available_land_ha (float): Surface disponible en hectares.
-            climate_forecast (dict): Prévisions climatiques.
-            market_forecast (dict): Prix par culture (peut être vide).
-
+            land_ha (float): Surface disponible en hectares.
+            climate (dict): Prévisions climatiques.
+            market (dict): Prix par culture (peut être vide).
+            **kwargs: Anciens noms d'arguments gérés pour rétrocompatibilité.
         Returns:
             dict: Répartition heuristique, revenu estimé et recommandation.
         """
+        # Prise en charge des anciens noms d'arguments
+        if "available_land_ha" in kwargs:
+            land_ha = kwargs.pop("available_land_ha")
+        if "climate_forecast" in kwargs:
+            climate = kwargs.pop("climate_forecast")
+        if "market_forecast" in kwargs:
+            market = kwargs.pop("market_forecast")
+
+        if climate is None:
+            climate = {}
+        if market is None:
+            market = {}
         # Correspondance entre les noms de cultures français (heuristique)
         # et les clés de _RENDEMENTS_BENIN (anglais, aligné sur WFP/FAO).
         _NOM_CULTURE_VERS_CLE = {
@@ -577,23 +658,23 @@ class DecisionSupport:
 
         # Répartition par défaut : maïs 50 %, soja 30 %, niébé 20 %
         repartition = {
-            "maïs": 0.5 * available_land_ha,
-            "soja": 0.3 * available_land_ha,
-            "niébé": 0.2 * available_land_ha,
+            "maïs": 0.5 * land_ha,
+            "soja": 0.3 * land_ha,
+            "niébé": 0.2 * land_ha,
         }
 
         # Ajustement en cas de sécheresse sévère : privilégier le niébé
-        severity = climate_forecast.get("drought_severity", "mild")
+        severity = climate.get("drought_severity", "mild")
         secheresse = (
-            climate_forecast.get("secheresse_anticipee", False)
+            climate.get("secheresse_anticipee", False)
             or severity == "severe"
         )
 
         if secheresse:
             # En sécheresse sévère : favoriser le niébé (plus résistant)
-            repartition["maïs"] = 0.3 * available_land_ha
-            repartition["soja"] = 0.3 * available_land_ha
-            repartition["niébé"] = 0.4 * available_land_ha
+            repartition["maïs"] = 0.3 * land_ha
+            repartition["soja"] = 0.3 * land_ha
+            repartition["niébé"] = 0.4 * land_ha
 
         recommandation_texte = (
             "Sécheresse anticipée : privilégier le niébé, culture résistante."
@@ -609,7 +690,7 @@ class DecisionSupport:
             cle_anglaise = _NOM_CULTURE_VERS_CLE.get(nom_fr, nom_fr)
 
             # Prix de marché en XOF/kg (clé "prix_moyen_xof" ou absence → 0)
-            prix_xof_par_kg = market_forecast.get(cle_anglaise, {}).get(
+            prix_xof_par_kg = market.get(cle_anglaise, {}).get(
                 "prix_moyen_xof", 0.0
             )
 
@@ -621,7 +702,7 @@ class DecisionSupport:
 
         # Repli proportionnel à la surface si aucun prix n'est disponible
         if revenu_total == 0.0:
-            revenu_total = available_land_ha * _REVENU_REPLI_XOF_PAR_HA
+            revenu_total = land_ha * _REVENU_REPLI_XOF_PAR_HA
 
         return {
             "repartition_hectares": repartition,
@@ -631,3 +712,40 @@ class DecisionSupport:
             "confidence_score": 0.3,
         }
 
+
+
+
+# Alias de rétrocompatibilité
+# DecisionSupport = Advisor
+
+
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (Classe publique)
+_DEPRECATED = {
+    "DecisionSupport": ("Advisor", Advisor),
+}
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.decision_support.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.decision_support' n'a pas d'attribut '{name}'."
+    )

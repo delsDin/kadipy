@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Tests unitaires pour kadi.market.backtesting.MarketBacktester.
+Tests unitaires pour kadi.market.backtesting.Backtester.
 
 On utilise des prix mockés pour s'affranchir de l'API WFP et garantir
 la reproductibilité des tests sur toutes les machines.
@@ -9,9 +9,9 @@ Cas couverts :
     - test_run_retourne_resultats            : run() retourne une liste non vide.
     - test_run_colonnes_presentes            : chaque résultat contient les clés attendues.
     - test_run_historique_trop_court         : historique insuffisant -> liste vide.
-    - test_summary_report_metriques_valides  : summary_report() retourne des métriques cohérentes.
-    - test_summary_sans_run_leve_erreur      : summary_report() sans run() lève RuntimeError.
-    - test_metriques_mae_rmse_cohérence      : RMSE >= MAE mathématiquement.
+    - test_summary_metriques_valides         : summary() retourne des métriques cohérentes.
+    - test_summary_sans_run_leve_erreur      : summary() sans run() lève RuntimeError.
+    - test_metriques_mae_rmse_coherénce      : RMSE >= MAE mathématiquement.
     - test_mape_exclut_prix_nuls             : _calculer_mape() ignore les zéros.
     - test_precision_directionnelle          : calcul de la précision directionnelle.
 """
@@ -20,8 +20,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from kadi.market.backtesting import MarketBacktester
-from kadi.market.forecasting import MarketForecasting
+from kadi.market.backtesting import Backtester
+from kadi.market.forecasting import Forecasting
 
 
 # ------------------------------------------------------------------
@@ -53,9 +53,9 @@ def _historique_valide(nb_jours: int = 120) -> pd.DataFrame:
 
 
 @pytest.fixture
-def backtester() -> MarketBacktester:
-    """Retourne une instance de MarketBacktester avec un forecaster par défaut."""
-    return MarketBacktester(forecaster=MarketForecasting())
+def backtester() -> Backtester:
+    """Retourne une instance de Backtester avec un forecaster par défaut."""
+    return Backtester(forecaster=Forecasting())
 
 
 @pytest.fixture
@@ -176,7 +176,7 @@ def test_summary_report_metriques_valides(backtester, historique_valide):
         nb_fenetres=4,
     )
 
-    rapport = backtester.summary_report()
+    rapport = backtester.summary()
 
     # Vérification de la structure du rapport
     assert "nb_fenetres_evaluees" in rapport
@@ -197,7 +197,7 @@ def test_summary_report_metriques_valides(backtester, historique_valide):
 def test_summary_sans_run_leve_erreur(backtester):
     """summary_report() doit lever RuntimeError si run() n'a pas été appelé."""
     with pytest.raises(RuntimeError, match="Appelez run()"):
-        backtester.summary_report()
+        backtester.summary()
 
 
 # ------------------------------------------------------------------
@@ -210,8 +210,8 @@ def test_metriques_rmse_superieur_ou_egal_mae():
     y_reel = np.array([100.0, 110.0, 105.0, 120.0, 95.0])
     y_pred = np.array([102.0, 115.0, 100.0, 130.0, 90.0])
 
-    mae = MarketBacktester._calculer_mae(y_reel, y_pred)
-    rmse = MarketBacktester._calculer_rmse(y_reel, y_pred)
+    mae = Backtester._mae(y_reel, y_pred)
+    rmse = Backtester._rmse(y_reel, y_pred)
 
     # Le RMSE pénalise plus les grosses erreurs, donc RMSE >= MAE
     assert rmse >= mae, f"RMSE ({rmse:.2f}) doit être >= MAE ({mae:.2f})."
@@ -223,7 +223,7 @@ def test_mape_exclut_prix_nuls():
     y_reel = np.array([100.0, 0.0, 120.0])
     y_pred = np.array([110.0, 50.0, 130.0])
 
-    mape = MarketBacktester._calculer_mape(y_reel, y_pred)
+    mape = Backtester._mape(y_reel, y_pred)
 
     # MAPE = moyenne(|100-110|/100, |120-130|/120) * 100
     # = moyenne(0.10, 0.0833) * 100 = 9.167%
@@ -238,7 +238,7 @@ def test_precision_directionnelle_parfaite():
     y_reel = np.array([100.0, 110.0, 120.0, 115.0])
     y_pred = np.array([100.0, 108.0, 118.0, 114.0])  # même direction à chaque fois
 
-    precision = MarketBacktester._calculer_precision_directionnelle(y_reel, y_pred)
+    precision = Backtester._dir_acc(y_reel, y_pred)
 
     assert precision == 100.0, (
         f"Précision directionnelle parfaite attendue, obtenue {precision}."
@@ -247,5 +247,5 @@ def test_precision_directionnelle_parfaite():
 
 def test_mae_tableau_vide():
     """_calculer_mae() doit retourner NaN pour un tableau vide."""
-    mae = MarketBacktester._calculer_mae(np.array([]), np.array([]))
+    mae = Backtester._mae(np.array([]), np.array([]))
     assert np.isnan(mae), "MAE doit être NaN pour un tableau vide."

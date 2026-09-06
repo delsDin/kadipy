@@ -1,13 +1,13 @@
 import pytest
 import os
-from kadi.weather.session import WeatherSession
+from kadi.weather import Weather
 from kadi.exceptions import DataError
 
 @pytest.fixture
 def session():
     """Initialise une session pour Parakou (Nord Bénin) pour les tests d'intégration."""
     # Parakou : Latitude ~9.3, Longitude ~2.6
-    return WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
+    return Weather(latitude=9.3333, longitude=2.6333, name="Parakou")
 
 @pytest.mark.integration
 def test_forecast_integration(session):

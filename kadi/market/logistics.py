@@ -6,7 +6,7 @@ Phase 4 : ce module intègre kadi.weather pour ajuster automatiquement :
 - Le coefficient gamma_route selon la probabilité de pluie (route dégradée).
 - La perte de qualité selon la culture, la distance et la météo du trajet.
 
-Si aucun weather_session n'est fourni, le module fonctionne exactement
+Si aucune session weather n'est fourni, le module fonctionne exactement
 comme avant (comportement V1 inchangé).
 """
 
@@ -15,6 +15,7 @@ import json
 import time
 import logging
 import math
+import warnings
 import requests
 from typing import Tuple, Optional
 
@@ -46,8 +47,14 @@ _QUALITE_FACTEUR = _LOGISTICS_CONFIG.get(
     }
 )
 
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (méthodes publiques)
+_DEPRECATED_METHODS = {
+    "calculate_transfer_cost": "transfer_cost",
+    "get_distance": "distance",
+}
 
-def _respecter_rate_limit_nominatim():
+
+def _respect_nominatim_rate_limit():
     """
     Attend le temps nécessaire pour respecter la limite de taux de Nominatim.
 
@@ -68,7 +75,7 @@ def _respecter_rate_limit_nominatim():
     _derniere_requete_nominatim = time.time()
 
 
-def _obtenir_prob_pluie(weather_session) -> float:
+def _rain_prob(weather) -> float:
     """
     Interroge le module météo pour obtenir la probabilité de pluie demain.
 
@@ -76,19 +83,19 @@ def _obtenir_prob_pluie(weather_session) -> float:
     (pas de pluie prévue = comportement conservateur sans majoration).
 
     Args:
-        weather_session: Instance de kadi.weather.WeatherSession, ou None.
+        weather: Instance de kadi.weather.Weather, ou None.
 
     Returns:
         float: Probabilité de pluie entre 0.0 et 1.0. Retourne 0.0 si
-            weather_session est None ou si l'appel échoue.
+            weather est None ou si l'appel échoue.
     """
-    if weather_session is None:
+    if weather is None:
         return 0.0
 
     try:
         # Horizon de prévision météo configuré pour la logistique
         days_ahead = _LOGISTICS_CONFIG.get("days_ahead_weather", 1)
-        resultat = weather_session.rain_probability(days_ahead=days_ahead)
+        resultat = weather.rain_probability(days_ahead=days_ahead)
 
         # La clé 'tomorrow' correspond au J+1 (premier jour de la prévision)
         prob = float(resultat.get("tomorrow", 0.0))
@@ -96,13 +103,13 @@ def _obtenir_prob_pluie(weather_session) -> float:
 
     except Exception as e:
         logger.warning(
-            f"Impossible d'obtenir la probabilité de pluie depuis weather_session : {e}. "
+            f"Impossible d'obtenir la probabilité de pluie depuis la session weather : {e}. "
             "Valeur de repli 0.0 utilisée."
         )
         return 0.0
 
 
-def _calculer_gamma_effectif(gamma_base: float, prob_pluie: float) -> float:
+def _gamma_effective(gamma_base: float, prob_pluie: float) -> float:
     """
     Calcule le coefficient gamma_route effectif en tenant compte de la pluie.
 
@@ -121,7 +128,7 @@ def _calculer_gamma_effectif(gamma_base: float, prob_pluie: float) -> float:
     return gamma_base * (1.0 + alpha * prob_pluie)
 
 
-def _calculer_perte_qualite(
+def _quality_loss(
     crop: Optional[str],
     distance_km: float,
     prob_pluie: float,
@@ -156,20 +163,25 @@ def _calculer_perte_qualite(
     return round(c_qualite, 2)
 
 
-class MarketLogistics:
+# Alias de rétrocompatibilité pour les fonctions de calcul interne
+_calculer_gamma_effectif = _gamma_effective
+_calculer_perte_qualite = _quality_loss
+
+
+class Logistics:
     """
     Classe modélisant les frictions logistiques réelles au Bénin :
     coûts de transport, tracasseries aux postes de contrôle,
     et dégradation de la qualité des marchandises.
 
     Phase 4 - Intégration météo :
-        Si un weather_session est fourni à l'initialisation, le calcul
+        Si une session weather est fourni à l'initialisation, le calcul
         des coûts de transfert utilise la probabilité de pluie du lendemain
         pour ajuster gamma_route (état des routes) et la perte de qualité.
-        En l'absence de weather_session, le comportement est identique à la V1.
+        En l'absence de la session weather, le comportement est identique à la V1.
     """
 
-    def __init__(self, cache_file: str = None, weather_session=None):
+    def __init__(self, cache_file: str = None, weather=None):
         """
         Initialise le module logistique.
 
@@ -179,12 +191,12 @@ class MarketLogistics:
         Args:
             cache_file (str, optional): Chemin vers le fichier de cache JSON.
                 Si None, utilise ``~/.kadi/osrm_cache.json``.
-            weather_session (WeatherSession, optional): Session météo
-                (kadi.weather.WeatherSession) pour ajuster les coûts selon
+            weather (Weather, optional): Session météo
+                (kadi.weather.Weather) pour ajuster les coûts selon
                 la météo prévue. Si None, pas d'ajustement climatique.
         """
         # Session météo optionnelle (intégration Phase 4)
-        self.weather_session = weather_session
+        self.weather = weather
 
         # Initialisation du chemin du fichier de cache
         if cache_file is None:
@@ -211,6 +223,36 @@ class MarketLogistics:
 
         # Chargement du cache depuis le disque
         self._load_cache()
+
+    # ------------------------------------------------------------------
+    # Rétrocompatibilité : méthodes publiques renommées
+    # ------------------------------------------------------------------
+
+    def __getattr__(self, name: str):
+        """Intercepte les accès aux anciens noms de méthodes publiques.
+
+        Délègue vers le nouveau nom et émet un DeprecationWarning.
+
+        Args:
+            name (str): Nom de l'attribut ou méthode demandé.
+
+        Returns:
+            callable: La méthode correspondante sous son nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est ni nouveau ni ancien.
+        """
+        # Vérification dans la table de rétrocompatibilité
+        if name in _DEPRECATED_METHODS:
+            new_name = _DEPRECATED_METHODS[name]
+            warnings.warn(
+                f"Logistics.{name}() est obsolète et sera supprimé dans "
+                f"KadiPy v2.0. Utilisez Logistics.{new_name}() à la place.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_name)
+        raise AttributeError(f"'Logistics' n'a pas d'attribut '{name}'.")
 
     def _load_cache(self):
         """Charge le cache persistant depuis le fichier JSON s'il existe."""
@@ -242,7 +284,7 @@ class MarketLogistics:
             float: Probabilité de pluie entre 0.0 et 1.0.
         """
         if self._cached_prob_pluie is None:
-            self._cached_prob_pluie = _obtenir_prob_pluie(self.weather_session)
+            self._cached_prob_pluie = _rain_prob(self.weather)
         return self._cached_prob_pluie
 
     def _haversine_distance(
@@ -310,7 +352,7 @@ class MarketLogistics:
             return tuple(self.cache["coords"][city_key])
 
         # Respect du rate-limit Nominatim avant toute requête
-        _respecter_rate_limit_nominatim()
+        _respect_nominatim_rate_limit()
 
         url = "https://nominatim.openstreetmap.org/search"
         params = {
@@ -375,7 +417,7 @@ class MarketLogistics:
 
         return None
 
-    def get_distance(self, origine: str, destination: str) -> float:
+    def distance(self, origine: str, destination: str) -> float:
         """
         Récupère la distance routière réelle entre deux villes béninoises.
 
@@ -485,7 +527,7 @@ class MarketLogistics:
         self._cached_fuel_price = prix_repli
         return prix_repli
 
-    def calculate_transfer_cost(
+    def transfer_cost(
         self,
         origine: str,
         destination: str,
@@ -496,7 +538,7 @@ class MarketLogistics:
         Calcule le coût total de transfert d'un point A vers un point B.
 
         Phase 4 - Intégration météo :
-            Si un weather_session a été fourni à l'initialisation, le calcul
+            Si une session weather a été fourni à l'initialisation, le calcul
             ajuste automatiquement :
             - gamma_route selon la probabilité de pluie prévue demain.
             - La perte de qualité selon la culture et la météo.
@@ -506,7 +548,7 @@ class MarketLogistics:
                        + Distance * (gamma_effectif * P_carburant / 100 + mu_checkpoints)
                        + C_qualite(culture, distance, pluie)
 
-        Où :
+        Ou :
         - C_info = coût fixe de recherche d'informations (appels, déplacements)
         - gamma_effectif = gamma_route * (1 + alpha_pluie * prob_pluie)
         - P_carburant = prix du litre d'essence en XOF
@@ -541,16 +583,16 @@ class MarketLogistics:
         prob_pluie = self._get_prob_pluie()
 
         # Coefficient de route effectif, ajusté selon la météo
-        gamma_effectif = _calculer_gamma_effectif(gamma_route_base, prob_pluie)
+        gamma_effectif = _gamma_effective(gamma_route_base, prob_pluie)
 
         # Calcul de la distance routière entre les deux villes
-        d_ab = self.get_distance(origine, destination)
+        d_ab = self.distance(origine, destination)
 
         # Calcul du coût lié à la distance (carburant + tracasseries)
         cout_distance = d_ab * ((gamma_effectif * prix_carburant / 100.0) + mu_checkpoints)
 
         # Perte de qualité dynamique (par culture, distance et météo)
-        c_qualite = _calculer_perte_qualite(crop, d_ab, prob_pluie)
+        c_qualite = _quality_loss(crop, d_ab, prob_pluie)
 
         # Coût de transfert total
         c_transfer = c_info + cout_distance + c_qualite
@@ -574,3 +616,40 @@ class MarketLogistics:
         }
 
         return resultat
+
+
+
+# Alias de rétrocompatibilité
+# MarketLogistics = Logistics
+
+
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (Classe publique)
+_DEPRECATED = {
+    "MarketLogistics": ("Logistics", Logistics),
+}
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.logistics.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.logistics' n'a pas d'attribut '{name}'."
+    )

@@ -308,8 +308,8 @@ Convention : `_` en tête = méthode/attribut interne (inchangé).
 | `__init__(forecasting_module, logistics_module, pricing_module)` | `__init__(forecast, logistics, pricing)` | Sans `_module` |
 | `_obtenir_prix_marche(crop, market)` | `_get_price(crop, market)` | En anglais |
 | `_calculer_confidence_score(...)` | `_confidence(...)` | Plus court, sans `_calculer_score` |
-| `arbitrage_decision(crop, market_from, market_to, qty_tons)` | `arbitrage(crop, from_, to, qty)` | Sans `_decision`, `from_` évite le mot-clé Python |
-| `storage_vs_sell_now(crop, market, current_price, qty_tons, mois_stockage)` | `store_or_sell(crop, market, price, qty, months)` | Plus clair, paramètres en anglais |
+| `arbitrage_decision(crop, market_from, market_to, qty_tons)` | `arbitrage(crop, m_from, to, qty)` | Sans `_decision`, `from_` évite le mot-clé Python |
+| `storage_vs_sell_now(crop, market, current_price, qty_tons, mois_stockage)` | `store_sell(crop, market, price, qty, months)` | Plus clair, paramètres en anglais |
 | `portfolio_optimization(available_land_ha, climate_forecast, market_forecast, rendements_t_ha)` | `optimize(land_ha, climate, market, yields)` | Beaucoup plus court |
 | `_portfolio_heuristique(available_land_ha, climate_forecast, market_forecast)` | `_heuristic(land_ha, climate, market)` | En anglais, sans `_portfolio` |
 

@@ -5,27 +5,29 @@ Module de backtesting des prévisions de prix agricoles pour KadiPy.
 Principe :
     1. Prendre un historique de prix (N jours).
     2. Couper l'historique à J-k (point de prévision simulé).
-    3. Prédire les k jours suivants avec MarketForecasting.predict_price().
+    3. Prédire les k jours suivants avec Forecasting.predict().
     4. Comparer les prédictions aux prix réels observés.
     5. Calculer les métriques d'erreur : MAE, RMSE, MAPE et précision
        directionnelle (pourcentage de bonnes directions hausse/baisse).
 
 Usage typique :
-    >>> from kadi.market.backtesting import MarketBacktester
-    >>> from kadi.market.forecasting import MarketForecasting
-    >>> backtester = MarketBacktester(MarketForecasting())
-    >>> resultats = backtester.run("maize", "cotonou", window_days=90,
-    ...                           horizon_days=7, nb_fenetre=5)
-    >>> rapport = backtester.summary_report()
+    >>> from kadi.market.backtesting import Backtester
+    >>> from kadi.market.forecasting import Forecasting
+    >>> backtester = Backtester(Forecasting())
+    >>> resultats = backtester.run("maize", "cotonou", window=90,
+    ...                           horizon=7, n=5)
+    >>> rapport = backtester.summary()
     >>> print(rapport["mae_moyen"])
 """
 
+from typing_extensions import Optional
 import logging
+import warnings
 
 import numpy as np
 import pandas as pd
 
-from kadi.market.forecasting import MarketForecasting
+from kadi.market.forecasting import Forecasting
 
 # Logger du module backtesting
 logger = logging.getLogger(__name__)
@@ -33,9 +35,13 @@ logger = logging.getLogger(__name__)
 # Nombre minimal d'observations pour qu'une fenêtre de test soit valide
 _MIN_POINTS_FENETRE = 20
 
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (méthodes publiques)
+_DEPRECATED_METHODS = {
+    "summary_report": "summary",
+}
 
-class MarketBacktester:
-    """Évalue a posteriori la qualité des prévisions de prix de MarketForecasting.
+class Backtester:
+    """Évalue a posteriori la qualité des prévisions de prix de Forecasting.
 
     Le backtester simule des prévisions passées en coupant l'historique à
     différents points, en prédisant vers l'avant, puis en comparant avec les
@@ -43,73 +49,104 @@ class MarketBacktester:
     du modèle sur des données non vues.
 
     Attributs:
-        _forecaster (MarketForecasting): Instance du module de prévision.
-        _resultats (list[dict]): Liste des résultats de chaque fenêtre.
+        _forecaster (Forecasting): Instance du module de prévision.
+        _results (list[dict]): Liste des résultats de chaque fenêtre.
     """
 
-    def __init__(self, forecaster: MarketForecasting = None) -> None:
+    def __init__(self, forecaster: Forecasting = None) -> None:
         """Initialise le backtester avec un module de prévision.
 
         Args:
-            forecaster (MarketForecasting, optional): Instance de
-                MarketForecasting à évaluer. Si None, une instance par défaut
-                est créée automatiquement.
+            forecaster (Forecasting, optional): Instance de Forecasting à
+                évaluer. Si None, une instance par défaut est créée
+                automatiquement.
         """
         # Module de prévision à évaluer (instance par défaut si non fourni)
-        self._forecaster = forecaster if forecaster is not None else MarketForecasting()
+        self._forecaster = forecaster if forecaster is not None else Forecasting()
 
         # Stockage des résultats par fenêtre (rempli par run())
-        self._resultats: list = []
+        self._results: list = []
+
+    # ------------------------------------------------------------------
+    # Rétrocompatibilité : méthodes publiques renommées
+    # ------------------------------------------------------------------
+
+    
+    def __getattr__(self, name: str):
+        """Intercepte les accès aux anciens noms de méthodes publiques.
+
+        Délègue vers le nouveau nom et émet un DeprecationWarning.
+
+        Args:
+            name (str): Nom de l'attribut ou méthode demandé.
+
+        Returns:
+            callable: La méthode correspondante sous son nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est ni nouveau ni ancien.
+        """
+        # Vérification dans la table de rétrocompatibilité
+        if name in _DEPRECATED_METHODS:
+            new_name = _DEPRECATED_METHODS[name]
+            warnings.warn(
+                f"Backtester.{name}() est obsolète et sera supprimé dans "
+                f"KadiPy v2.0. Utilisez Backtester.{new_name}() à la place.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_name)
+        raise AttributeError(f"'Backtester' n'a pas d'attribut '{name}'.")
 
     # ------------------------------------------------------------------
     # Méthodes privées : métriques d'erreur
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _calculer_mae(y_reel: np.ndarray, y_pred: np.ndarray) -> float:
+    def _mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calcule la Mean Absolute Error (MAE) entre prévisions et réalisations.
 
         Args:
-            y_reel (np.ndarray): Valeurs observées.
+            y_true (np.ndarray): Valeurs observées.
             y_pred (np.ndarray): Valeurs prédites.
 
         Returns:
             float: MAE en XOF/kg. Retourne NaN si les tableaux sont vides.
         """
         # Protection contre les tableaux vides
-        if len(y_reel) == 0:
+        if len(y_true) == 0:
             return float("nan")
 
         # Moyenne des erreurs absolues
-        return float(np.mean(np.abs(y_reel - y_pred)))
+        return float(np.mean(np.abs(y_true - y_pred)))
 
     @staticmethod
-    def _calculer_rmse(y_reel: np.ndarray, y_pred: np.ndarray) -> float:
+    def _rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calcule la Root Mean Square Error (RMSE).
 
         Args:
-            y_reel (np.ndarray): Valeurs observées.
+            y_true (np.ndarray): Valeurs observées.
             y_pred (np.ndarray): Valeurs prédites.
 
         Returns:
             float: RMSE en XOF/kg. Retourne NaN si les tableaux sont vides.
         """
         # Protection contre les tableaux vides
-        if len(y_reel) == 0:
+        if len(y_true) == 0:
             return float("nan")
 
         # Racine carrée de la moyenne des carrés des erreurs
-        return float(np.sqrt(np.mean((y_reel - y_pred) ** 2)))
+        return float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
 
     @staticmethod
-    def _calculer_mape(y_reel: np.ndarray, y_pred: np.ndarray) -> float:
+    def _mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calcule la Mean Absolute Percentage Error (MAPE) en pourcentage.
 
         Les observations avec un prix réel nul sont exclues du calcul pour
         éviter les divisions par zéro.
 
         Args:
-            y_reel (np.ndarray): Valeurs observées (prix réels en XOF/kg).
+            y_true (np.ndarray): Valeurs observées (prix réels en XOF/kg).
             y_pred (np.ndarray): Valeurs prédites (prix en XOF/kg).
 
         Returns:
@@ -117,20 +154,18 @@ class MarketBacktester:
                 observation valide (prix réel non nul).
         """
         # Masque pour exclure les prix réels nuls (division par zéro)
-        masque_valide = y_reel != 0
+        masque_valide = y_true != 0
         if not masque_valide.any():
             return float("nan")
 
         # MAPE calculé uniquement sur les observations valides
-        y_reel_valide = y_reel[masque_valide]
+        y_true_valide = y_true[masque_valide]
         y_pred_valide = y_pred[masque_valide]
 
-        return float(np.mean(np.abs((y_reel_valide - y_pred_valide) / y_reel_valide)) * 100)
+        return float(np.mean(np.abs((y_true_valide - y_pred_valide) / y_true_valide)) * 100)
 
     @staticmethod
-    def _calculer_precision_directionnelle(
-        y_reel: np.ndarray, y_pred: np.ndarray
-    ) -> float:
+    def _dir_acc(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Calcule le pourcentage de bonnes prédictions directionnelles.
 
         La direction est correcte si le modèle prédit une hausse (ou baisse)
@@ -138,7 +173,7 @@ class MarketBacktester:
         dernier prix observé dans la fenêtre d'entraînement.
 
         Args:
-            y_reel (np.ndarray): Valeurs observées.
+            y_true (np.ndarray): Valeurs observées.
             y_pred (np.ndarray): Valeurs prédites.
 
         Returns:
@@ -146,11 +181,11 @@ class MarketBacktester:
                 si moins de 2 observations sont disponibles.
         """
         # On a besoin d'au moins 2 points pour mesurer une direction
-        if len(y_reel) < 2:
+        if len(y_true) < 2:
             return float("nan")
 
         # Direction réelle : 1 si hausse, -1 si baisse, 0 si stable
-        direction_reelle = np.sign(np.diff(y_reel))
+        direction_reelle = np.sign(np.diff(y_true))
         direction_predite = np.sign(np.diff(y_pred))
 
         # Proportion de directions identiques
@@ -164,31 +199,32 @@ class MarketBacktester:
         self,
         crop: str,
         market: str,
-        historique: pd.DataFrame,
-        window_days: int = 90,
-        horizon_days: int = 7,
-        nb_fenetres: int = 5,
+        hist: Optional[pd.DataFrame] = None,
+        window: int = 90,
+        horizon: int = 7,
+        n: int = 5,
+        **kwargs
     ) -> list:
         """Exécute le backtesting par fenêtres glissantes sur l'historique fourni.
 
         Pour chaque fenêtre, la méthode :
             1. Coupe l'historique au point de prévision.
             2. Entraîne le modèle sur la fenêtre d'entraînement.
-            3. Prédit les horizon_days jours suivants.
+            3. Prédit les horizon jours suivants.
             4. Compare avec les prix réels observés (fenêtre de test).
             5. Calcule les métriques (MAE, RMSE, MAPE, direction).
 
         Args:
             crop (str): Code de la culture à évaluer (ex: 'maize', 'rice').
             market (str): Nom du marché (ex: 'cotonou', 'parakou').
-            historique (pd.DataFrame): DataFrame avec colonnes 'date' (datetime)
+            hist (pd.DataFrame): DataFrame avec colonnes 'date' (datetime)
                 et 'price' (float en XOF/kg), trié par ordre chronologique.
-            window_days (int, optional): Taille de la fenêtre d'entraînement
+            window (int, optional): Taille de la fenêtre d'entraînement
                 en jours. Défaut : 90.
-            horizon_days (int, optional): Horizon de prévision en jours.
+            horizon (int, optional): Horizon de prévision en jours.
                 Défaut : 7.
-            nb_fenetres (int, optional): Nombre de fenêtres glissantes à
-                évaluer. Défaut : 5.
+            n (int, optional): Nombre de fenêtres glissantes à évaluer.
+                Défaut : 5.
 
         Returns:
             list[dict]: Liste de dictionnaires, un par fenêtre évaluée.
@@ -204,19 +240,26 @@ class MarketBacktester:
                 - 'precision_dir'   (float) : Précision directionnelle (%).
                 - 'is_simulated'    (bool)  : True si la prévision est simulée.
         """
+
+        for arg in kwargs :
+            if arg == "historique" : hist = kwargs[arg]
+            if arg == "window_days" : window = kwargs[arg]
+            if arg == "horizon_days" : horizon = kwargs[arg]
+            if arg == "nb_fenetres" : n = kwargs[arg]
+
         # Réinitialisation des résultats pour une nouvelle exécution
-        self._resultats = []
+        self._results = []
 
         # Vérification des colonnes obligatoires
-        if "date" not in historique.columns or "price" not in historique.columns:
+        if "date" not in hist.columns or "price" not in hist.columns:
             logger.warning(
                 "Backtesting : l'historique doit contenir les colonnes "
                 "'date' et 'price'. Aucun résultat produit."
             )
-            return self._resultats
+            return self._results
 
         # Copie et tri chronologique de l'historique
-        df = historique[["date", "price"]].copy()
+        df = hist[["date", "price"]].copy()
         df["date"] = pd.to_datetime(df["date"])
         df = df.sort_values("date").reset_index(drop=True)
         df = df.dropna(subset=["price"])
@@ -225,37 +268,37 @@ class MarketBacktester:
         nb_total = len(df)
 
         # Taille minimale pour exécuter une fenêtre
-        taille_min = window_days + horizon_days
+        taille_min = window + horizon
         if nb_total < taille_min:
             logger.warning(
                 "Backtesting : historique trop court (%d points) pour "
-                "window_days=%d + horizon_days=%d. Ajustez les paramètres.",
-                nb_total, window_days, horizon_days,
+                "window=%d + horizon=%d. Ajustez les paramètres.",
+                nb_total, window, horizon,
             )
-            return self._resultats
+            return self._results
 
-        # Calcul des positions de départ de chaque fenêtre glissante
-        # On distribue les fenetres uniformément sur l'historique disponible
+        # Calcul des positions de départ de chaque fenêtre glissante.
+        # Les fenetres sont distribuées uniformément sur l'historique disponible.
         positions_fin_train = np.linspace(
-            window_days,
-            nb_total - horizon_days,
-            nb_fenetres,
+            window,
+            nb_total - horizon,
+            n,
             dtype=int,
         )
 
         logger.info(
             "Backtesting %s/%s : %d fenêtres, window=%d j, horizon=%d j.",
-            crop, market, nb_fenetres, window_days, horizon_days,
+            crop, market, n, window, horizon,
         )
 
         # Évaluation de chaque fenêtre
         for idx, pos_fin in enumerate(positions_fin_train, start=1):
-            # Fenêtre d'entraînement : [pos_fin - window_days, pos_fin[
-            debut_train = max(0, pos_fin - window_days)
+            # Fenêtre d'entraînement : [pos_fin - window, pos_fin[
+            debut_train = max(0, pos_fin - window)
             df_train = df.iloc[debut_train:pos_fin].copy()
 
-            # Fenêtre de test : [pos_fin, pos_fin + horizon_days[
-            fin_test = min(pos_fin + horizon_days, nb_total)
+            # Fenêtre de test : [pos_fin, pos_fin + horizon[
+            fin_test = min(pos_fin + horizon, nb_total)
             df_test = df.iloc[pos_fin:fin_test].copy()
 
             # Saut si l'une des fenêtres est trop petite
@@ -267,37 +310,37 @@ class MarketBacktester:
                 continue
 
             # Appel au modèle de prévision avec l'historique de la fenêtre
-            resultat_pred = self._forecaster.predict_price(
+            resultat_pred = self._forecaster.predict(
                 crop=crop,
                 market=market,
-                days_ahead=horizon_days,
-                historique=df_train,
+                ahead=horizon,
+                hist=df_train,
             )
 
             # Prix prédit et prix réels observés dans la fenêtre de test
             prix_predit = resultat_pred.get("predicted_price", float("nan"))
-            y_reel = df_test["price"].values
+            y_true = df_test["price"].values
 
             # Construction d'un vecteur de prévisions constant pour le calcul
             # des métriques (le modèle retourne une seule valeur scalaire)
-            y_pred = np.full(len(y_reel), prix_predit)
+            y_pred = np.full(len(y_true), prix_predit)
 
             # Calcul des métriques
-            mae = self._calculer_mae(y_reel, y_pred)
-            rmse = self._calculer_rmse(y_reel, y_pred)
-            mape = self._calculer_mape(y_reel, y_pred)
-            precision_dir = self._calculer_precision_directionnelle(y_reel, y_pred)
+            mae = self._mae(y_true, y_pred)
+            rmse = self._rmse(y_true, y_pred)
+            mape = self._mape(y_true, y_pred)
+            precision_dir = self._dir_acc(y_true, y_pred)
 
             # Date de coupure (fin de la fenêtre d'entraînement)
             date_fin_train = str(df_train["date"].iloc[-1].date())
 
             # Enregistrement du résultat de cette fenêtre
-            self._resultats.append({
+            self._results.append({
                 "fenetre": idx,
                 "date_fin_train": date_fin_train,
                 "nb_train_pts": len(df_train),
                 "prix_predit": round(prix_predit, 1),
-                "prix_reel_moyen": round(float(np.mean(y_reel)), 1),
+                "prix_reel_moyen": round(float(np.mean(y_true)), 1),
                 "mae": round(mae, 2),
                 "rmse": round(rmse, 2),
                 "mape": round(mape, 2),
@@ -307,17 +350,17 @@ class MarketBacktester:
 
             logger.debug(
                 "Fenêtre %d/%d (%s) : MAE=%.1f, RMSE=%.1f, MAPE=%.1f%%, Dir=%.0f%%.",
-                idx, nb_fenetres, date_fin_train, mae, rmse, mape, precision_dir,
+                idx, n, date_fin_train, mae, rmse, mape, precision_dir,
             )
 
         logger.info(
             "Backtesting terminé : %d fenêtres évaluées sur %d.",
-            len(self._resultats), nb_fenetres,
+            len(self._results), n,
         )
 
-        return self._resultats
+        return self._results
 
-    def summary_report(self) -> dict:
+    def summary(self) -> dict:
         """Produit un rapport récapitulatif agrégé sur toutes les fenêtres évaluées.
 
         Les métriques (MAE, RMSE, MAPE, précision directionnelle) sont moyennées
@@ -340,28 +383,28 @@ class MarketBacktester:
                 aucun résultat.
         """
         # Vérification qu'un backtesting a bien été exécuté
-        if not self._resultats:
+        if not self._results:
             raise RuntimeError(
-                "Aucun résultat disponible. Appelez run() avant summary_report()."
+                "Aucun résultat disponible. Appelez run() avant summary()."
             )
 
         # Extraction des métriques valides (non NaN)
-        maes = [r["mae"] for r in self._resultats if not np.isnan(r["mae"])]
-        rmses = [r["rmse"] for r in self._resultats if not np.isnan(r["rmse"])]
-        mapes = [r["mape"] for r in self._resultats if not np.isnan(r["mape"])]
-        dirs = [r["precision_dir"] for r in self._resultats if not np.isnan(r["precision_dir"])]
+        maes = [r["mae"] for r in self._results if not np.isnan(r["mae"])]
+        rmses = [r["rmse"] for r in self._results if not np.isnan(r["rmse"])]
+        mapes = [r["mape"] for r in self._results if not np.isnan(r["mape"])]
+        dirs = [r["precision_dir"] for r in self._results if not np.isnan(r["precision_dir"])]
 
         # Pourcentage de fenêtres dont les prévisions sont simulées
-        nb_simule = sum(1 for r in self._resultats if r["is_simulated"])
-        pct_simule = round(nb_simule / len(self._resultats) * 100, 1)
+        nb_simule = sum(1 for r in self._results if r["is_simulated"])
+        pct_simule = round(nb_simule / len(self._results) * 100, 1)
 
         # Identification de la meilleure et de la pire fenêtres (selon MAE)
-        fenetres_valides = [r for r in self._resultats if not np.isnan(r["mae"])]
+        fenetres_valides = [r for r in self._results if not np.isnan(r["mae"])]
         meilleure = min(fenetres_valides, key=lambda r: r["mae"]) if fenetres_valides else None
         pire = max(fenetres_valides, key=lambda r: r["mae"]) if fenetres_valides else None
 
         return {
-            "nb_fenetres_evaluees": len(self._resultats),
+            "nb_fenetres_evaluees": len(self._results),
             "mae_moyen": round(float(np.mean(maes)), 2) if maes else float("nan"),
             "rmse_moyen": round(float(np.mean(rmses)), 2) if rmses else float("nan"),
             "mape_moyen": round(float(np.mean(mapes)), 2) if mapes else float("nan"),
@@ -369,5 +412,38 @@ class MarketBacktester:
             "pct_simule": pct_simule,
             "meilleure_fenetre": meilleure,
             "pire_fenetre": pire,
-            "details": self._resultats,
+            "details": self._results,
         }
+
+
+
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (Classe publique)
+_DEPRECATED = {
+    "MarketBacktester": ("Backtester", Backtester),
+}
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.backtesting.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.backtesting' n'a pas d'attribut '{name}'."
+    )
