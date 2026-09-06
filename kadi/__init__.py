@@ -13,6 +13,7 @@ importer directement depuis kadi sans connaître la structure interne :
     >>> ws = kadi.Weather(lat=9.3, lon=2.1, name="Parakou")
     >>> mk = kadi.Market(lat=9.3, lon=2.1, location="Parakou")
     >>> df = kadi.read_csv("recoltes_2024.csv")
+    >>> kadi.write(df, "recoltes_export.csv")
 
 Accès aux sous-modules :
 
@@ -73,7 +74,7 @@ from kadi.kidas import (
     Pipeline,
 )
 
-# Classes sources d'ingestion et fonctions de lecture (module kadi.io)
+# Classes sources d'ingestion et fonctions d'E/S (module kadi.io)
 from kadi.io import (
     Source,
     CSVSource,
@@ -85,6 +86,14 @@ from kadi.io import (
     read_json,
     read_netcdf,
     read_api,
+    write_csv,
+    write_excel,
+    write_json,
+    write_netcdf,
+    write_api,
+    write,
+    info,
+    ping,
 )
 
 # Import conditionnel : xarray requis pour NetCDF
@@ -125,6 +134,16 @@ __all__ = [
     "read_json",
     "read_netcdf",
     "read_api",
+    # Fonctions d'écriture rapide
+    "write_csv",
+    "write_excel",
+    "write_json",
+    "write_netcdf",
+    "write_api",
+    # Fonctions génériques I/O
+    "write",
+    "info",
+    "ping",
 ]
 
 

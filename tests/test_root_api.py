@@ -2,12 +2,14 @@
 """
 Tests pour le point d'entrée racine kadi et le module kadi.io.
 
-Ce fichier vérifie l'export des classes principales, les fonctions d'aide read_*,
-ainsi que l'émission des avertissements de déprécation lors de l'accès aux anciens noms.
+Ce fichier vérifie l'export des classes principales, les fonctions d'aide read_*, write_*,
+les fonctions I/O génériques (write, info, ping), ainsi que l'émission des avertissements
+de déprécation lors de l'accès aux anciens noms.
 """
 
 import warnings
 import pytest
+import pandas as pd
 import kadi
 import kadi.io
 
@@ -44,22 +46,81 @@ def test_io_module_exports():
     assert kadi.io.NetCDFSource is kadi.NetCDFSource
     assert kadi.io.APISource is kadi.APISource
 
-    # Vérification des fonctions utilitaires du module io
+    # Vérification des fonctions de lecture du module io
     assert callable(kadi.io.read_csv)
     assert callable(kadi.io.read_excel)
     assert callable(kadi.io.read_json)
     assert callable(kadi.io.read_netcdf)
+    assert callable(kadi.io.read_api)
+
+    # Vérification des fonctions d'écriture du module io
+    assert callable(kadi.io.write_csv)
+    assert callable(kadi.io.write_excel)
+    assert callable(kadi.io.write_json)
+    assert callable(kadi.io.write_netcdf)
+    assert callable(kadi.io.write_api)
+
+    # Vérification des fonctions génériques du module io
+    assert callable(kadi.io.write)
+    assert callable(kadi.io.info)
+    assert callable(kadi.io.ping)
 
 
-def test_root_read_functions():
+def test_root_io_functions():
     """
-    Vérifie que les fonctions read_* sont disponibles à la racine de kadi.
+    Vérifie que les fonctions E/S sont disponibles à la racine de kadi.
     """
-    # Contrôle de la présence des fonctions read_* à la racine
+    # Contrôle des fonctions de lecture à la racine
     assert kadi.read_csv is kadi.io.read_csv
     assert kadi.read_excel is kadi.io.read_excel
     assert kadi.read_json is kadi.io.read_json
     assert kadi.read_netcdf is kadi.io.read_netcdf
+    assert kadi.read_api is kadi.io.read_api
+
+    # Contrôle des fonctions d'écriture et génériques à la racine
+    assert kadi.write_csv is kadi.io.write_csv
+    assert kadi.write_excel is kadi.io.write_excel
+    assert kadi.write_json is kadi.io.write_json
+    assert kadi.write is kadi.io.write
+    assert kadi.info is kadi.io.info
+    assert kadi.ping is kadi.io.ping
+
+
+def test_generic_io_operations(tmp_path):
+    """
+    Vérifie le fonctionnement des fonctions génériques write, info et ping avec détection de format.
+
+    Args:
+        tmp_path (pathlib.Path): Dossier temporaire fourni par pytest.
+    """
+    # Création d'un DataFrame de données de test
+    data = pd.DataFrame({"culture": ["Mais", "Riz"], "rendement": [2.5, 3.8]})
+    csv_file = str(tmp_path / "test_data.csv")
+
+    # Écriture générique avec détection de l'extension .csv
+    success = kadi.io.write(data, csv_file)
+    assert success is True
+
+    # Récupération des métadonnées avec la fonction générique info
+    meta = kadi.io.info(csv_file)
+    assert isinstance(meta, dict)
+    assert meta["kind"] == "csv"
+
+    # Vérification d'accessibilité avec la fonction générique ping
+    assert kadi.io.ping(csv_file) is True
+
+    # Relecture des données écrites pour valider le contenu
+    df_read = kadi.io.read_csv(csv_file)
+    assert len(df_read) == 2
+
+
+def test_detect_source_unsupported_extension():
+    """
+    Vérifie qu'une extension inconnue lève une exception ValueError.
+    """
+    # Tentative d'utilisation d'une extension non supportée
+    with pytest.raises(ValueError, match="Impossible de déterminer automatiquement"):
+        kadi.io.ping("fichier.extension_inconnue")
 
 
 def test_deprecated_aliases_warning():
