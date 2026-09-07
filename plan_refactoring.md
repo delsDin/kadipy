@@ -346,7 +346,7 @@ Phase 5 (weather) <-- dépend de Phase 1, 4
 Phase 6 (market)  <-- dépend de Phase 1, 4, 5
     |
     v
-Phase 7 (__init__ racine) <-- dépend de toutes les phases
+Phase 7 (__init__ racine & io) <-- dépend de toutes les phases
     |
     v
 Phase 8 (tests + docs)
