@@ -14,11 +14,11 @@ spécialisés et un client d'ingestion de données.
 
 ```
 Market
-├── data_ingestion   : Client WFP DataBridges + cache SQLite
-├── pricing          : Normalisation, anomalies, saisonnalité
-├── forecasting      : Prévisions par Machine Learning
-├── logistics        : Distances, coûts de transport, météo (Phase 4)
-└── decision_support : Arbitrage, stockage, portefeuille
+├── data_ingestion   : Client WFP + cache SQLite
+├── pricing          : Pricing (analyse des prix, anomalies, saisonnalité)
+├── forecasting      : Forecasting (prévisions par régression)
+├── logistics        : Logistics (distances, coûts de transport, météo)
+└── advisor          : Advisor (arbitrage, stockage, portefeuille)
 ```
 
 Chaque sous-module peut être utilisé seul ou via la façade `Market`.
@@ -28,16 +28,14 @@ Chaque sous-module peut être utilisé seul ou via la façade `Market`.
 ## Initialisation
 
 ```python
-from kadi.market import Market
+import kadi as kd
 
-# Initialisation simple (accès transparent aux données réelles via HAPI HumData)
-marche = Market(lat=9.30, lon=2.08, location="Parakou")
+# Initialisation simple
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
 
-# Avec intégration météo (Phase 4)
-from kadi.weather import WeatherSession
-
-ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
+# Avec intégration météo
+weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 ```
 
 | Paramètre | Type | Description |
@@ -45,8 +43,8 @@ marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
 | `lat` | `float` | Latitude (entre 2.5° et 12.5° N) |
 | `lon` | `float` | Longitude (entre -1.5° et 4.0° E) |
 | `location` | `str` | Nom du marché (ex: `"Cotonou"`, `"Parakou"`) |
-| `env_file` | `str` | Chemin vers le fichier `.env`. Défaut : `".env"` |
-| `weather_session` | `WeatherSession` | Session météo optionnelle pour l'ajustement climatique |
+| `env_file` | `str` | Chemin vers le fichier `.env` (Défaut : `".env"`) |
+| `weather` | `Weather` | Instance météo optionnelle pour l'ajustement climatique |
 
 ---
 
@@ -59,7 +57,7 @@ marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
 resume = marche.price_crop("maize", days_back=90)
 
 print(f"Médiane : {resume['prix_median']} XOF/kg")
-print(f"Tendance : {resume['prix_min']} → {resume['prix_max']} XOF/kg")
+print(f"Tendance : {resume['prix_min']} à {resume['prix_max']} XOF/kg")
 print(f"Données : {'simulées' if resume['is_simulated'] else 'réelles WFP'}")
 print(f"Confiance : {resume['confidence_score']:.2f}")
 ```
@@ -68,14 +66,14 @@ print(f"Confiance : {resume['confidence_score']:.2f}")
 
 ```python
 # "Est-il rentable de transporter 10 tonnes de maïs de Parakou à Cotonou ?"
-decision = marche.decision_support.arbitrage_decision(
+decision = marche.advisor.arbitrage_decision(
     crop="maize",
-    market_from="Parakou",
-    market_to="Cotonou",
+    origine="Parakou",
+    destination="Cotonou",
     qty_tons=10.0,
 )
 
-print(decision["recommandation"])           # "TRANSPORTER" ou "NE PAS TRANSPORTER"
+print(decision["recommandation"])
 print(f"Gain net : {decision['gain_net_percent']:.1f}%")
 print(f"Confiance : {decision['confidence_score']:.2f}")
 ```
@@ -84,15 +82,15 @@ print(f"Confiance : {decision['confidence_score']:.2f}")
 
 ```python
 # "Vaut-il mieux stocker 5 tonnes d'igname pendant 3 mois ou vendre maintenant ?"
-stockage = marche.decision_support.storage_vs_sell_now(
+stockage = marche.advisor.storage_vs_sell_now(
     crop="yam",
     market="Abomey",
-    current_price=250_000.0,   # XOF/tonne
+    current_price=250_000.0,
     qty_tons=5.0,
-    mois_stockage=3,           # Horizon configurable (Phase 4)
+    mois_stockage=3,
 )
 
-print(stockage["recommandation_binaire"])   # "STOCKER" ou "VENDRE IMMÉDIATEMENT"
+print(stockage["recommandation_binaire"])
 print(f"Marge estimée : {stockage['marge_nette_cfa']:,.0f} XOF")
 print(f"Horizon : {stockage['horizon_mois']} mois")
 ```
@@ -100,13 +98,13 @@ print(f"Horizon : {stockage['horizon_mois']} mois")
 ### 4. Optimisation de portefeuille de cultures
 
 ```python
-decision_port = marche.decision_support.portfolio_optimization(
+decision_port = marche.advisor.portfolio_optimization(
     available_land_ha=10.0,
     climate_forecast={"drought_severity": "mild"},
     market_forecast={"maize": 285.0, "cowpea": 580.0, "sorghum": 210.0},
 )
 
-print(f"Méthode : {decision_port['methode']}")   # "scipy_linprog" ou "heuristique"
+print(f"Méthode : {decision_port['methode']}")
 print(f"Revenu attendu : {decision_port['revenu_attendu_cfa']:,.0f} XOF")
 for culture, ha in decision_port["repartition_hectares"].items():
     print(f"  {culture} : {ha:.1f} ha")
@@ -115,7 +113,7 @@ for culture, ha in decision_port["repartition_hectares"].items():
 ### 5. Évaluation du risque climatique
 
 ```python
-# Disponible uniquement si weather_session a été fourni
+# Disponible si l'instance weather a été fournie
 risque = marche.assess_climate_risk(days_ahead=7)
 
 if risque["weather_available"]:
@@ -129,7 +127,7 @@ if risque["weather_available"]:
 ## Accès aux données et boucle de fallback
 
 Par défaut, KadiPy interroge l'API publique HAPI HumData (PAM/OCHA) et le cache SQLite local.
-Aucune clé commercial payante n'est nécessaire pour obtenir des données réelles de prix.
+Aucune clé commerciale payante n'est nécessaire pour obtenir des données réelles de prix.
 
 | Niveau | Source | `is_simulated` | `confidence_score` |
 |--------|--------|----------------|-------------------|
@@ -149,3 +147,4 @@ En cas de coupure de réseau ou d'indisponibilité complète des serveurs distan
 - [Logistique](logistics.md)
 - [Aide à la décision](decision_support.md)
 - [Ingestion des données](data_ingestion.md)
+

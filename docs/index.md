@@ -11,30 +11,33 @@ de prix de marché ou de récoltes.
 
 ## Ce que fait KadiPy
 
-KadiPy regroupe trois modules complémentaires qui couvrent l'ensemble du cycle
+KadiPy regroupe quatre modules complémentaires qui couvrent l'ensemble du cycle
 d'analyse des données agricoles.
+
+### `kadi.io` - Ingestion et exportation unifiées
+
+Fonctions d'entrée et sortie universelles (`read_csv`, `read_excel`, `read_json`, `read_netcdf`, `read_api`, `write`, `info`, `ping`).
 
 ### `kadi.market` - Économie agricole
 
 Analyse des marchés agricoles béninois avec des données de prix réels (WFP) ou
-simulées. Calcule les opportunités d'arbitrage, les coûts logistiques, les
-prévisions de prix et l'optimisation de portefeuille de cultures.
+simulées. Calcule les opportunités d'arbitrage via `Advisor`, les coûts logistiques via `Logistics`, les
+prévisions de prix via `Forecasting` et l'analyse des prix via `Pricing`.
 
 [Voir la documentation de kadi.market](market/index.md)
 
 ### `kadi.weather` - Météorologie agronomique
 
-Interface unifiée pour les données météo historiques et prévisionnelles. Calcule
-les indices de sécheresse, les probabilités de pluie, les degrés-jours de croissance
-et le bilan hydrique des sols selon la méthode FAO-56.
+Interface unifiée via la façade `Weather` pour les données météo historiques et prévisionnelles. Calcule
+les indices de sécheresse (`Risk`), les probabilités de pluie, les degrés-jours de croissance (`Phenology`)
+et le bilan hydrique des sols (`Hydrology`).
 
 [Voir la documentation de kadi.weather](weather/index.md)
 
 ### `kadi.kidas` - Traitement et standardisation des données
 
-Pipeline complet d'ingestion, nettoyage, validation et normalisation. Lit les
-fichiers CSV, Excel, JSON, NetCDF et les API REST. Produit des données prêtes à
-l'analyse.
+Pipeline complet d'ingestion, nettoyage (`Cleaner`), validation (`Validator`), normalisation (`Normalizer`),
+gestion de cache (`Cache`) et chaîne de traitement (`Pipeline`).
 
 [Voir la documentation de kadi.kidas](kidas/index.md)
 
@@ -50,7 +53,7 @@ cd kadipy
 python -m venv .kadi_venv
 source .kadi_venv/bin/activate
 
-# Installation des dépendances via pyproject.toml (ou alias requirements.txt)
+# Installation des dépendances via pyproject.toml
 pip install -e ".[dev]"
 
 # Optionnel : support des anciens fichiers Excel (.xls)
@@ -73,13 +76,23 @@ BENIN_FUEL_PRICE=680
 
 ## Démarrage rapide
 
+### Lecture et inspection unifiées
+
+```python
+import kadi as kd
+
+# Lecture automatique selon le format
+df = kd.read_csv("recolte_2024.csv")
+kd.info(df)
+```
+
 ### Analyse de marché
 
 ```python
-from kadi.market import Market
+import kadi as kd
 
 # Initialisation pour Parakou
-marche = Market(lat=9.30, lon=2.08, location="Parakou")
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
 
 # Résumé des prix du maïs sur 90 jours
 resume = marche.price_crop("maize", days_back=90)
@@ -90,28 +103,27 @@ print(f"Source : {'réelle' if not resume['is_simulated'] else 'simulée'}")
 ### Analyse météo
 
 ```python
-from kadi.weather import WeatherSession
+import kadi as kd
 
-session = WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
+weather = kd.Weather(lat=9.3333, lon=2.6333, name="Parakou")
 
 # Probabilité de pluie demain
-risque = session.rain_probability(days_ahead=1)
+risque = weather.rain_probability(days_ahead=1)
 print(risque["recommendation"])
 
 # Indice de sécheresse SPI sur 3 mois
-secheresse = session.drought_index(method="spi", window_months=3)
+secheresse = weather.drought_index(method="spi", window_months=3)
 print(f"Sévérité : {secheresse['drought_severity']}")
 ```
 
 ### Intégration météo + marché
 
 ```python
-from kadi.weather import WeatherSession
-from kadi.market import Market
+import kadi as kd
 
 # La session météo enrichit automatiquement les calculs logistiques
-ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
+weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 
 # Le coût logistique tient compte de la pluie prévue
 cout = marche.logistics.calculate_transfer_cost(
@@ -125,15 +137,14 @@ risque_global = marche.assess_climate_risk(days_ahead=7)
 print(risque_global["recommendation"])
 ```
 
-### Traitement de données
+### Traitement de données avec Pipeline
 
 ```python
 import kadi.kidas as kidas
 
-# Chargement et nettoyage en une ligne
-df, rapport = kidas.load_and_clean("recolte_2024.csv")
-print(f"{len(df)} lignes chargées")
-print(f"Score qualité : {rapport['quality_score']['overall']:.2f}")
+# Ingestion et nettoyage direct
+cleaner = kidas.Cleaner()
+df_clean = cleaner.drop_dupes(df)
 ```
 
 ---
@@ -148,7 +159,7 @@ pytest tests/ -q
 pytest tests/ --cov=kadi --cov-report=term-missing
 ```
 
-Les tests couvrent l'ensemble des modules applicatifs (`market`, `weather`, `kidas`), y compris les connecteurs distants (`tests/weather/test_chirps.py` couvrant 89 % du code CHIRPS sans dépendance réseau) ainsi que les composants d'infrastructure internes `kadi.cache` (`tests/test_cache.py`) et `kadi.config` (`tests/test_config.py`). Aucune clé API n'est nécessaire pour les exécuter. La CI GitHub Actions contrôle automatiquement que la couverture globale du code reste supérieure à **70 %**.
+Les tests couvrent l'ensemble des modules applicatifs (`io`, `market`, `weather`, `kidas`), y compris les connecteurs distants (`tests/weather/test_chirps.py` couvrant le code CHIRPS sans dépendance réseau) ainsi que les composants d'infrastructure internes `kadi.cache` (`tests/test_cache.py`) et `kadi.config` (`tests/test_config.py`). Aucune clé API n'est nécessaire pour les exécuter. La CI GitHub Actions contrôle automatiquement que la couverture globale du code reste supérieure à **70 %**.
 
 ---
 
@@ -157,9 +168,10 @@ Les tests couvrent l'ensemble des modules applicatifs (`market`, `weather`, `kid
 ```
 kadipy/
 ├── kadi/
+│   ├── io/              # Module d'entrées et sorties unifiées
 │   ├── market/          # Module économie agricole
 │   ├── weather/         # Module météorologie agronomique
-│   ├── kidas/           # Module traitement des données
+│   ├── kidas/           # Module traitement et pipeline de données
 │   ├── cache.py         # Cache SQLite partagé (testé via tests/test_cache.py)
 │   ├── config.py        # Configuration centralisée (MODELS_DIR conservé pour v2.x ML)
 │   └── exceptions.py    # Exceptions personnalisées

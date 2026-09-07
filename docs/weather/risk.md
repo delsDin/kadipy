@@ -1,6 +1,6 @@
 # Risques climatiques (`kadi.weather.risk`)
 
-Le module `RiskIndicators` analyse les données météo pour produire des alertes
+Le module `Risk` analyse les données météo pour produire des alertes
 opérationnelles : probabilité de pluie imminente et indices de sécheresse
 multi-méthodes.
 
@@ -65,12 +65,12 @@ La méthode lève `InsufficientData` si moins de 30 fenêtres sont disponibles o
 ### Probabilité de pluie
 
 ```python
-from kadi.weather import WeatherSession
+import kadi as kd
 
-session = WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
+weather = kd.Weather(lat=9.3333, lon=2.6333, name="Parakou")
 
 # Probabilité sur les 3 prochains jours (seuil : 1 mm minimum)
-prob = session.rain_probability(days_ahead=3, min_rainfall_mm=1.0)
+prob = weather.rain_probability(days_ahead=3, min_rainfall_mm=1.0)
 
 print(f"Probabilité demain : {prob['tomorrow'] * 100:.0f}%")
 print(f"Message            : {prob['message']}")
@@ -86,9 +86,9 @@ print(f"Recommandation     : {prob['recommendation']}")
 | `recommendation` | `str` | Recommandation opérationnelle |
 
 **Exemples de recommandations :**
-- `"Évitez les traitements phytosanitaires - pluie probable demain."`
-- `"Bon moment pour les semis - 3 jours secs prévus."`
-- `"Risque de lessivage des intrants - attendez 48h."`
+- `"Évitez les traitements phytosanitaires : pluie probable demain."`
+- `"Bon moment pour les semis : 3 jours secs prévus."`
+- `"Risque de lessivage des intrants : attendez 48h."`
 
 ---
 
@@ -96,12 +96,12 @@ print(f"Recommandation     : {prob['recommendation']}")
 
 ```python
 # SPI sur 3 mois glissants (suivi courant)
-spi3 = session.drought_index(method="spi", window_months=3)
+spi3 = weather.drought_index(method="spi", window_months=3)
 print(f"SPI 3 mois : {spi3['spi_3month']:.2f}")
 print(f"Sévérité   : {spi3['drought_severity']}")
 
 # Analyse combinée pour une vue complète
-combined = session.drought_index(method="combined", window_months=6)
+combined = weather.drought_index(method="combined", window_months=6)
 print(f"Indice combiné : {combined.get('combined_score', 'N/A'):.2f}")
 print(f"Sévérité       : {combined['drought_severity']}")
 ```
@@ -117,17 +117,16 @@ print(f"Sévérité       : {combined['drought_severity']}")
 
 ---
 
-### Intégration avec kadi.market (Phase 4)
+### Intégration avec kadi.market
 
 Le module de risque est utilisé directement par `kadi.market.logistics` pour
 ajuster les coûts de transport selon les conditions climatiques.
 
 ```python
-from kadi.weather import WeatherSession
-from kadi.market import Market
+import kadi as kd
 
-ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
+weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 
 # Le risque climatique entre dans le calcul logistique automatiquement
 cout = marche.logistics.calculate_transfer_cost("Parakou", "Cotonou", crop="tomato")
@@ -136,6 +135,13 @@ print(f"Gamma route effectif          : {cout['gamma_effectif']:.3f}")
 
 # Vue synthétique du risque climatique
 risque = marche.assess_climate_risk(days_ahead=7)
+print(risque["recommendation"])
+```
+
+---
+
+::: kadi.weather.risk.Risk
+imate_risk(days_ahead=7)
 print(risque["recommendation"])
 ```
 

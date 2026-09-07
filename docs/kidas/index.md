@@ -13,17 +13,17 @@ normalisation des données depuis n'importe quelle source.
 ```
 Source (CSV / Excel / JSON / NetCDF / API)
            |
-      DataPipeline       ← Chef d'orchestre
+        Pipeline        ← Chef d'orchestre
            |
     ┌──────┴──────┐
     |             |
-DataCleaner  DataValidator
+ Cleaner      Validator
     |             |
     └──────┬──────┘
            |
-    DataNormalizer        ← Standardisation finale
+      Normalizer        ← Standardisation finale
            |
-      DataCache           ← Persistance SQLite
+        Cache           ← Persistance SQLite
            |
     DataFrame + Rapport
 ```
@@ -34,25 +34,22 @@ Chaque composant peut être utilisé indépendamment ou enchaîné dans un pipel
 
 ## Démarrage rapide
 
-### En une ligne
+### En une ligne avec kadi.io
 
 ```python
-import kadi.kidas as kidas
+import kadi as kd
 
-# Chargement, nettoyage automatique et cache
-df, rapport = kidas.load_and_clean("recolte_2024.csv")
-
-print(f"Lignes chargées : {rapport.get('nb_rows_out', len(df))}")
-if rapport.get("quality_score"):
-    print(f"Score qualité   : {rapport['quality_score']}")
+# Lecture directe avec détection automatique du format
+df = kd.read_csv("recolte_2024.csv")
+kd.info(df)
 ```
 
 ### Pipeline personnalisé
 
 ```python
-from kadi.kidas import DataPipeline
+from kadi.kidas import Pipeline
 
-pipeline = DataPipeline()
+pipeline = Pipeline()
 
 df, rapport = (
     pipeline
@@ -77,11 +74,11 @@ print(rapport["steps_summary"])
 
 | Format | Extension | Classe source |
 |--------|-----------|---------------|
-| CSV | `.csv` | `CSVDataSource` |
-| Excel | `.xlsx`, `.xls` | `ExcelDataSource` |
-| JSON | `.json` | `JSONDataSource` |
-| NetCDF | `.nc`, `.nc4` | `NetCDFDataSource` |
-| API REST | URL HTTP/HTTPS | `APIDataSource` |
+| CSV | `.csv` | `CSVSource` |
+| Excel | `.xlsx`, `.xls` | `ExcelSource` |
+| JSON | `.json` | `JSONSource` |
+| NetCDF | `.nc`, `.nc4` | `NetCDFSource` |
+| API REST | URL HTTP/HTTPS | `APISource` |
 
 Le format est détecté automatiquement depuis l'extension ou le préfixe de l'URL.
 
@@ -100,7 +97,6 @@ df, rapport = (
 )
 
 print(rapport.keys())
-# dict_keys(['nb_rows_in', 'nb_rows_out', 'steps_summary', 'quality_score', 'warnings', 'cache_utilise', 'details'])
 
 # Score de qualité (généré par l'étape de validation)
 if rapport.get("quality_score"):
@@ -115,22 +111,21 @@ print(f"Lignes en sortie : {rapport['nb_rows_out']}")
 ## Sous-modules
 
 - [Pipeline](pipeline.md) : Orchestration des étapes de traitement
-- [Nettoyage (DataCleaner)](cleaner.md) : Doublons, valeurs manquantes, outliers
-- [Validation (DataValidator)](validator.md) : Règles de validation des données
-- [Normalisation (DataNormalizer)](normalizer.md) : Standardisation des noms et unités
+- [Nettoyage (Cleaner)](cleaner.md) : Doublons, valeurs manquantes, outliers
+- [Validation (Validator)](validator.md) : Règles de validation des données
+- [Normalisation (Normalizer)](normalizer.md) : Standardisation des noms et unités
 
 ---
 
-## Accès direct aux sources
+## Accès direct aux sources (kadi.io)
 
 ```python
-from kadi.kidas import CSVDataSource, ExcelDataSource, APIDataSource
+import kadi as kd
 
 # Lecture directe d'un CSV sans pipeline
-source = CSVDataSource("recoltes_2024.csv")
-df = source.read()
+df = kd.read_csv("recoltes_2024.csv")
 
 # API REST
-source_api = APIDataSource("https://api.data.bj/agriculture/prices")
-df_api = source_api.read()
+df_api = kd.read_api("https://api.data.bj/agriculture/prices")
 ```
+

@@ -1,6 +1,6 @@
 # Validation (`kadi.kidas.validator`)
 
-`DataValidator` vérifie la cohérence et la qualité des données agricoles
+`Validator` vérifie la cohérence et la qualité des données agricoles
 selon un schéma défini. Il produit un rapport d'anomalies sans modifier
 les données.
 
@@ -13,10 +13,10 @@ données. Elle signale les problèmes dans un rapport structuré et retourne
 un score de qualité global.
 
 ```python
-from kadi.kidas import DataValidator
+from kadi.kidas import Validator
 
-validator = DataValidator(df)
-rapport = validator.validate_schema(schema={
+validator = Validator(df)
+rapport = validator.check_schema(schema={
     "culture": "str",
     "rendement_kg_ha": "float",
     "latitude": "float",
@@ -27,12 +27,12 @@ rapport = validator.validate_schema(schema={
 
 ## Méthodes
 
-### `validate_schema(schema)`
+### `check_schema(schema)`
 
 Valide les colonnes du DataFrame selon le schéma fourni.
 
 ```python
-rapport = validator.validate_schema(schema={
+rapport = validator.check_schema(schema={
     "culture": "str",           # Type de la colonne
     "rendement_kg": "float",    # Valeur numérique obligatoire
     "date_recolte": "date",     # Format date
@@ -90,7 +90,7 @@ rapport = validator.check_referential("commune", allowed_values=communes_benin)
 ## Rapport de validation
 
 ```python
-rapport = validator.validate(schema={...})
+rapport = validator.check_schema(schema={...})
 
 # Score de qualité (0 à 1)
 print(f"Score global : {rapport['quality_score']['overall']:.2f}")
@@ -124,14 +124,14 @@ print(f"Lignes avec erreurs : {rapport['invalid_row_indices']}")
 
 ```python
 import pandas as pd
-from kadi.kidas import DataValidator
+from kadi.kidas import Validator
 
 df = pd.read_csv("recoltes_enquete.csv")
 
-validator = DataValidator(df)
+validator = Validator(df)
 
 # Étape 1 : validation des types
-rapport_types = validator.validate(schema={
+rapport_types = validator.check_schema(schema={
     "culture": "str",
     "rendement_kg": "float",
     "date_recolte": "date",
@@ -156,4 +156,4 @@ print(f"Référentiel : {rapport_ref['quality_score']['overall']:.2f}")
 
 ---
 
-::: kadi.kidas.validator.DataValidator
+::: kadi.kidas.validator.Validator

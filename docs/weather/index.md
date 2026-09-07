@@ -9,16 +9,16 @@ hydriques.
 
 ## Architecture
 
-Le module est organisé autour d'une façade `WeatherSession` qui initialise
+Le module est organisé autour d'une façade `Weather` qui initialise
 chaque composant uniquement quand il est nécessaire (chargement paresseux).
 
 ```
-WeatherSession
+Weather
 ├── Location        - Coordonnées GPS et zone agro-écologique
-├── WeatherData     - Récupération et cache des données brutes
+├── WeatherLoader   - Récupération et cache des données brutes
 ├── Phenology       - Saisons, GDD, onset/cessation
 ├── Hydrology       - Bilan hydrique, ET0 (FAO-56)
-└── RiskIndicators  - SPI, Markov, probabilité de pluie
+└── Risk            - SPI, Markov, probabilité de pluie
 ```
 
 Les sources de données utilisées (mode hybride `source='both'`) :
@@ -30,9 +30,8 @@ Les sources de données utilisées (mode hybride `source='both'`) :
 | SoilGrids v2.0 | Classification pédologique WRB pour le bilan hydrique | API ISRIC (`rest.isric.org`) |
 | Cache SQLite / JSON | Stockage local et réutilisation hors-ligne | `~/.kadi/` |
 
-Les colonnes de température sont automatiquement normalisées par `_unifier_colonne_temperature()` pour produire `temperature_mean` (moyenne de `temperature_min` et `temperature_max` ou alias de `temperature_avg`).
-
-La source d'origine de chaque observation (`'chirps'`, `'open-meteo'` ou leur combinaison) est préservée de façon dynamique dans la colonne `data_source` du cache SQLite (`~/.kadi/cache.db`).
+Les colonnes de température sont automatiquement normalisées pour produire `temperature_mean`.
+La source d'origine de chaque observation est préservée dynamiquement dans la colonne `data_source` du cache SQLite (`~/.kadi/cache.db`).
 
 ---
 
@@ -42,38 +41,38 @@ Le module détecte automatiquement la zone en fonction de la latitude :
 
 | Zone | Latitude | Caractéristiques |
 |------|---------|-----------------|
-| Nord | > 9.5° N | Régime unimodal - algorithme Sivakumar |
-| Centre | 7.5° – 9.5° N | Transition - algorithme adaptatif |
-| Sud | < 7.5° N | Régime bimodal - algorithme Walter-Anyadike |
+| Nord | > 9.5° N | Régime unimodal : algorithme Sivakumar |
+| Centre | 7.5° à 9.5° N | Transition : algorithme adaptatif |
+| Sud | < 7.5° N | Régime bimodal : algorithme Walter-Anyadike |
 
 ---
 
 ## Initialisation
 
 ```python
-from kadi.weather import WeatherSession
+import kadi as kd
 
 # Parakou (Nord Bénin, régime unimodal)
-session = WeatherSession(
-    latitude=9.3333,
-    longitude=2.6333,
+weather = kd.Weather(
+    lat=9.3333,
+    lon=2.6333,
     name="Parakou",
 )
 
 # Cotonou (Sud Bénin, régime bimodal)
-session_sud = WeatherSession(
-    latitude=6.3654,
-    longitude=2.4183,
+weather_sud = kd.Weather(
+    lat=6.3654,
+    lon=2.4183,
     name="Cotonou",
 )
 ```
 
 | Paramètre | Type | Obligatoire | Description |
 |-----------|------|-------------|-------------|
-| `latitude` | `float` | Oui | Latitude en degrés décimaux |
-| `longitude` | `float` | Oui | Longitude en degrés décimaux |
-| `name` | `str` | Non | Nom de la localité (pour les messages) |
-| `cache_dir` | `str` | Non | Dossier du cache. Défaut : `~/.kadi/` |
+| `lat` | `float` | Oui | Latitude en degrés décimaux |
+| `lon` | `float` | Oui | Longitude en degrés décimaux |
+| `name` | `str` | Non | Nom de la localité |
+| `cache_dir` | `str` | Non | Dossier du cache (Défaut : `~/.kadi/`) |
 
 ---
 
@@ -83,7 +82,7 @@ session_sud = WeatherSession(
 
 ```python
 # Prévision sur 7 jours
-prevision = session.forecast(days=7)
+prevision = weather.forecast(days=7)
 
 print(f"Lieu : {prevision['location']['name']}")
 for jour in prevision['data']:
@@ -97,29 +96,28 @@ for jour in prevision['data']:
 
 ```python
 # 24 mois d'historique des précipitations
-df_hist = session.historical(metric="precipitation", months_back=24)
+df_hist = weather.historical(metric="precipitation", months_back=24)
 print(df_hist.tail(10))
 
 # Toutes les variables
-df_complet = session.historical(months_back=12)
+df_complet = weather.historical(months_back=12)
 print(df_complet.columns.tolist())
-# ['temperature_min', 'temperature_max', 'precipitation', 'humidity']
 ```
 
 ### 3. Phénologie
 
 ```python
 # Démarrage de la saison des pluies
-onset = session.onset()
+onset = weather.onset()
 print(f"Début estimé : {onset['onset_date']}")
 print(f"Méthode      : {onset['method']}")
 
 # Fin de la saison des pluies
-cessation = session.cessation()
+cessation = weather.cessation()
 print(f"Fin estimée : {cessation['cessation_date']}")
 
-# Degrés-jours de croissance pour le maïs (semé le 15 mai)
-gdd = session.growing_degree_days(
+# Degrés-jours de croissance pour le maïs
+gdd = weather.growing_degree_days(
     crop="maize",
     start_date="2026-05-15",
 )
@@ -131,7 +129,7 @@ print(f"Stade phéno     : {gdd['phenology_stage']}")
 
 ```python
 # Bilan hydrique FAO-56 pour le maïs sur sol ferrugineux
-bilan = session.water_balance(crop="maize", soil_type="ferrugineux")
+bilan = weather.water_balance(crop="maize", soil_type="ferrugineux")
 
 # Le résultat est un DataFrame avec les colonnes clés
 print(bilan[["precipitation", "ET0", "deficit_eau", "reserve_utile"]].tail(14))
@@ -141,12 +139,12 @@ print(bilan[["precipitation", "ET0", "deficit_eau", "reserve_utile"]].tail(14))
 
 ```python
 # Probabilité de pluie sur les 3 prochains jours
-risque_pluie = session.rain_probability(days_ahead=3, min_rainfall_mm=1.0)
+risque_pluie = weather.rain_probability(days_ahead=3, min_rainfall_mm=1.0)
 print(f"Pluie demain  : {risque_pluie['tomorrow'] * 100:.0f}%")
 print(f"Recommandation : {risque_pluie['recommendation']}")
 
 # Indice de sécheresse SPI (3 mois glissants)
-secheresse = session.drought_index(method="spi", window_months=3)
+secheresse = weather.drought_index(method="spi", window_months=3)
 print(f"SPI 3 mois : {secheresse['spi_3month']:.2f}")
 print(f"Sévérité   : {secheresse['drought_severity']}")
 ```
@@ -155,16 +153,8 @@ print(f"Sévérité   : {secheresse['drought_severity']}")
 
 ## Cache hors-ligne
 
-Toutes les données téléchargées sont stockées dans une base SQLite locale :
-
-```
-~/.kadi/
-├── weather_data.db     ← Données historiques (CHIRPS + Open-Meteo)
-└── weather_forecast.db ← Prévisions court-terme
-```
-
-Si le réseau est indisponible, le module utilise automatiquement les données
-en cache sans lever d'erreur.
+Toutes les données téléchargées sont stockées dans une base SQLite locale (`~/.kadi/cache.db`).
+Si le réseau est indisponible, le module utilise automatiquement les données en cache sans lever d'erreur.
 
 ---
 
@@ -185,7 +175,8 @@ en cache sans lever d'erreur.
 
 ## Sous-modules
 
-- [Session météo (WeatherSession)](session.md)
+- [Façade Météo (Weather)](session.md)
 - [Phénologie](phenology.md)
 - [Hydrologie](hydrology.md)
 - [Risques climatiques](risk.md)
+

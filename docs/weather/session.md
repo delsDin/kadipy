@@ -1,6 +1,6 @@
-# Session météo (`kadi.weather.session`)
+# Façade météo (`kadi.weather.session`)
 
-`WeatherSession` est le point d'entrée principal du module `kadi.weather`.
+`Weather` est le point d'entrée principal du module `kadi.weather`.
 Elle orchestre les composants internes et expose une API simple pour toutes
 les fonctionnalités météo et agronomiques.
 
@@ -13,7 +13,7 @@ les fonctionnalités météo et agronomiques.
 Récupère les prévisions météo court-terme depuis Open-Meteo.
 
 ```python
-prevision = session.forecast(days=5)
+prevision = weather.forecast(days=5)
 ```
 
 **Paramètres :**
@@ -39,10 +39,10 @@ Retourne les séries météo historiques depuis CHIRPS et Open-Meteo.
 
 ```python
 # Seulement les précipitations sur 6 mois (mode hybride par défaut)
-df_pluie = session.historical(metric="precipitation", months_back=6)
+df_pluie = weather.historical(metric="precipitation", months_back=6)
 
 # Toutes les variables sur 10 ans avec source spécifiée
-df_complet = session.historical(months_back=120, source="both")
+df_complet = weather.historical(months_back=120, source="both")
 ```
 
 **Paramètres :**
@@ -62,7 +62,7 @@ df_complet = session.historical(months_back=120, source="both")
 Détecte la date de démarrage de la saison des pluies selon la zone climatique.
 
 ```python
-onset = session.onset()
+onset = weather.onset()
 print(f"Démarrage : {onset['onset_date']}")
 print(f"Méthode   : {onset['method']}")  # 'Sivakumar' ou 'Walter-Anyadike'
 ```
@@ -80,7 +80,7 @@ L'algorithme utilisé dépend de la zone automatiquement détectée :
 Détermine la date de fin des pluies utiles.
 
 ```python
-cessation = session.cessation()
+cessation = weather.cessation()
 print(f"Fin saison : {cessation['cessation_date']}")
 ```
 
@@ -94,7 +94,7 @@ Calcule l'accumulation de degrés-jours de croissance depuis la date de semis.
 Les GDD mesurent l'énergie thermique disponible pour le développement de la plante.
 
 ```python
-gdd = session.growing_degree_days(
+gdd = weather.growing_degree_days(
     crop="maize",
     start_date="2026-05-15",   # Date de semis
     end_date="2026-09-30",     # Optionnel : jusqu'à aujourd'hui si None
@@ -124,7 +124,7 @@ Calcule la probabilité de pluie en combinant les prévisions Open-Meteo et
 les fréquences historiques (chaînes de Markov).
 
 ```python
-prob = session.rain_probability(days_ahead=3, min_rainfall_mm=1.0)
+prob = weather.rain_probability(days_ahead=3, min_rainfall_mm=1.0)
 
 print(f"Demain     : {prob['tomorrow'] * 100:.0f}%")
 print(f"Recommandation : {prob['recommendation']}")
@@ -148,7 +148,7 @@ print(f"Message        : {prob['message']}")
 Calcule un indice de sécheresse sur les données historiques.
 
 ```python
-drought = session.drought_index(method="spi", window_months=3)
+drought = weather.drought_index(method="spi", window_months=3)
 
 print(f"SPI 3 mois  : {drought['spi_3month']:.2f}")
 print(f"Sévérité    : {drought['drought_severity']}")
@@ -180,7 +180,7 @@ Simule le bilan hydrique quotidien du sol selon la méthode FAO-56, en
 calculant l'évapotranspiration de référence (ET0) par Hargreaves-Samani.
 
 ```python
-bilan = session.water_balance(crop="maize", soil_type="ferrugineux")
+bilan = weather.water_balance(crop="maize", soil_type="ferrugineux")
 print(bilan.tail(7)[["precipitation", "ET0", "deficit_eau", "reserve_utile"]])
 ```
 
@@ -213,10 +213,10 @@ Calcule l'évapotranspiration de référence (ET0) pour un jour donné avec la
 méthode Hargreaves-Samani.
 
 ```python
-et0 = session.et0_hargreaves(tmin=22.0, tmax=35.0, day_of_year=180)
+et0 = weather.et0_hargreaves(tmin=22.0, tmax=35.0, day_of_year=180)
 print(f"ET0 : {et0:.2f} mm/jour")
 ```
 
 ---
 
-::: kadi.weather.session.WeatherSession
+::: kadi.weather.session.Weather

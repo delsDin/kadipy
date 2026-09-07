@@ -1,6 +1,6 @@
 # Nettoyage (`kadi.kidas.cleaner`)
 
-`DataCleaner` nettoie les données agricoles brutes : doublons, valeurs
+`Cleaner` nettoie les données agricoles brutes : doublons, valeurs
 manquantes, valeurs aberrantes, problèmes d'encodage et normalisation des
 textes.
 
@@ -9,44 +9,43 @@ textes.
 ## Initialisation
 
 ```python
-from kadi.kidas import DataCleaner
+from kadi.kidas import Cleaner
 import pandas as pd
 
 df_brut = pd.read_csv("recoltes_2024.csv")
-cleaner = DataCleaner(df_brut)
+cleaner = Cleaner(df_brut)
 ```
 
 ---
 
 ## Méthodes
 
-### `remove_duplicates()`
+### `drop_dupes()`
 
-Supprime les lignes identiques sur toutes les colonnes. Signale le nombre
-de doublons trouvés dans le rapport.
+Supprime les lignes identiques sur toutes les colonnes.
 
 ```python
-df_propre = cleaner.remove_duplicates()
+df_propre = cleaner.drop_dupes()
 ```
 
 ---
 
-### `handle_missing_values(strategy, columns)`
+### `fill_missing(strategy, columns)`
 
 Impute ou supprime les valeurs manquantes selon la stratégie choisie.
 
 ```python
 # Remplacement par la médiane (valeurs numériques)
-df = cleaner.handle_missing_values(strategy="median")
+df = cleaner.fill_missing(strategy="median")
 
 # Remplacement par la moyenne
-df = cleaner.handle_missing_values(strategy="mean")
+df = cleaner.fill_missing(strategy="mean")
 
 # Suppression des lignes incomplètes
-df = cleaner.handle_missing_values(strategy="drop")
+df = cleaner.fill_missing(strategy="drop")
 
 # Appliquer uniquement sur des colonnes spécifiques
-df = cleaner.handle_missing_values(
+df = cleaner.fill_missing(
     strategy="median",
     columns=["rendement_kg", "superficie_ha"],
 )
@@ -57,27 +56,27 @@ df = cleaner.handle_missing_values(
 | Stratégie | Description | Recommandée pour |
 |-----------|-------------|-----------------|
 | `'mean'` | Remplace par la moyenne de la colonne | Distributions normales |
-| `'median'` | Remplace par la médiane | Distributions asymétriques (prix) |
+| `'median'` | Remplace par la médiane | Distributions asymétriques |
 | `'mode'` | Remplace par la valeur la plus fréquente | Variables catégorielles |
-| `'drop'` | Supprime les lignes incomplètes | Quand les données manquantes sont nombreuses |
-| `'ffill'` | Reporte la valeur précédente (séries temporelles) | Données de prix |
+| `'drop'` | Supprime les lignes incomplètes | Données très lacunaires |
+| `'ffill'` | Reporte la valeur précédente | Séries temporelles |
 | `'bfill'` | Reporte la valeur suivante | Séries temporelles |
 
 ---
 
-### `remove_outliers(method, threshold, columns)`
+### `drop_outliers(method, threshold, columns)`
 
 Identifie et supprime les valeurs aberrantes.
 
 ```python
 # Méthode Z-Score (défaut : seuil 3.0)
-df = cleaner.remove_outliers(method="zscore", threshold=3.0)
+df = cleaner.drop_outliers(method="zscore", threshold=3.0)
 
-# Méthode IQR (plus robuste pour les distributions asymétriques)
-df = cleaner.remove_outliers(method="iqr")
+# Méthode IQR (plus robuste)
+df = cleaner.drop_outliers(method="iqr")
 
 # Sur une colonne spécifique
-df = cleaner.remove_outliers(
+df = cleaner.drop_outliers(
     method="zscore",
     threshold=2.5,
     columns=["prix_xof_kg"],
@@ -89,8 +88,8 @@ df = cleaner.remove_outliers(
 | Méthode | Critère de suppression | Usage |
 |---------|----------------------|-------|
 | `'zscore'` | `|z| > threshold` (défaut : 3.0) | Distributions normales |
-| `'iqr'` | En dehors de [Q1 − 1.5×IQR, Q3 + 1.5×IQR] | Distributions asymétriques |
-| `'mad'` | Écart à la médiane > threshold × MAD | Très robuste aux outliers extrêmes |
+| `'iqr'` | En dehors de [Q1 - 1.5×IQR, Q3 + 1.5×IQR] | Distributions asymétriques |
+| `'mad'` | Écart à la médiane > threshold × MAD | Outliers extrêmes |
 
 ---
 
@@ -107,15 +106,6 @@ df = cleaner.normalize_text()
 df = cleaner.normalize_text(columns=["culture", "commune", "region"])
 ```
 
-**Transformations appliquées :**
-
-| Transformation | Exemple avant | Exemple après |
-|----------------|--------------|---------------|
-| Suppression des accents | `"Maïs"` | `"Mais"` |
-| Mise en minuscules | `"PARAKOU"` | `"parakou"` |
-| Suppression des espaces | `"  Abomey  "` | `"abomey"` |
-| Unification des tirets | `"Mono-Couffo"` | `"mono couffo"` |
-
 ---
 
 ### `fix_encoding()`
@@ -129,15 +119,12 @@ df = cleaner.fix_encoding()
 
 ---
 
-### `fix_dates(columns, infer_format)`
+### `parse_dates(columns)`
 
 Normalise les colonnes de dates hétérogènes vers le type `datetime64`.
-Seules les valeurs effectivement parsées et converties avec succès sont comptabilisées
-dans le compteur `dates_corrigees` du rapport de nettoyage.
 
 ```python
-# Normalisation d'une colonne de dates
-df = cleaner.fix_dates(columns=["date_recolte"])
+df = cleaner.parse_dates(columns=["date_recolte"])
 ```
 
 ---
@@ -146,17 +133,17 @@ df = cleaner.fix_dates(columns=["date_recolte"])
 
 ```python
 import pandas as pd
-from kadi.kidas import DataCleaner
+from kadi.kidas import Cleaner
 
 df = pd.read_csv("enquete_prix_2024.csv", encoding="latin-1")
-cleaner = DataCleaner(df)
+cleaner = Cleaner(df)
 
 df_propre = (
     cleaner
     .fix_encoding()
-    .remove_duplicates()
-    .handle_missing_values(strategy="median", columns=["prix_xof_kg", "quantite_kg"])
-    .remove_outliers(method="iqr", columns=["prix_xof_kg"])
+    .drop_dupes()
+    .fill_missing(strategy="median", columns=["prix_xof_kg", "quantite_kg"])
+    .drop_outliers(method="iqr", columns=["prix_xof_kg"])
     .normalize_text(columns=["culture", "marche"])
 )
 
@@ -166,4 +153,5 @@ print(f"Après : {len(df_propre)} lignes")
 
 ---
 
-::: kadi.kidas.cleaner.DataCleaner
+::: kadi.kidas.cleaner.Cleaner
+

@@ -1,10 +1,10 @@
 # Aide à la décision (`kadi.market.decision_support`)
 
-Le module `DecisionSupport` traduit les données de prix, les prévisions et les
+Le module `Advisor` traduit les données de prix, les prévisions et les
 coûts logistiques en recommandations opérationnelles concrètes : faut-il
 transporter ? stocker ? et comment répartir ses cultures ?
 
-Depuis la Phase 4, chaque recommandation inclut un `confidence_score` (0 à 1)
+Chaque recommandation inclut un `confidence_score` (0 à 1)
 et le module utilise `scipy.optimize.linprog` pour l'optimisation de portefeuille.
 
 ---
@@ -14,18 +14,18 @@ et le module utilise `scipy.optimize.linprog` pour l'optimisation de portefeuill
 Via la façade `Market` (recommandé : tous les modules sont connectés) :
 
 ```python
-from kadi.market import Market
+import kadi as kd
 
-marche = Market(lat=9.30, lon=2.08, location="Parakou")
-ds = marche.decision_support  # Module connecté au pricing et à la logistique
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
+advisor = marche.advisor  # Module connecté au pricing et à la logistique
 ```
 
 Ou directement pour des tests :
 
 ```python
-from kadi.market.decision_support import DecisionSupport
+from kadi.market.decision_support import Advisor
 
-ds = DecisionSupport(
+advisor = Advisor(
     forecasting_module=forecasting,
     logistics_module=logistics,
     pricing_module=pricing,
@@ -46,28 +46,28 @@ score = 0.5 × confiance_prix
 
 | Score | Interprétation |
 |-------|----------------|
-| 0.0 – 0.3 | Données simulées, à titre indicatif uniquement |
-| 0.3 – 0.6 | Données partielles, prudence conseillée |
-| 0.6 – 0.8 | Données récentes WFP, recommandation fiable |
-| 0.8 – 1.0 | Données fraîches + gain significatif, haute confiance |
+| 0.0 à 0.3 | Données simulées, à titre indicatif uniquement |
+| 0.3 à 0.6 | Données partielles, prudence conseillée |
+| 0.6 à 0.8 | Données récentes WFP, recommandation fiable |
+| 0.8 à 1.0 | Données fraîches et gain significatif, haute confiance |
 
 ---
 
 ## Méthodes
 
-### `arbitrage_decision(crop, market_from, market_to, qty_tons)`
+### `arbitrage_decision(crop, origine, destination, qty_tons)`
 
 Évalue la rentabilité d'un transfert physique de marchandises entre deux marchés.
 
 ```python
-decision = ds.arbitrage_decision(
+decision = advisor.arbitrage_decision(
     crop="maize",
-    market_from="Parakou",
-    market_to="Cotonou",
+    origine="Parakou",
+    destination="Cotonou",
     qty_tons=10.0,
 )
 
-print(decision["recommandation"])        # "TRANSPORTER" ou "NE PAS TRANSPORTER"
+print(decision["recommandation"])
 print(f"Gain : {decision['gain_net_percent']:.1f}%")
 print(f"Confiance : {decision['confidence_score']:.2f}")
 ```
@@ -77,8 +77,8 @@ print(f"Confiance : {decision['confidence_score']:.2f}")
 | Nom | Type | Description |
 |-----|------|-------------|
 | `crop` | `str` | Code de la culture (ex: `'maize'`) |
-| `market_from` | `str` | Marché d'achat |
-| `market_to` | `str` | Marché de vente |
+| `origine` | `str` | Marché d'achat |
+| `destination` | `str` | Marché de vente |
 | `qty_tons` | `float` | Quantité à transporter en tonnes |
 
 **Retour :**
@@ -105,16 +105,15 @@ Le seuil de rentabilité minimum est de **10%** (configurable dans `config.py`).
 comparant le prix futur estimé aux coûts de stockage et d'opportunité.
 
 ```python
-# Horizon configurable (Phase 4)
-decision_1m = ds.storage_vs_sell_now(
+decision_1m = advisor.storage_vs_sell_now(
     crop="yam", market="Abomey",
     current_price=250_000.0, qty_tons=5.0,
-    mois_stockage=1,    # Horizon 1 mois
+    mois_stockage=1,
 )
-decision_6m = ds.storage_vs_sell_now(
+decision_6m = advisor.storage_vs_sell_now(
     crop="yam", market="Abomey",
     current_price=250_000.0, qty_tons=5.0,
-    mois_stockage=6,    # Horizon 6 mois
+    mois_stockage=6,
 )
 ```
 
@@ -137,16 +136,8 @@ decision_6m = ds.storage_vs_sell_now(
 | `marge_nette_par_tonne` | `float` | Espérance de gain par tonne |
 | `prix_futur_estime` | `float` | Prix prévu à l'horizon (XOF/tonne) |
 | `horizon_mois` | `int` | Horizon de stockage effectivement utilisé |
-| `is_simulated` | `bool` | `True` si les prévisions de prix proviennent du mode simulé (offline ou stub). Propagé depuis `predict_price()`. Vaut `True` par défaut si aucun module de prévision n'est disponible. |
+| `is_simulated` | `bool` | `True` si les prévisions de prix proviennent du mode simulé. |
 | `confidence_score` | `float` | Score de confiance de 0 à 1 |
-
-**Composantes du coût de stockage :**
-
-| Composante | Valeur |
-|------------|--------|
-| Gardiennage, pertes, sacs | 3 200 XOF/tonne/mois |
-| Coût d'opportunité | 1.5%/mois du capital immobilisé |
-| Pénalité de risque | theta × variance du prix prévu |
 
 ---
 
@@ -156,44 +147,24 @@ Optimise la répartition des cultures sur la surface disponible pour maximiser
 le revenu attendu.
 
 ```python
-decision = ds.portfolio_optimization(
+decision = advisor.portfolio_optimization(
     available_land_ha=10.0,
     climate_forecast={
-        "drought_severity": "mild",    # 'no_drought', 'mild', 'moderate', 'severe'
+        "drought_severity": "mild",
         "secheresse_anticipee": False,
     },
     market_forecast={
-        "maize": 285.0,    # XOF/kg
+        "maize": 285.0,
         "cowpea": 580.0,
         "sorghum": 210.0,
     },
 )
 
-print(f"Méthode : {decision['methode']}")  # 'scipy_linprog' ou 'heuristique'
+print(f"Méthode : {decision['methode']}")
 print(f"Revenu attendu : {decision['revenu_attendu_cfa']:,.0f} XOF")
 for culture, ha in decision["repartition_hectares"].items():
     print(f"  {culture} : {ha:.2f} ha")
 ```
-
-**Modèle d'optimisation (méthode `scipy_linprog` ou `heuristique`) :**
-
-```
-Maximiser  : Σ (surface_i × rendement_i × 1000 × prix_xof_kg_i)
-Contraintes:
-    Σ surface_i ≤ surface_totale
-    surface_i ≥ 0
-    surface_i ≤ 0.7 × surface_totale  (diversification minimale)
-```
-
-En mode de repli `'heuristique'`, le revenu attendu `revenu_attendu_cfa` est calculé dynamiquement par le produit direct `surface_ha × rendement_t_ha × 1000 × prix_xof_kg` cumulé sur toutes les cultures du portefeuille.
-
-**Ajustements climatiques automatiques :**
-
-| Sévérité de sécheresse | Effet sur les rendements |
-|------------------------|--------------------------|
-| `mild` / `no_drought` | Rendements nominaux |
-| `moderate` | Rendement maïs × 0.85 |
-| `severe` | Rendement maïs × 0.70, rendement niébé × 1.30 |
 
 **Retour :**
 
@@ -205,28 +176,7 @@ En mode de repli `'heuristique'`, le revenu attendu `revenu_attendu_cfa` est cal
 | `methode` | `str` | `'scipy_linprog'` ou `'heuristique'` |
 | `confidence_score` | `float` | Score de confiance de 0 à 1 |
 
-Si `scipy` n'est pas disponible, un fallback heuristique est utilisé
-automatiquement (répartition 50/30/20 maïs/soja/niébé, ajustée en cas de
-sécheresse sévère).
-
 ---
 
-## Rendements de référence au Bénin
+::: kadi.market.decision_support.Advisor
 
-Ces valeurs sont utilisées par défaut dans `portfolio_optimization`. Elles
-peuvent être remplacées via le paramètre `rendements_t_ha`.
-
-| Culture | Rendement (t/ha) | Source |
-|---------|-----------------|--------|
-| Maïs | 1.8 | FAO / INSAE Bénin |
-| Sorgho | 1.2 | FAO / INSAE Bénin |
-| Mil | 1.0 | FAO / INSAE Bénin |
-| Riz | 2.5 | FAO / INSAE Bénin |
-| Niébé | 0.7 | FAO / INSAE Bénin |
-| Soja | 1.2 | FAO / INSAE Bénin |
-| Igname | 8.0 | FAO / INSAE Bénin |
-| Manioc | 12.0 | FAO / INSAE Bénin |
-
----
-
-::: kadi.market.decision_support.DecisionSupport
