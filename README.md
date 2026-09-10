@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>Français</strong> | <a href="docs/README.EN.md">English</a>
+</p>
+
 <div align="center" style="padding-bottom: 40px">
   <img src="img/kadipy-long.png" alt="KadiPy" width="100%" height="400px">
   <br>
