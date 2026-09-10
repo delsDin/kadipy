@@ -1,27 +1,41 @@
 # kadi.market - Économie agricole
 
 Le module `kadi.market` est le moteur d'analyse économique de KadiPy. Il
-modélise le marché agricole béninois de façon dynamique et permet de calculer
-des opportunités d'arbitrage, des coûts logistiques réels, des prévisions de
-prix et des recommandations de portefeuille de cultures.
+modélise le marché agricole béninois de façon dynamique et permet de
+récupérer les prix réels (API HAPI HumData), de prévoir leur évolution,
+d'évaluer les coûts logistiques réels et de produire des recommandations
+d'arbitrage, de stockage et de portefeuille de cultures.
 
 ---
 
 ## Architecture
 
 Le module est centré sur la classe `Market`, qui orchestre 4 sous-modules
-spécialisés et un client d'ingestion de données.
+spécialisés.
 
 ```
 Market
-├── data_ingestion   : Client WFP + cache SQLite
-├── pricing          : Pricing (analyse des prix, anomalies, saisonnalité)
-├── forecasting      : Forecasting (prévisions par régression)
-├── logistics        : Logistics (distances, coûts de transport, météo)
-└── advisor          : Advisor (arbitrage, stockage, portefeuille)
+├── pricing    : Pricing (acquisition, normalisation, anomalies, saisonnalité)
+├── forecast   : Forecasting (prévisions par régression linéaire Fourier)
+├── logistics  : Logistics (distances OSRM, coûts de transport, intégration météo)
+└── advisor    : Advisor (arbitrage spatial, stockage, portefeuille de cultures)
 ```
 
 Chaque sous-module peut être utilisé seul ou via la façade `Market`.
+
+---
+
+## Importation
+
+```python
+import kadi as kd
+
+# Façade principale
+from kadi.market import Market
+
+# Sous-modules en accès direct
+from kadi.market import Pricing, Forecasting, Logistics, Advisor
+```
 
 ---
 
@@ -30,21 +44,125 @@ Chaque sous-module peut être utilisé seul ou via la façade `Market`.
 ```python
 import kadi as kd
 
-# Initialisation simple
+# Initialisation simple (données réelles de l'API HAPI HumData)
 marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
 
-# Avec intégration météo
+# Mode simulation (aucun appel réseau, données fictives claires)
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", sim=True)
+
+# Avec intégration météo (ajustement dynamique des coûts logistiques)
 weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
 marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 ```
 
-| Paramètre | Type | Description |
-|-----------|------|-------------|
-| `lat` | `float` | Latitude (entre 2.5° et 12.5° N) |
-| `lon` | `float` | Longitude (entre -1.5° et 4.0° E) |
-| `location` | `str` | Nom du marché (ex: `"Cotonou"`, `"Parakou"`) |
-| `env_file` | `str` | Chemin vers le fichier `.env` (Défaut : `".env"`) |
-| `weather` | `Weather` | Instance météo optionnelle pour l'ajustement climatique |
+**Paramètres :**
+
+| Paramètre | Type | Défaut | Description |
+|-----------|------|--------|-------------|
+| `lat` | `float` | requis | Latitude (entre 2.5° et 12.5° N) |
+| `lon` | `float` | requis | Longitude (entre -1.5° et 4.0° E) |
+| `location` | `str` | requis | Nom du marché (ex: `"Cotonou"`, `"Parakou"`) |
+| `weather` | `Weather` | `None` | Instance météo pour l'ajustement climatique |
+| `sim` | `bool` | `False` | Si True, force le mode simulation (aucune requête réseau) |
+
+**Exceptions à l'initialisation :**
+
+- `TypeError` : si `lat`, `lon` ou `location` ne sont pas du bon type.
+- `ValueError` : si les coordonnées sont hors des bornes du Bénin, ou si
+  `location` est vide.
+
+---
+
+## Attributs publics
+
+| Attribut | Type | Description |
+|----------|------|-------------|
+| `lat` | `float` | Latitude de référence |
+| `lon` | `float` | Longitude de référence |
+| `location` | `str` | Nom du marché de référence |
+| `sim` | `bool` | Mode simulation actif |
+| `weather` | `Weather` | Session météo (None si non fournie) |
+| `pricing` | `Pricing` | Sous-module de tarification |
+| `forecast` | `Forecasting` | Sous-module de prévision |
+| `logistics` | `Logistics` | Sous-module logistique |
+| `advisor` | `Advisor` | Sous-module d'aide à la décision |
+
+---
+
+## Méthodes de la façade Market
+
+### `price(crop, days, normalize, sim)`
+
+Récupère, normalise et résume les prix d'une culture sur ce marché.
+
+```python
+resume = marche.price("maize", days=90)
+
+print(f"Médiane     : {resume['prix_median']} XOF/kg")
+print(f"Amplitude   : {resume['prix_min']} - {resume['prix_max']} XOF/kg")
+print(f"Observations: {resume['nb_observations']}")
+print(f"Confiance   : {resume['confidence_score']:.2f}")
+print(f"Simulé      : {resume['is_sim']}")
+```
+
+**Retour :** `dict` avec les clés `crop`, `market`, `prix_median`,
+`prix_min`, `prix_max`, `prix_moyen`, `nb_observations`, `nb_anomalies`,
+`is_sim`, `confidence_score`, `source`, `donnees` (DataFrame complet).
+
+---
+
+### `predict(crop, ahead, confidence_interval, days, sim)`
+
+Prédit le prix futur d'une culture par régression linéaire avec features
+saisonnières (harmoniques de Fourier).
+
+```python
+prev = marche.predict("maize", ahead=30)
+
+print(f"Prix prédit dans 30j : {prev['predicted_price']} XOF/kg")
+print(f"Intervalle 90%       : [{prev['low_90']}, {prev['high_90']}]")
+print(f"RMSE                 : {prev['rmse']} XOF/kg")
+print(f"Points d'historique  : {prev['nb_history_pts']}")
+```
+
+**Retour :** `dict` avec `predicted_price`, `low_90`, `high_90`,
+`confidence`, `model_used`, `rmse`, `is_sim`, `confidence_score`,
+`nb_history_pts`, `ahead`, `crop`, `market`.
+
+---
+
+### `seasonality(crop, days, sim)`
+
+Calcule les 12 indices saisonniers mensuels des prix d'une culture.
+
+```python
+saison = marche.seasonality("rice", days=730)
+
+print(f"Mois de pic   : {saison['mois_pic']}")
+print(f"Mois de creux : {saison['mois_creux']}")
+print(f"Confiance     : {saison['confiance']:.2f}")
+```
+
+**Retour :** voir [pricing.md](pricing.md), section `seasonality()`.
+
+---
+
+### `climate_risk(ahead)`
+
+Évalue le risque climatique sur la localisation du marché.
+Nécessite qu'une instance `weather` ait été fournie à l'initialisation.
+
+```python
+risque = marche.climate_risk(ahead=7)
+
+if risque["weather_available"]:
+    print(risque["recommendation"])
+    print(f"Pluie demain  : {risque['prob_pluie_j1'] * 100:.0f} %")
+    print(f"Sécheresse    : {risque['drought_severity']}")
+```
+
+**Retour :** `dict` avec `weather_available`, `prob_pluie`,
+`drought_index`, `recommendation`, `prob_pluie_j1`, `drought_severity`.
 
 ---
 
@@ -53,98 +171,107 @@ marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 ### 1. Prix du marché
 
 ```python
-# Résumé statistique des prix du maïs sur 90 jours
-resume = marche.price_crop("maize", days_back=90)
+import kadi as kd
 
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
+
+resume = marche.price("maize", days=90)
 print(f"Médiane : {resume['prix_median']} XOF/kg")
-print(f"Tendance : {resume['prix_min']} à {resume['prix_max']} XOF/kg")
-print(f"Données : {'simulées' if resume['is_simulated'] else 'réelles WFP'}")
-print(f"Confiance : {resume['confidence_score']:.2f}")
+print(f"Source  : {resume['source']}")
 ```
 
-### 2. Décision d'arbitrage spatial
+### 2. Arbitrage spatial
 
 ```python
-# "Est-il rentable de transporter 10 tonnes de maïs de Parakou à Cotonou ?"
-decision = marche.advisor.arbitrage_decision(
+# Est-il rentable de transporter 10 t de maïs de Parakou à Cotonou ?
+decision = marche.advisor.arbitrage(
     crop="maize",
-    origine="Parakou",
-    destination="Cotonou",
-    qty_tons=10.0,
+    m_from="Parakou",
+    to="Cotonou",
+    qty=10.0,
 )
-
 print(decision["recommandation"])
-print(f"Gain net : {decision['gain_net_percent']:.1f}%")
-print(f"Confiance : {decision['confidence_score']:.2f}")
+print(f"Gain net : {decision['gain_net_percent']:.1f} %")
+print(f"Confiance: {decision['confidence_score']:.2f}")
 ```
 
 ### 3. Décision de stockage
 
 ```python
-# "Vaut-il mieux stocker 5 tonnes d'igname pendant 3 mois ou vendre maintenant ?"
-stockage = marche.advisor.storage_vs_sell_now(
+# Stocker 5 t d'igname pendant 3 mois ou vendre maintenant ?
+stockage = marche.advisor.store_sell(
     crop="yam",
     market="Abomey",
-    current_price=250_000.0,
-    qty_tons=5.0,
-    mois_stockage=3,
+    price=250_000.0,
+    qty=5.0,
+    months=3,
 )
-
 print(stockage["recommandation_binaire"])
 print(f"Marge estimée : {stockage['marge_nette_cfa']:,.0f} XOF")
-print(f"Horizon : {stockage['horizon_mois']} mois")
 ```
 
-### 4. Optimisation de portefeuille de cultures
+### 4. Optimisation du portefeuille de cultures
 
 ```python
-decision_port = marche.advisor.portfolio_optimization(
-    available_land_ha=10.0,
-    climate_forecast={"drought_severity": "mild"},
-    market_forecast={"maize": 285.0, "cowpea": 580.0, "sorghum": 210.0},
+decision_port = marche.advisor.optimize(
+    land_ha=10.0,
+    climate={"drought_severity": "mild"},
+    market={"maize": 285.0, "cowpea": 580.0, "sorghum": 210.0},
 )
-
-print(f"Méthode : {decision_port['methode']}")
+print(f"Méthode        : {decision_port['methode']}")
 print(f"Revenu attendu : {decision_port['revenu_attendu_cfa']:,.0f} XOF")
 for culture, ha in decision_port["repartition_hectares"].items():
     print(f"  {culture} : {ha:.1f} ha")
 ```
 
-### 5. Évaluation du risque climatique
+### 5. Risque climatique
 
 ```python
-# Disponible si l'instance weather a été fournie
-risque = marche.assess_climate_risk(days_ahead=7)
+weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 
-if risque["weather_available"]:
-    print(risque["recommendation"])
-    print(f"Pluie demain : {risque['prob_pluie_j1'] * 100:.0f}%")
-    print(f"Sécheresse : {risque['drought_severity']}")
+risque = marche.climate_risk(ahead=7)
+print(risque["recommendation"])
 ```
 
 ---
 
-## Accès aux données et boucle de fallback
+## Modes de données et boucle de fallback
 
-Par défaut, KadiPy interroge l'API publique HAPI HumData (PAM/OCHA) et le cache SQLite local.
-Aucune clé commerciale payante n'est nécessaire pour obtenir des données réelles de prix.
-
-| Niveau | Source | `is_simulated` | `confidence_score` |
-|--------|--------|----------------|-------------------|
+| Niveau | Source | `is_sim` | `confidence_score` |
+|--------|--------|----------|--------------------|
 | 1 | Cache SQLite local | `False` | Variable (score d'origine) |
-| 2 | API HAPI HumData / VAM (PAM) | `False` | `0.9` |
-| 3 | API WFP DataBridges (si clé `.env`) | `False` | `1.0` |
-| 4 | Mode simulation (hors-ligne uniquement) | `True` | `0.1` |
+| 2 | API HAPI HumData (PAM/OCHA) | `False` | `0.9` |
+| 3 | Mode simulation (aucun réseau) | `True` | `0.1` |
 
-En cas de coupure de réseau ou d'indisponibilité complète des serveurs distants, le module bascule automatiquement sur le mode simulation avec `is_simulated=True`.
+En mode simulation (`sim=True` ou absence de client WFP), les données
+retournées sont clairement signalées `is_sim=True` et ne doivent pas
+être utilisées pour des décisions commerciales réelles.
+
+---
+
+## Méthodes dépréciées
+
+| Ancienne méthode | Remplacée par | Depuis |
+|------------------|---------------|--------|
+| `price_crop(crop, days_back)` | `price(crop, days)` | v1.2.0 |
+| `predict_price(crop, days_ahead)` | `predict(crop, ahead)` | v1.2.0 |
+| `assess_climate_risk(days_ahead)` | `climate_risk(ahead)` | v1.2.0 |
+
+## Classes dépréciées
+
+| Ancien nom | Remplacé par | Depuis |
+|------------|--------------|--------|
+| `MarketPricing` | `Pricing` | v1.2.0 |
+| `MarketForecasting` | `Forecasting` | v1.2.0 |
+| `MarketLogistics` | `Logistics` | v1.2.0 |
+| `DecisionSupport` | `Advisor` | v1.2.0 |
 
 ---
 
 ## Sous-modules
 
-- [Tarification (pricing)](pricing.md)
-- [Prévisions (forecasting)](forecasting.md)
-- [Logistique](logistics.md)
-- [Aide à la décision](decision_support.md)
-- [Ingestion des données](data_ingestion.md)
-
+- [Tarification (Pricing)](pricing.md)
+- [Prévisions (Forecasting)](forecasting.md)
+- [Logistique (Logistics)](logistics.md)
+- [Aide à la décision (Advisor)](decision_support.md)

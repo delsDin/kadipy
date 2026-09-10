@@ -1,44 +1,22 @@
 # Logistique (`kadi.market.logistics`)
 
-Le module `MarketLogistics` modélise les frictions du transport de marchandises
-au Bénin : distances routières réelles, coûts en carburant, tracasseries aux
-postes de contrôle et perte de qualité des produits. Depuis la Phase 4, il
-intègre les prévisions météo pour ajuster ses calculs dynamiquement.
+La classe `Logistics` modélise les frictions logistiques réelles sur les
+corridors commerciaux béninois : coût de transport, tracasseries aux
+postes de contrôle et dégradation de la qualité marchande des produits.
+
+Depuis la v1.2.0, elle intègre optionnellement la météo pour ajuster
+dynamiquement le coefficient de route (`gamma_route`) et la perte de
+qualité selon la probabilité de pluie prévue.
+
+Elle est utilisée en interne par `Market` et accessible via
+`market.logistics`. Elle peut aussi être instanciée directement.
 
 ---
 
-## Formule de coût de transfert
+## Importation directe
 
-```
-C_transfer = C_info
-           + Distance × (gamma_effectif × P_carburant / 100 + mu_checkpoints)
-           + C_qualite(culture, distance, pluie)
-```
-
-| Terme | Signification | Source |
-|-------|---------------|--------|
-| `C_info` | Coût fixe de recherche d'informations | `config.py` |
-| `gamma_effectif` | Coefficient d'état des routes (dynamique) | Formule ci-dessous |
-| `P_carburant` | Prix de l'essence en XOF/litre | Env, GitHub, repli |
-| `mu_checkpoints` | Tracasseries policières par km | `config.py` |
-| `C_qualite` | Perte de valeur marchande | Culture × distance × pluie |
-
-### Ajustement météo (Phase 4)
-
-Quand une `weather_session` est fournie :
-
-```
-gamma_effectif = gamma_base × (1 + alpha_pluie × prob_pluie)
-```
-
-- `gamma_base` = 1.2 (par défaut)
-- `alpha_pluie` = 0.25 (majoration max de 25% si pluie certaine)
-- `prob_pluie` = probabilité de pluie demain (0.0 à 1.0)
-
-La perte de qualité dépend aussi de la culture et de la pluie :
-
-```
-C_qualite = facteur_culture × distance_km × (1 + beta_pluie × prob_pluie)
+```python
+from kadi.market import Logistics
 ```
 
 ---
@@ -46,158 +24,240 @@ C_qualite = facteur_culture × distance_km × (1 + beta_pluie × prob_pluie)
 ## Initialisation
 
 ```python
-from kadi.market.logistics import MarketLogistics
+from kadi.market import Logistics
 
-# Sans météo (comportement V1)
-logistics = MarketLogistics()
+# Sans intégration météo (comportement V1)
+logistics = Logistics()
 
-# Avec météo (Phase 4)
-from kadi.weather import WeatherSession
+# Avec intégration météo (ajustement dynamique du coût selon la pluie)
+import kadi as kd
 
-ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-logistics = MarketLogistics(weather_session=ws)
-```
-
-Via la façade `Market` (recommandé) :
-
-```python
-from kadi.market import Market
-from kadi.weather import WeatherSession
-
-ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
-# marche.logistics est un MarketLogistics avec météo injectée
-```
-
----
-
-## Méthodes
-
-### `get_distance(origine, destination)`
-
-Calcule la distance routière entre deux villes béninoises. Utilise OSRM pour
-la vraie distance de conduite. Les résultats sont mis en cache dans
-`~/.kadi/osrm_cache.json`.
-
-```python
-km = logistics.get_distance("Parakou", "Cotonou")
-print(f"Distance réelle : {km:.1f} km")
-```
-
-**Stratégie de résolution :**
-
-1. Cache local (évite les appels réseau répétés)
-2. Géocodage Nominatim → routage OSRM
-3. Fallback Haversine × 1.3 si OSRM est indisponible
-4. 100 km par défaut si le géocodage échoue
-
----
-
-### `calculate_transfer_cost(origine, destination, prix_carburant, crop)`
-
-Calcule le coût total de transport d'un point A vers un point B.
-
-```python
-cout = logistics.calculate_transfer_cost(
-    origine="Parakou",
-    destination="Cotonou",
-    crop="tomato",       # Optionnel : active la perte de qualité par culture
-)
+weather = kd.Weather(lat=9.3, lon=2.3, name="Parakou")
+logistics = Logistics(weather=weather)
 ```
 
 **Paramètres :**
 
 | Nom | Type | Défaut | Description |
 |-----|------|--------|-------------|
-| `origine` | `str` | requis | Ville de départ |
-| `destination` | `str` | requis | Ville d'arrivée |
-| `prix_carburant` | `float` | `None` | Prix de l'essence en XOF/litre (auto-récupéré si None) |
-| `crop` | `str` | `None` | Culture transportée (influence la perte de qualité) |
+| `cache_file` | `str` | `None` | Chemin vers le fichier de cache JSON des distances. Par défaut : `~/.kadi/osrm_cache.json` |
+| `weather` | `Weather` | `None` | Session météo pour l'ajustement climatique des coûts. Si None, aucun ajustement (comportement V1) |
+
+**Attributs publics :**
+
+| Attribut | Type | Description |
+|----------|------|-------------|
+| `weather` | `Weather` | Session météo injectée (ou None) |
+| `cache_file` | `str` | Chemin du fichier de cache des distances |
+| `cache` | `dict` | Cache en mémoire : clés `'coords'` et `'distances'` |
+
+---
+
+## Méthodes
+
+### `transfer_cost(origine, destination, prix_carburant, crop)`
+
+Calcule le coût total de transfert d'une ville à une autre.
+
+**Formule :**
+
+```
+C_transfer = C_info
+           + Distance * (gamma_effectif * P_carburant / 100 + mu_checkpoints)
+           + C_qualite(culture, distance, pluie)
+```
+
+Où :
+- `C_info` = coût fixe de recherche d'information (appels, déplacements),
+  configurable dans `config.py` (défaut : 5 000 XOF)
+- `gamma_effectif` = `gamma_route * (1 + alpha_pluie * prob_pluie)` :
+  majoration météo si une session weather est disponible
+- `mu_checkpoints` = coût moyen des tracasseries par km (défaut : 15 XOF/km)
+- `C_qualite` = perte de valeur marchande variable par culture et météo
+
+```python
+import kadi as kd
+
+weather = kd.Weather(lat=9.3, lon=2.3, name="Parakou")
+marche = kd.Market(lat=9.3, lon=2.3, location="Parakou", weather=weather)
+
+# Coût de transfert avec intégration météo
+cout = marche.logistics.transfer_cost(
+    origine="Parakou",
+    destination="Cotonou",
+    crop="maize",
+)
+
+print(f"Coût total       : {cout['total_cost_cfa']:,.0f} XOF")
+print(f"Pluie prévue     : {cout['prob_pluie'] * 100:.0f} %")
+print(f"Gamma effectif   : {cout['gamma_effectif']:.4f}")
+
+# Détail par poste
+d = cout["details"]
+print(f"  Distance       : {d['distance_km']:.1f} km")
+print(f"  Coût info      : {d['search_costs']:,.0f} XOF")
+print(f"  Transport      : {d['transport_costs']:,.0f} XOF")
+print(f"  Perte qualité  : {d['quality_loss']:,.0f} XOF")
+print(f"  Carburant      : {d['fuel_price_used']:.0f} XOF/litre")
+```
+
+**Paramètres :**
+
+| Nom | Type | Défaut | Description |
+|-----|------|--------|-------------|
+| `origine` | `str` | requis | Ville de départ (ex: `'Parakou'`) |
+| `destination` | `str` | requis | Ville d'arrivée (ex: `'Cotonou'`) |
+| `prix_carburant` | `float` | `None` | Prix du litre d'essence en XOF. Si None, récupéré automatiquement |
+| `crop` | `str` | `None` | Culture transportée, pour la perte de qualité. Si None, utilise le facteur par défaut |
 
 **Retour :** `dict`
 
 | Clé | Type | Description |
 |-----|------|-------------|
-| `total_cost_cfa` | `float` | Coût total du transfert en XOF |
-| `prob_pluie` | `float` | Probabilité de pluie utilisée (0 si sans météo) |
-| `gamma_effectif` | `float` | Coefficient de route réellement appliqué |
-| `details` | `dict` | Détail de chaque composante du coût |
+| `total_cost_cfa` | `float` | Cout total du transfert en XOF |
+| `prob_pluie` | `float` | Probabilite de pluie utilisee (0.0 si pas de météo) |
+| `gamma_effectif` | `float` | Coefficient de route effectivement applique |
+| `details` | `dict` | Sous-dictionnaire avec chaque composante du cout |
 
-**Détail du résultat :**
+**Clés de `details` :**
 
-```python
-# Exemple de retour complet
-{
-    "total_cost_cfa": 47_350.0,
-    "prob_pluie": 0.82,
-    "gamma_effectif": 1.446,
-    "details": {
-        "distance_km": 415.2,
-        "search_costs": 5000.0,
-        "transport_costs": 38_200.0,
-        "quality_loss": 4150.0,
-        "fuel_price_used": 680.0,
-        "gamma_route_base": 1.2,
-        "gamma_effectif": 1.446,
-        "prob_pluie": 0.82,
-        "crop": "tomato",
-    }
-}
-```
+| Clé | Description |
+|-----|-------------|
+| `distance_km` | Distance routiere en km |
+| `search_costs` | Cout fixe de recherche d'information (XOF) |
+| `transport_costs` | Cout lié à la distance (carburant + tracasseries) (XOF) |
+| `quality_loss` | Perte de valeur marchande (XOF) |
+| `fuel_price_used` | Prix du carburant utilise (XOF/litre) |
+| `gamma_route_base` | Coefficient de base avant ajustement météo |
+| `gamma_effectif` | Coefficient apres ajustement météo |
+| `prob_pluie` | Probabilite de pluie utilisee |
+| `crop` | Culture concernee (`'_default'` si non spécifiée) |
+
+**Perte de qualité par culture (XOF/km/tonne) :**
+
+| Culture | Facteur | Culture | Facteur |
+|---------|---------|---------|---------|
+| `maize`, `sorghum`, `millet` | 5.0 | `cowpea`, `soybean` | 7.0 |
+| `rice` | 6.0 | `yam` | 12.0 |
+| `cassava` | 10.0 | `tomato` | 25.0 |
+| `onion` | 20.0 | (défaut) | 8.0 |
+
+Sous la pluie, la perte de qualité est majorée : `C_qualite = facteur *
+distance_km * (1 + beta_pluie * prob_pluie)`, avec `beta_pluie`
+configurable dans `config.py` (défaut : 0.5).
 
 ---
 
-## Facteurs de perte de qualité par culture
+### `distance(origine, destination)`
 
-| Culture | Facteur (XOF/km/tonne) | Sensibilité |
-|---------|------------------------|-------------|
-| Maïs, Sorgho, Mil | 5.0 | Très faible (céréales sèches) |
-| Riz | 6.0 | Faible |
-| Niébé, Soja | 7.0 | Modérée |
-| Manioc | 10.0 | Modérée |
-| Igname | 12.0 | Élevée (sensible aux chocs) |
-| Oignon | 20.0 | Très élevée |
-| Tomate | 25.0 | Extrême (légume frais) |
+Récupère la distance routière entre deux villes béninoises.
 
-Sous la pluie, la perte est majorée de 50% maximum (`beta_pluie = 0.5`).
+**Stratégie en cascade :**
+
+1. Cache local (résultat d'un appel précédent, persisté dans le fichier JSON)
+2. Géocodage Nominatim (OpenStreetMap) + routage OSRM
+3. Fallback Haversine (vol d'oiseau x 1.3) si OSRM est indisponible
+4. Valeur de repli 100 km si le géocodage échoue
+
+```python
+d = marche.logistics.distance("Parakou", "Cotonou")
+print(f"Distance routière : {d:.1f} km")
+
+# Résultat mis en cache automatiquement
+d2 = marche.logistics.distance("Cotonou", "Parakou")   # Retourné depuis le cache
+```
+
+**Paramètres :**
+
+| Nom | Type | Description |
+|-----|------|-------------|
+| `origine` | `str` | Nom de la ville de départ |
+| `destination` | `str` | Nom de la ville d'arrivée |
+
+**Retour :** `float` - Distance estimée en kilomètres.
+
+Le résultat est automatiquement mis en cache pour la session en cours
+et sauvegardé dans `cache_file` pour les sessions ultérieures.
+
+---
+
+## Intégration météo
+
+Quand une instance `weather` est fournie à l'initialisation, le calcul
+du coût de transfert est ajusté automatiquement :
+
+```
+gamma_effectif = gamma_route * (1 + alpha_pluie * prob_pluie)
+```
+
+- `gamma_route` : coefficient de base (configurable dans `config.py`,
+  défaut : 1.2)
+- `alpha_pluie` : intensité de la majoration météo (défaut : 0.25)
+- `prob_pluie` : probabilité de pluie demain, obtenue depuis
+  `weather.rain_prob(days=1)`
+
+La probabilité de pluie est calculée une seule fois par session (mise en
+cache) pour éviter des appels répétés au module météo.
+
+**Exemple :**
+
+Avec `prob_pluie=0.8` et `alpha=0.25`, le coefficient de route passe de
+1.2 à `1.2 * (1 + 0.25 * 0.8) = 1.44`, soit une majoration de 20% sur
+le coût de transport.
 
 ---
 
 ## Prix du carburant
 
-Le module récupère le prix de l'essence selon cette cascade :
+La méthode `transfer_cost()` récupère automatiquement le prix du
+carburant selon la stratégie suivante :
 
-1. Variable d'environnement `BENIN_FUEL_PRICE`
-2. Fichier en ligne `config/fuel_prices.json` sur GitHub
-3. Valeur de repli : 680 XOF/litre (configurable dans `config.py`)
-
-```env
-# .env : force le prix manuellement
-BENIN_FUEL_PRICE=695
-```
+| Priorité | Source |
+|----------|--------|
+| 1 | Variable d'environnement `BENIN_FUEL_PRICE` |
+| 2 | Cache en mémoire (une seule requête par session) |
+| 3 | Fichier `config/fuel_prices.json` sur GitHub |
+| 4 | Valeur de repli depuis `config.py` (défaut : 680 XOF/litre) |
 
 ---
 
-## Exemple complet avec météo
+## Méthodes dépréciées
+
+| Ancienne méthode | Remplacée par | Depuis |
+|------------------|---------------|--------|
+| `calculate_transfer_cost(origine, destination)` | `transfer_cost(origine, destination)` | v1.2.0 |
+| `get_distance(origine, destination)` | `distance(origine, destination)` | v1.2.0 |
+
+## Classe dépréciée
+
+| Ancien nom | Remplacé par | Depuis |
+|------------|--------------|--------|
+| `MarketLogistics` | `Logistics` | v1.2.0 |
+
+---
+
+## Exemple complet
 
 ```python
-from kadi.weather import WeatherSession
-from kadi.market import Market
+import kadi as kd
 
-ws = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=ws)
+weather = kd.Weather(lat=9.3, lon=2.3, name="Parakou")
+marche = kd.Market(lat=9.3, lon=2.3, location="Parakou", weather=weather)
 
-# Coût pour transporter des tomates (culture périssable, sensible à la pluie)
-cout = marche.logistics.calculate_transfer_cost(
-    "Parakou", "Cotonou", crop="tomato"
-)
+# Comparer le coût pour deux cultures (tomate plus sensible)
+cultures = ["maize", "tomato"]
+for crop in cultures:
+    cout = marche.logistics.transfer_cost("Parakou", "Cotonou", crop=crop)
+    print(
+        f"{crop:8s} -> {cout['total_cost_cfa']:,.0f} XOF "
+        f"(perte qualité : {cout['details']['quality_loss']:,.0f} XOF)"
+    )
 
-print(f"Coût total          : {cout['total_cost_cfa']:,.0f} XOF")
-print(f"Pluie demain        : {cout['prob_pluie'] * 100:.0f}%")
-print(f"Gamma route effectif: {cout['gamma_effectif']:.3f}")
-print(f"Perte qualité       : {cout['details']['quality_loss']:,.0f} XOF")
+# Distance seule
+d = marche.logistics.distance("Abomey", "Cotonou")
+print(f"Abomey - Cotonou : {d:.1f} km")
 ```
 
 ---
 
-::: kadi.market.logistics.MarketLogistics
+::: kadi.market.logistics.Logistics

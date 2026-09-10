@@ -1,133 +1,240 @@
 # Phénologie (`kadi.weather.phenology`)
 
-Le module `Phenology` détecte les dates clés du cycle agricole (début et fin
-de saison des pluies) et calcule les degrés-jours de croissance (GDD) pour
-évaluer le stade phénologique des cultures.
+La classe `Phenology` gère l'analyse phénologique pour une localisation.
+Elle détecte le début (`onset`) et la fin (`cessation`) de la saison agricole,
+et calcule les degrés-jours de croissance (GDD) pour les principales cultures
+de la zone béninoise.
+
+Elle est utilisée en interne par la façade `Weather`, mais peut aussi être
+instanciée directement.
 
 ---
 
-## Algorithmes de détection de saison
-
-Le Bénin présente deux régimes pluviométriques distincts. Le module choisit
-l'algorithme adapté automatiquement selon la latitude.
-
-### Régime unimodal - Nord (> 9.5° N) : Sivakumar
-
-L'algorithme de Sivakumar définit le démarrage de la saison comme le premier
-jour après le 1er mai où les précipitations sur 20 jours consécutifs dépassent
-la moitié de l'ETP sur cette période, sans séquence sèche de plus de 7 jours.
-
-**Critère de déclenchement :**
-```
-P_20j ≥ ETP_20j / 2  ET  max_séquence_sèche < 7 jours
-```
-
-### Régime bimodal - Sud (< 7.5° N) : Walter-Anyadike
-
-L'algorithme de Walter-Anyadike détecte les deux saisons des pluies
-caractéristiques du sud du Bénin (grande et petite saison) en analysant
-les courbes de précipitations mensuelles lissées.
-
----
-
-## Degrés-jours de croissance (GDD)
-
-Les GDD mesurent l'énergie thermique accumulée depuis la date de semis. Chaque
-culture a des températures de base (`T_base`) et de plateau (`T_max`) propres.
-
-**Formule journalière :**
-```
-GDD_j = max(0, [(T_min_j + T_max_j) / 2] - T_base)
-```
-
-Si la température moyenne dépasse `T_max`, elle est plafonnée à `T_max` pour
-éviter de surestimer la croissance.
-
-**Températures de référence par culture :**
-
-| Culture | T_base (°C) | T_max (°C) | GDD floraison | GDD maturité |
-|---------|------------|-----------|--------------|-------------|
-| Maïs | 10 | 34 | 620 | 1400 |
-| Riz | 12 | 38 | 800 | 1600 |
-| Sorgho | 10 | 34 | 700 | 1350 |
-| Mil | 10 | 38 | 600 | 1200 |
-| Niébé | 10 | 35 | 550 | 1100 |
-| Soja | 10 | 36 | 700 | 1400 |
-| Igname | 12 | 35 | 900 | 2000 |
-
----
-
-## Utilisation via WeatherSession (recommandé)
+## Importation directe
 
 ```python
-from kadi.weather import WeatherSession
-
-session = WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
-
-# Démarrage de la saison
-onset = session.onset()
-print(f"Début estimé : {onset['onset_date']}")
-print(f"Méthode      : {onset['method']}")
-print(f"Confiance    : {onset['confidence']}")
-
-# Fin de la saison
-cessation = session.cessation()
-print(f"Fin estimée  : {cessation['cessation_date']}")
-
-# Durée de la saison agricole
-from datetime import datetime
-debut = datetime.fromisoformat(onset['onset_date'])
-fin = datetime.fromisoformat(cessation['cessation_date'])
-print(f"Durée de la saison : {(fin - debut).days} jours")
+from kadi.weather import Phenology
 ```
 
 ---
 
-## Calcul des GDD
+## Initialisation
+
+Dans le cas courant, `Phenology` est créée automatiquement par la façade
+`Weather` lors du premier appel à `onset()`, `cessation()` ou `gdd()`.
+Elle est alors accessible via `weather.phenology`.
 
 ```python
-# Maïs semé le 15 mai, suivi jusqu'au 30 septembre
-gdd = session.growing_degree_days(
-    crop="maize",
-    start_date="2026-05-15",
-    end_date="2026-09-30",
+import kadi as kd
+
+weather = kd.Weather(lat=9.3, lon=2.3, name="Parakou")
+
+# Phenology chargée à la demande
+debut = weather.onset()
+phenology = weather.phenology   # Instance disponible
+```
+
+Pour une instanciation directe :
+
+```python
+from kadi.weather import Phenology, Location
+import pandas as pd
+
+location = Location(lat=9.3, lon=2.3, name="Parakou")
+
+# rainfall  : pd.Series journalière de précipitations, indexée par date
+# temperature : pd.DataFrame avec colonnes 'temperature_min' et 'temperature_max'
+
+phenology = Phenology(location, rainfall, temperature)
+```
+
+**Attributs publics :**
+
+| Attribut | Type | Description |
+|----------|------|-------------|
+| `location` | `Location` | Localisation de l'analyse |
+| `rainfall` | `pd.Series` | Série de précipitations quotidiennes |
+| `temperature` | `pd.DataFrame` | Données de température (`temperature_min`, `temperature_max`) |
+| `onset_ts` | `pd.Timestamp` | Date d'onset calculée (`None` avant le premier appel) |
+| `crop` | `dict` | Paramètres culturaux par culture |
+
+---
+
+## Méthodes
+
+### `onset()`
+
+Détecte la date de démarrage de la saison agricole.
+
+L'algorithme utilisé dépend de la zone climatique de la localisation :
+
+- **Zone Nord** (régime unimodal) : algorithme de Sivakumar. Cherche, à
+  partir du 1er mai, la première séquence de 3 jours cumulant au moins
+  20 mm, sans période sèche de plus de 7 jours sur les 30 jours suivants.
+- **Zones Sud et Centre** (régime bimodal) : algorithme hybride
+  Walter-Anyadike appliqué sur deux fenêtres saisonnières (S1 : janv-juil,
+  S2 : août-déc).
+
+```python
+debut = weather.onset()
+
+print(f"Début S1   : {debut['onset_1']}")
+print(f"Début S2   : {debut['onset_2']}")   # None en zone Nord
+print(f"Algorithme : {debut['algorithm']}")
+print(f"Zone       : {debut['zone']}")
+print(f"Confiance  : {debut['confidence']}")
+```
+
+**Retour :** `dict`
+
+| Clé | Type | Description |
+|-----|------|-------------|
+| `onset_date` | `str` | Alias de `onset_1` (rétrocompatibilité) |
+| `onset_1` | `str` | Date de début de la première saison (`YYYY-MM-DD`) |
+| `onset_2` | `str` | Date de début de la deuxième saison, `None` en zone Nord |
+| `algorithm` | `str` | Algorithme utilisé (`'Sivakumar'` ou `'Walter-Anyadike bimodal'`) |
+| `zone` | `str` | Zone climatique (`'Nord'`, `'Centre'`, `'Sud'`) |
+| `confidence` | `float` | Indice de confiance (0.80 bimodal, 0.85 unimodal) |
+
+**Exceptions :**
+
+- `DataError` : aucune donnée de précipitation disponible.
+
+---
+
+### `cessation()`
+
+Détermine la date de fin des pluies utiles.
+
+La cessation est définie comme le dernier jour à partir duquel le cumul
+de pluie restant (calculé en sens inverse) descend sous 20 mm.
+
+- **Zone Nord** : une unique date de cessation calculée à partir de septembre.
+- **Zones Sud et Centre** : deux dates de cessation (S1 autour de
+  mai-juillet, S2 autour d'octobre-décembre).
+
+```python
+fin = weather.cessation()
+
+print(f"Fin S1         : {fin['cessation_1']}")
+print(f"Fin S2         : {fin['cessation_2']}")   # None en zone Nord
+print(f"Durée saison   : {fin['duration_days']} jours")
+print(f"Cumul annuel   : {fin['total_rainfall']:.0f} mm")
+```
+
+**Retour :** `dict`
+
+| Clé | Type | Description |
+|-----|------|-------------|
+| `cessation_date` | `str` | Alias de `cessation_1` (rétrocompatibilité) |
+| `cessation_1` | `str` | Date de fin de la première saison (`YYYY-MM-DD`) |
+| `cessation_2` | `str` | Date de fin de la deuxième saison, `None` en zone Nord |
+| `duration_days` | `int` | Durée de la saison principale en jours (zone Nord) |
+| `total_rainfall` | `float` | Cumul annuel de précipitations en mm |
+| `zone` | `str` | Zone climatique |
+
+**Exceptions :**
+
+- `DataError` : aucune donnée de précipitation disponible.
+
+---
+
+### `gdd(crop, start, end)`
+
+Calcule l'accumulation des degrés-jours de croissance (GDD) pour une culture
+depuis la date de semis.
+
+Le GDD journalier est calculé comme :
+
+```
+GDD = max(0, (Tmax + Tmin) / 2 - Tbase)
+```
+
+où `Tbase` est la température de base de la culture (seuil en dessous duquel
+la plante ne se développe pas).
+
+```python
+# GDD pour le maïs semé le 15 mai
+resultat = weather.gdd(crop="maize", start="2026-05-15")
+
+print(f"GDD accumulés  : {resultat['gdd_accumulated']:.1f} degC.jour")
+print(f"Cycle accompli : {resultat['pct_cycle']} %")
+print(f"Stade actuel   : {resultat['phenology_stage']}")
+
+# Avec une date de fin explicite
+resultat = weather.gdd(
+    crop="rice",
+    start="2026-06-01",
+    end="2026-10-15",
 )
-
-print(f"GDD accumulés   : {gdd['gdd_accumulated']:.1f} °C·jour")
-print(f"Stade phéno     : {gdd['phenology_stage']}")
-print(f"Floraison dans  : {gdd['days_to_flowering']} jours")
-print(f"Maturité dans   : {gdd['days_to_maturity']} jours")
 ```
 
-**Stades phénologiques retournés pour le maïs :**
+**Paramètres :**
 
-| Stade | GDD accumulés |
-|-------|--------------|
-| `germination` | 0 – 100 |
-| `tallage` | 100 – 300 |
-| `montaison` | 300 – 620 |
-| `floraison` | 620 – 900 |
-| `grain_remplissage` | 900 – 1 200 |
-| `maturite` | > 1 200 |
+| Nom | Type | Défaut | Description |
+|-----|------|--------|-------------|
+| `crop` | `str` | requis | Nom de la culture |
+| `start` | `str` ou `pd.Timestamp` | requis | Date de semis (`YYYY-MM-DD`) |
+| `end` | `str` ou `pd.Timestamp` | `None` | Date de fin (aujourd'hui si None) |
+
+**Cultures supportées :**
+
+| Culture | Temp. base (degC) | GDD total requis |
+|---------|-------------------|------------------|
+| `'maize'` | 10 | 1300 |
+| `'rice'` | 10 | 1500 |
+| `'manioc'` | 14 | 3000 |
+| `'sorghum'` | 10 | 1400 |
+| `'tomato'` | 10 | 1000 |
+
+**Retour :** `dict`
+
+| Clé | Type | Description |
+|-----|------|-------------|
+| `gdd_accumulated` | `float` | Cumul GDD sur la période |
+| `crop` | `str` | Nom de la culture |
+| `gdd_total_cycle` | `int` | GDD total requis pour le cycle complet |
+| `pct_cycle` | `int` | Pourcentage du cycle accompli (0 à 100) |
+| `phenology_stage` | `str` | Stade estimé : `'vegetative'`, `'tasseling/flowering'`, `'maturity'` |
+
+**Exceptions :**
+
+- `CropError` : culture non reconnue.
+- `DataError` : données de température insuffisantes sur la période.
+
+La méthode `growing_degree_days()` est dépréciée depuis la v1.2.0.
+Utilisez `gdd()` à la place.
 
 ---
 
-## Interprétation agronomique
+## Attributs dépréciés
 
-Les GDD permettent de planifier :
+| Ancien attribut | Remplacé par | Depuis |
+|-----------------|--------------|--------|
+| `rainfall_data` | `rainfall` | v1.2.0 |
+| `temperature_data` | `temperature` | v1.2.0 |
+| `onset_date` | `onset_ts` | v1.2.0 |
+| `crop_params` | `crop` | v1.2.0 |
 
-- **La date optimale de semis** pour maximiser l'utilisation des pluies.
-- **La date de récolte estimée** pour anticiper le stockage.
-- **Le risque de fin de cycle prématurée** si la cessation arrive avant la
-  maturité de la culture.
+---
+
+## Exemple complet
 
 ```python
-# Vérifier si la saison est assez longue pour la maturité du maïs
-gdd_maturite_maize = 1400  # °C·jour
+import kadi as kd
 
-if gdd["gdd_accumulated"] < gdd_maturite_maize:
-    manque = gdd_maturite_maize - gdd["gdd_accumulated"]
-    print(f"Risque : il manque {manque:.0f} GDD pour la maturité complète.")
+weather = kd.Weather(lat=6.4, lon=2.4, name="Cotonou")
+
+# Démarrage et fin de saison (régime bimodal pour le Sud)
+debut = weather.onset()
+fin = weather.cessation()
+
+print(f"Saison S1 : {debut['onset_1']} -> {fin['cessation_1']}")
+print(f"Saison S2 : {debut['onset_2']} -> {fin['cessation_2']}")
+
+# GDD pour le maïs
+gdd = weather.gdd(crop="maize", start=debut["onset_1"])
+print(f"Avancement : {gdd['pct_cycle']} % - {gdd['phenology_stage']}")
 ```
 
 ---

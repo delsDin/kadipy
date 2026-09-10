@@ -1,154 +1,340 @@
 # Hydrologie (`kadi.weather.hydrology`)
 
-Le module `Hydrology` modélise le cycle de l'eau dans le sol selon les normes
-de la FAO (publication FAO-56). Il calcule l'évapotranspiration de référence
-(ET0) par la méthode Hargreaves-Samani et simule le bilan hydrique journalier.
+La classe `Hydrology` modélise le bilan hydrique du sol pour une parcelle
+agricole. Elle calcule l'évapotranspiration de référence (ET0), le
+ruissellement journalier (SCS-CN) et le bilan hydrique complet selon
+la norme FAO-56.
+
+Elle est utilisée en interne par la façade `Weather`, mais peut aussi être
+instanciée directement pour des analyses spécifiques.
 
 ---
 
-## Évapotranspiration de référence (ET0)
-
-L'ET0 représente la quantité d'eau évaporée et transpirée par une surface de
-gazon bien alimentée en eau. C'est la référence à partir de laquelle on calcule
-les besoins en eau de chaque culture (ETc = ET0 × Kc).
-
-### Méthode Hargreaves-Samani
-
-Cette méthode ne demande que les températures min et max, ce qui la rend
-utilisable même quand le rayonnement solaire n'est pas disponible.
-
-**Formule :**
-```
-ET0 = 0.0023 × Ra × (T_moy + 17.8) × (T_max - T_min)^0.5
-```
-
-Où `Ra` est le rayonnement extraterrestre (MJ/m²/jour), calculé à partir
-de la latitude et du jour de l'année.
+## Importation directe
 
 ```python
-et0 = session.et0_hargreaves(tmin=22.0, tmax=35.0, day_of_year=200)
-print(f"ET0 : {et0:.2f} mm/jour")
+from kadi.weather import Hydrology
 ```
 
 ---
 
-## Bilan hydrique (FAO-56)
+## Initialisation
 
-Le bilan hydrique suit l'eau disponible dans le sol au fil du temps, en
-tenant compte des apports (pluie) et des pertes (évapotranspiration,
-ruissellement).
-
-**Équation journalière :**
-```
-ΔRU = Pluie - ETc - Ruissellement
-RU_j+1 = max(0, min(RU_j + ΔRU, RU_max))
-```
-
-Où :
-- `RU` = Réserve Utile en eau du sol (mm)
-- `ETc` = Évapotranspiration de la culture = ET0 × Kc
-- `RU_max` = Capacité maximale de rétention du sol
-
-### Types de sols béninois et détection automatique (SoilGrids v2.0)
-
-Le type de sol conditionne la capacité maximale de rétention d'eau (`RU_max`) et la vitesse d'infiltration (`Ksat`).
-
-| Code KadiPy | Nom scientifique / WRB | RU max (mm) | Ksat (mm/h) | Localisation principale |
-|-------------|-----------------------|-------------|-------------|-------------------------|
-| `ferrugineux` | Lixisol, Acrisol, Alisol | 80 | 15 | Sols ferrugineux tropicaux (Centre/Nord, dominant) |
-| `ferrallitique` | Ferralsol, Plinthosol, Nitisol | 100 | 12 | Sols rouges altérés (Sud-Bénin) |
-| `limoneux` | Luvisol, Cambisol, Gleysol, Fluvisol | 120 | 8 | Alluvions et couloirs fluviaux (Ouémé, Mono) |
-| `sableux` | Arenosol, Regosol, Psammosol | 50 | 40 | Sables côtiers et dunaires (littoral et Sahel) |
-
-Le module `kadi._sources.soilgrids` interroge automatiquement l'API **SoilGrids v2.0** de l'ISRIC (`/classification/query`) selon une cascade à 3 niveaux :
-1. **Cache local JSON** (`~/.kadi/soilgrids_cache.json`) pour les points à moins de 25 km.
-2. **API SoilGrids v2.0** avec conversion automatique de la classe WRB vers la nomenclature KadiPy.
-3. **Repli statique** sur `'ferrugineux'` (sol le plus représenté au Bénin) si l'API est inaccessible.
-
----
-
-## Utilisation
-
-### Bilan hydrique complet
+Dans le cas courant, `Hydrology` est créée automatiquement par la façade
+`Weather` lors du premier appel à `water_balance()` ou `et0_hargreaves()`.
+Elle est alors accessible via `weather.hydrology`.
 
 ```python
-from kadi.weather import WeatherSession
+import kadi as kd
 
-session = WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
+weather = kd.Weather(lat=9.3, lon=2.3, name="Parakou")
 
-# Bilan hydrique pour le maïs sur sol ferrugineux
-bilan = session.water_balance(crop="maize", soil_type="ferrugineux")
+# Hydrology chargée à la demande
+bilan = weather.water_balance(crop="maize", soil_type="ferrugineux")
+hydrology = weather.hydrology   # Instance disponible
+```
 
-# Affichage des 14 derniers jours
-print(bilan.tail(14)[[
-    "precipitation", "ET0", "ETc", "deficit_eau", "reserve_utile", "runoff"
+Pour une instanciation directe :
+
+```python
+from kadi.weather import Hydrology, Location
+import pandas as pd
+
+location = Location(lat=9.3, lon=2.3, name="Parakou")
+
+# rainfall    : pd.Series journalière de précipitations, indexée par date
+# temperature : pd.DataFrame avec colonnes 'temperature_min' et 'temperature_max'
+
+hydrology = Hydrology(
+    location,
+    rainfall,
+    temperature,
+    soil_type="ferrugineux",
+    crop="maize",
+)
+```
+
+**Attributs publics :**
+
+| Attribut | Type | Description |
+|----------|------|-------------|
+| `location` | `Location` | Localisation de la parcelle |
+| `rainfall` | `pd.Series` | Série de précipitations quotidiennes |
+| `temperature` | `pd.DataFrame` | Données de température (`temperature_min`, `temperature_max`) |
+| `crop` | `str` | Type de culture |
+| `soil_type` | `str` | Type de sol |
+| `soil` | `dict` | Paramètres physiques du sol |
+| `balance` | `pd.DataFrame` | Résultat du bilan hydrique (`None` avant calcul) |
+
+---
+
+## Méthodes
+
+### `water_balance()`
+
+Simule le bilan hydrique quotidien du sol selon la méthode FAO-56.
+
+Le calcul comprend :
+
+1. ET0 journalier par Hargreaves-Samani.
+2. Ruissellement par la méthode SCS-CN avec ajustement AMC (Antecedent
+   Moisture Condition) sur les 5 jours précédents.
+3. Évapotranspiration de la culture (ETc = ET0 x Kc).
+4. Bilan séquentiel : pluie efficace - ETc, plafonné à TAW (Total
+   Available Water).
+
+```python
+bilan = weather.water_balance(crop="maize", soil_type="ferrugineux")
+
+# Derniers 7 jours
+print(bilan.tail(7)[[
+    "precip", "et0", "pluie_eff",
+    "evapotransp", "deficit_eau", "reserve_utile", "stress_hydrique_index"
 ]])
 ```
 
-### Interprétation des résultats
+Ce calcul est déclenché via la façade `Weather`. Pour l'appeler directement
+sur l'instance `Hydrology` (par exemple après avoir modifié la culture) :
 
 ```python
-import pandas as pd
+# Modification de la culture et du sol
+weather.hydrology.crop = "rice"
+weather.hydrology.soil_type = "ferrallitique"
+weather.hydrology.soil = weather.hydrology.soil_params("ferrallitique")
 
-# Jours en situation de stress hydrique (déficit > 5 mm)
-stress = bilan[bilan["deficit_eau"] > 5.0]
-print(f"Jours de stress hydrique : {len(stress)}")
-
-# Calcul du déficit cumulé sur la saison
-deficit_cumule = bilan["deficit_eau"].sum()
-print(f"Déficit hydrique cumulé : {deficit_cumule:.1f} mm")
-
-# Période critique (réserve utile < 20% de la capacité)
-ru_max = 80  # mm pour sol ferrugineux
-periode_critique = bilan[bilan["reserve_utile"] < ru_max * 0.2]
-print(f"Jours critiques : {len(periode_critique)}")
+# Recalcul
+bilan = weather.hydrology.water_balance()
 ```
 
-### ET0 journalier direct
+**Retour :** `pd.DataFrame` avec `DatetimeIndex`.
+
+**Colonnes :**
+
+| Colonne | Description |
+|---------|-------------|
+| `precip` | Précipitations observées (mm) |
+| `et0` | ET0 par Hargreaves-Samani (mm/jour) |
+| `pluie_eff` | Pluie efficace après déduction du ruissellement (mm) |
+| `evapotransp` | ETc = ET0 x Kc de la culture (mm/jour) |
+| `deficit_eau` | Déficit hydrique journalier dans le sol (mm) |
+| `reserve_utile` | Eau disponible dans le sol = TAW - déficit (mm) |
+| `stress_hydrique_index` | Indice de stress hydrique = déficit / TAW (0 a 1) |
+
+**Exceptions :**
+
+- `DataError` : données de précipitation ou de température manquantes.
+
+---
+
+### `et0_hargreaves(tmin, tmax, day_of_year)`
+
+Calcule l'évapotranspiration de référence (ET0) par la méthode
+Hargreaves-Samani. Alternative à Penman-Monteith lorsque les données
+d'humidité, de vent et de rayonnement solaire sont indisponibles.
 
 ```python
-# Calcul de l'ET0 pour un jour spécifique de l'année
-# Jour 200 = 19 juillet (pic de saison des pluies)
-et0_juillet = session.et0_hargreaves(
+# Calcul pour un jour donné
+et0 = weather.et0_hargreaves(tmin=22.0, tmax=35.0, day_of_year=180)
+print(f"ET0 : {et0:.2f} mm/jour")
+
+# Appel direct sur l'instance Hydrology (accepte aussi des arrays numpy)
+import numpy as np
+tmin_arr = np.array([20.0, 21.0, 19.0])
+tmax_arr = np.array([33.0, 35.0, 32.0])
+doy_arr  = np.array([150, 151, 152])
+et0_arr = weather.hydrology.et0_hargreaves(tmin_arr, tmax_arr, doy_arr)
+```
+
+**Paramètres :**
+
+| Nom | Type | Description |
+|-----|------|-------------|
+| `tmin` | `float` ou `np.ndarray` | Température minimale (degC) |
+| `tmax` | `float` ou `np.ndarray` | Température maximale (degC) |
+| `day_of_year` | `int` ou `np.ndarray` | Jour de l'année (1 a 365) |
+
+**Retour :** `float` ou `np.ndarray` - ET0 en mm/jour.
+
+---
+
+### `et0_fao56_penman(tmin, tmax, humidity, wind_speed, solar_rad)`
+
+Calcule l'ET0 par la méthode FAO-56 Penman-Monteith. Plus précise que
+Hargreaves car elle intègre l'humidité relative, la vitesse du vent et le
+rayonnement solaire mesuré.
+
+```python
+et0_pm = weather.hydrology.et0_fao56_penman(
     tmin=22.0,
     tmax=35.0,
-    day_of_year=200,
+    humidity=65.0,     # Humidité relative (%)
+    wind_speed=2.5,    # Vitesse du vent a 2 m (m/s)
+    solar_rad=18.0,    # Rayonnement solaire (MJ/m2/jour)
 )
-print(f"ET0 mi-juillet : {et0_juillet:.2f} mm/jour")
-
-# Jour 365 = 31 décembre (saison sèche)
-et0_decembre = session.et0_hargreaves(
-    tmin=18.0,
-    tmax=38.0,
-    day_of_year=365,
-)
-print(f"ET0 fin décembre : {et0_decembre:.2f} mm/jour")
+print(f"ET0 Penman-Monteith : {et0_pm:.2f} mm/jour")
 ```
 
----
+**Paramètres :**
 
-## Colonnes du DataFrame de bilan hydrique
+| Nom | Type | Description |
+|-----|------|-------------|
+| `tmin` | `float` | Température minimale (degC) |
+| `tmax` | `float` | Température maximale (degC) |
+| `humidity` | `float` | Humidité relative moyenne (%, entre 0 et 100) |
+| `wind_speed` | `float` | Vitesse du vent à 2 m de hauteur (m/s) |
+| `solar_rad` | `float` | Rayonnement solaire incident (MJ/m2/jour) |
 
-| Colonne | Unité | Description |
-|---------|-------|-------------|
-| `precipitation` | mm | Précipitations journalières observées |
-| `temperature_min` | °C | Température minimale |
-| `temperature_max` | °C | Température maximale |
-| `ET0` | mm | Évapotranspiration de référence (Hargreaves) |
-| `Kc` | - | Coefficient cultural de la culture sélectionnée |
-| `ETc` | mm | Évapotranspiration de la culture = ET0 × Kc |
-| `deficit_eau` | mm | Manque d'eau journalier (max(0, ETc - Pluie)) |
-| `reserve_utile` | mm | Eau disponible dans la réserve utile du sol |
-| `runoff` | mm | Eau non infiltrée (ruissellement) |
+**Retour :** `float` - ET0 en mm/jour.
 
 ---
 
-## Perspectives
+### `runoff_cn(precipitation, prior_5d_rain)`
 
-La version actuelle utilise Hargreaves-Samani, méthode robuste ne nécessitant
-que les températures. La méthode Penman-Monteith (FAO-56 complète) sera
-intégrée dans une version future en exploitant le rayonnement solaire et la
-vitesse du vent disponibles via Open-Meteo.
+Calcule le ruissellement quotidien par la méthode révisée SCS-CN, avec
+ajustement selon l'humidité antécédente (AMC).
+
+```python
+runoff = weather.hydrology.runoff_cn(
+    precipitation=35.0,
+    prior_5d_rain=20.0,
+)
+print(f"Ruissellement : {runoff:.2f} mm")
+```
+
+**Paramètres :**
+
+| Nom | Type | Défaut | Description |
+|-----|------|--------|-------------|
+| `precipitation` | `float` | requis | Précipitation du jour (mm) |
+| `prior_5d_rain` | `float` | `0.0` | Cumul des 5 jours précédents (mm) pour l'ajustement AMC |
+
+**Ajustement AMC :**
+
+| Condition | Pluie 5j précédents | CN ajusté |
+|-----------|---------------------|-----------|
+| AMC I (sec) | < 12.5 mm | CN réduit |
+| AMC II (moyen) | 12.5 a 35.5 mm | CN de base |
+| AMC III (humide) | > 35.5 mm | CN augmenté |
+
+**Retour :** `float` - Ruissellement en mm (0.0 si la pluie ne dépasse pas
+l'abstraction initiale).
+
+---
+
+### `soil_params(soil_type)`
+
+Retourne les paramètres physiques d'un sol béninois.
+
+```python
+params = weather.hydrology.soil_params("ferrallitique")
+print(f"TAW   : {params['taw']} mm")
+print(f"CN    : {params['cn_amc2']}")
+print(f"Ksat  : {params['ksat']} mm/j")
+```
+
+**Paramètres :**
+
+| Nom | Type | Description |
+|-----|------|-------------|
+| `soil_type` | `str` | Type de sol parmi les valeurs supportées |
+
+**Types de sols supportés :**
+
+| Type | TAW (mm) | CN AMC II | Ksat (mm/j) |
+|------|----------|-----------|-------------|
+| `'ferrugineux'` | 100 | 82 | 15 |
+| `'ferrallitique'` | 130 | 75 | 35 |
+| `'sableux'` | 60 | 65 | 100 |
+| `'limoneux'` | 150 | 78 | 10 |
+
+**Retour :** `dict` avec `taw`, `cn_amc2`, `ksat`.
+
+**Exceptions :**
+
+- `ValidationError` : type de sol non pris en charge.
+
+---
+
+### `crop_kc(crop, stage)`
+
+Retourne le coefficient cultural (Kc) selon le stade phénologique.
+Le Kc représente le rapport ETc / ET0 selon la norme FAO-56.
+
+```python
+kc = weather.hydrology.crop_kc("maize", "mid")
+print(f"Kc milieu de cycle : {kc}")
+```
+
+**Paramètres :**
+
+| Nom | Type | Description |
+|-----|------|-------------|
+| `crop` | `str` | Nom de la culture |
+| `stage` | `str` | Stade parmi `'ini'`, `'mid'`, `'end'` |
+
+**Coefficients Kc par culture et stade :**
+
+| Culture | Kc ini | Kc mid | Kc end |
+|---------|--------|--------|--------|
+| `'maize'` | 0.30 | 1.20 | 0.35 |
+| `'rice'` | 1.05 | 1.20 | 0.90 |
+| `'manioc'` | 0.30 | 0.80 | 0.30 |
+| `'sorghum'` | 0.30 | 1.00 | 0.55 |
+| `'tomato'` | 0.60 | 1.15 | 0.70 |
+
+**Retour :** `float` - Valeur du Kc.
+
+**Exceptions :**
+
+- `CropError` : culture non reconnue.
+
+---
+
+## Méthodes dépréciées
+
+| Ancienne méthode | Remplacée par | Depuis |
+|------------------|---------------|--------|
+| `compute_water_balance()` | `water_balance()` | v1.2.0 |
+| `get_soil_params(soil_type)` | `soil_params(soil_type)` | v1.2.0 |
+| `get_crop_coefficients(crop, stage)` | `crop_kc(crop, stage)` | v1.2.0 |
+
+## Attributs dépréciés
+
+| Ancien attribut | Remplacé par | Depuis |
+|-----------------|--------------|--------|
+| `rainfall_data` | `rainfall` | v1.2.0 |
+| `temperature_data` | `temperature` | v1.2.0 |
+| `balance_result` | `balance` | v1.2.0 |
+
+---
+
+## Exemple complet
+
+```python
+import kadi as kd
+
+weather = kd.Weather(lat=9.3, lon=2.3, name="Parakou")
+
+# Bilan hydrique complet
+bilan = weather.water_balance(crop="sorghum", soil_type="sableux")
+
+# Analyse du stress hydrique sur les 30 derniers jours
+derniers_30j = bilan.tail(30)
+stress_moyen = derniers_30j["stress_hydrique_index"].mean()
+print(f"Stress hydrique moyen (30j) : {stress_moyen:.2f}")
+
+# ET0 ponctuel
+et0 = weather.et0_hargreaves(tmin=21.0, tmax=34.0, day_of_year=200)
+print(f"ET0 du jour : {et0:.2f} mm/jour")
+
+# Paramètres du sol
+params = weather.hydrology.soil_params("ferrugineux")
+print(f"Réserve utile max : {params['taw']} mm")
+
+# Kc en plein cycle
+kc = weather.hydrology.crop_kc("sorghum", "mid")
+print(f"ETc = ET0 x Kc = {et0:.2f} x {kc} = {et0 * kc:.2f} mm/jour")
+```
 
 ---
 

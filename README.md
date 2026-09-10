@@ -1,23 +1,42 @@
-<div align="center", style="padding-bottom: 40px">
-  <img src="img/kadipy-long.png" alt="KadiPy" width="100%", height="300px">
+<div align="center" style="padding-bottom: 40px">
+  <img src="img/kadipy-long.png" alt="KadiPy" width="100%" height="300px">
   <br>
   <p><strong>Traitement, analyse et modélisation des données agricoles et économiques</strong></p>
 </div>
 
-# KadiPy : Le "pandas" de l'agriculture africaine
+# KadiPy : le "pandas" de l'agriculture africaine
 
-**KadiPy** est une bibliothèque Python open source fournissant des structures de données et des outils d'analyse performants, flexibles et faciles à utiliser pour l'agriculture au Bénin et en Afrique de l'Ouest.
-
-Elle offre une interface unifiée pour ingérer, nettoyer, analyser et modéliser les données météorologiques, les prix des marchés agricoles, les coûts logistiques et les séries de récoltes, avec un fonctionnement conçu en priorité pour le mode hors ligne (offline-first).
+**KadiPy** est une bibliothèque Python open source conçue pour les agronomes,
+chercheurs et développeurs travaillant sur l'agriculture au Bénin et en Afrique
+de l'Ouest. Elle offre une interface unifiée pour ingérer, nettoyer, analyser
+et modéliser des données météorologiques, des prix de marchés agricoles, des
+coûts logistiques et des séries de récoltes, avec un fonctionnement conçu en
+priorité pour le mode hors ligne (offline-first).
 
 ---
 
 ## Fonctionnalités principales
 
-- **Ingestion et E/S unifiées (`kadi.io`)** : Fonctions d'entrée et sortie simples et expressives (`kd.read_csv`, `kd.read_excel`, `kd.read_json`, `kd.read_netcdf`, `kd.read_api`, `kd.write`, `kd.info`) avec détection automatique des formats.
-- **Météorologie agronomique (`kadi.weather`)** : Précipitations et températures hybrides (CHIRPS + Open-Meteo), détection des saisons des pluies (Sivakumar, Walter-Anyadike), bilan hydrique des sols (FAO-56), calcul de l'évapotranspiration (ET0 Hargreaves) et indices de sécheresse (SPI).
-- **Économie agricole & marchés (`kadi.market`)** : Suivi des prix de marché (WFP), prévisions de prix, calculs de coûts logistiques routiers et module d'aide à la décision (`Advisor`) pour l'arbitrage spatial et le stockage stratégique.
-- **Pipeline & Standardisation (`kadi.kidas`)** : Nettoyage (`Cleaner`), validation de schémas (`Validator`), normalisation des noms de cultures et coordonnées GPS (`Normalizer`), et persistance locale sous SQLite (`Cache`).
+- **Ingestion et E/S unifiées (`kadi.io`)** : fonctions expressives `read_csv`,
+  `read_excel`, `read_json`, `read_netcdf`, `read_api` avec détection automatique
+  du format, et leurs équivalents en écriture (`write_csv`, `write_excel`, etc.).
+  Les fonctions `write`, `info` et `ping` fonctionnent avec n'importe quel format.
+
+- **Météorologie agronomique (`kadi.weather`)** : façade `Weather` pour les
+  données météo historiques et prévisionnelles (CHIRPS + Open-Meteo), détection
+  des saisons des pluies (Sivakumar, Walter-Anyadike), bilan hydrique des sols
+  (FAO-56), évapotranspiration (ET0 Hargreaves-Samani) et indices de sécheresse
+  (SPI, Markov, Hurst).
+
+- **Économie agricole et marchés (`kadi.market`)** : façade `Market` pour le
+  suivi des prix réels (WFP/HAPI HumData), prévisions de prix (`Forecasting`),
+  calculs de coûts logistiques routiers (`Logistics`) et aide à la décision
+  (`Advisor`) pour l'arbitrage spatial et le stockage stratégique.
+
+- **Pipeline et standardisation (`kadi.kidas`)** : nettoyage des données brutes
+  (`Cleaner`), validation de schémas (`Validator`), normalisation des noms de
+  cultures et coordonnées GPS (`Normalizer`), persistance SQLite locale (`Cache`)
+  et chaîne de traitement complète (`Pipeline`).
 
 ---
 
@@ -29,7 +48,7 @@ Elle offre une interface unifiée pour ingérer, nettoyer, analyser et modélise
 pip install kadipy
 ```
 
-### Installation depuis les sources
+### Depuis les sources
 
 ```bash
 git clone https://github.com/delsDin/kadipy.git
@@ -37,57 +56,136 @@ cd kadipy
 pip install -e ".[dev]"
 ```
 
-### Dépendances
+### Dépendances optionnelles
 
-**Dépendances principales :**
-- `pandas` (>= 1.5.0)
-- `numpy` (>= 1.21.0)
-- `scipy` (>= 1.7.0)
-- `requests` (>= 2.25.0)
-- `python-dotenv` (>= 0.19.0)
+```bash
+# Support des anciens fichiers Excel (.xls, antérieurs à 2003)
+pip install "kadipy[xls]"
 
-**Dépendances optionnelles :**
-- `xarray` & `netcdf4` : pour le support des fichiers NetCDF
-- `openpyxl` & `xlrd` : pour la lecture des fichiers Excel (.xlsx, .xls)
+# Traitements géospatiaux (découpage de rasters CHIRPS)
+pip install "kadipy[geospatial]"
+```
+
+### Configuration de l'environnement
+
+Créez un fichier `.env` à la racine du projet pour activer les sources de données
+réelles :
+
+```env
+# Clé API WFP DataBridges (facultatif : des données publiques HAPI HumData
+# sont utilisées sans elle)
+WFP_API_Token=votre_cle_ici
+
+# Prix du carburant manuel en XOF/litre (facultatif)
+BENIN_FUEL_PRICE=680
+```
 
 ---
 
 ## Démarrage rapide
 
+### Lecture et inspection des données
+
 ```python
 import kadi as kd
 
-# 1. Chargement et inspection universelle des données
-df = kd.read_csv("donnees_agricoles.csv")
-kd.info(df)
+# Lecture automatique selon le format
+df = kd.read_csv("recolte_2024.csv")
+kd.info("recolte_2024.csv")     # Métadonnées : lignes, colonnes, types
+kd.ping("recolte_2024.csv")     # Vérifie l'accessibilité du fichier
+```
 
-# 2. Nettoyage et préparation avec Kidas
+### Nettoyage et préparation
+
+```python
+import kadi as kd
+
+df = kd.read_csv("enquete_prix_2024.csv")
+
 cleaner = kd.Cleaner(df)
-df_clean = (
+df_propre = (
     cleaner
+    .fix_encoding()
     .drop_dupes()
-    .fill_missing(strategy="median")
-    .drop_outliers(method="iqr")
+    .fill_missing(strategy="median", columns=["prix_xof_kg", "quantite_kg"])
+    .drop_outliers(method="iqr", columns=["prix_xof_kg"])
+    .normalize_text(columns=["culture", "marche"])
 )
+```
 
-# 3. Analyse météorologique pour Parakou
-weather = kd.Weather(lat=9.33, lon=2.63, name="Parakou")
-previsions = weather.forecast(days=5)
-onset_date = weather.onset()
-print(f"Début estimé de la saison des pluies : {onset_date['onset_date']}")
+### Analyse météorologique
 
-# 4. Modélisation économique et opportunités d'arbitrage
+```python
+import kadi as kd
+
+weather = kd.Weather(lat=9.3333, lon=2.6333, name="Parakou")
+
+# Probabilité de pluie demain
+prob = weather.rain_probability(days_ahead=1)
+print(prob["recommendation"])
+
+# Indice de sécheresse SPI sur 3 mois
+secheresse = weather.drought_index(method="spi", window_months=3)
+print(f"Sévérité : {secheresse['drought_severity']}")
+
+# Démarrage de la saison des pluies
+onset = weather.onset()
+print(f"Début estimé : {onset['onset_date']}")
+```
+
+### Analyse de marché
+
+```python
+import kadi as kd
+
+marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
+
+# Prix du maïs sur 90 jours
+resume = marche.price_crop("maize", days_back=90)
+print(f"Prix médian : {resume['prix_median']} XOF/kg")
+print(f"Source : {'réelle' if not resume['is_simulated'] else 'simulée'}")
+```
+
+### Intégration météo + marché
+
+```python
+import kadi as kd
+
+weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
 marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
+
+# Décision d'arbitrage spatial
 decision = marche.advisor.arbitrage(
     crop="maize",
     origine="Parakou",
     destination="Cotonou",
     qty_tons=10.0,
 )
-
 print(f"Recommandation : {decision['recommandation']}")
-print(f"Gain net estimé : {decision['gain_net_percent']:.1f}%")
-print(f"Score de confiance : {decision['confidence_score']:.0%}")
+print(f"Gain net : {decision['gain_net_percent']:.1f}%")
+print(f"Confiance : {decision['confidence_score']:.0%}")
+
+# Risque climatique global (intègre les prévisions météo)
+risque = marche.climate_risk(days_ahead=7)
+print(risque["recommendation"])
+```
+
+### Pipeline complet de traitement
+
+```python
+from kadi.kidas import Pipeline
+
+df, rapport = (
+    Pipeline()
+    .load("donnees_marche.xlsx")
+    .clean("all")
+    .validate({"culture": "str", "rendement_kg": "float"})
+    .normalize({"crops": "culture"})
+    .run(cache=True)
+)
+
+print(f"Score de qualité : {rapport.get('quality_score')}")
+print(f"Lignes en sortie : {rapport['nb_rows_out']}")
 ```
 
 ---
@@ -96,22 +194,92 @@ print(f"Score de confiance : {decision['confidence_score']:.0%}")
 
 | Module | Façade / Fonctions | Description |
 |--------|---------------------|-------------|
-| `kadi.io` | `read_csv`, `read_excel`, `read_json`, `write`, `info`, `ping` | Entrées et sorties unifiées avec détection automatique |
-| `kadi.weather` | `Weather` | Interface météo, prévisions, historique et indicateurs agronomiques |
-| `kadi.market` | `Market`, `Advisor` | Analyse économique, suivi des prix, logistique et aide à la décision |
-| `kadi.kidas` | `Cleaner`, `Validator`, `Normalizer`, `Pipeline`, `Cache` | Traitement, contrôle de qualité et persistance SQLite |
+| `kadi.io` | `read_csv`, `read_excel`, `read_json`, `read_netcdf`, `read_api`, `write`, `info`, `ping` | Entrées et sorties avec détection automatique du format |
+| `kadi.weather` | `Weather`, `Location` | Météo, prévisions, historique et indicateurs agronomiques |
+| `kadi.market` | `Market`, `Pricing`, `Forecasting`, `Logistics`, `Advisor` | Analyse économique, prix, logistique et aide à la décision |
+| `kadi.kidas` | `Cleaner`, `Validator`, `Normalizer`, `Pipeline`, `Cache` | Traitement, contrôle qualité et persistance SQLite |
+
+---
+
+## Structure du projet
+
+```
+kadipy/
+├── kadi/
+│   ├── io/              # Entrées et sorties unifiées
+│   ├── market/          # Économie agricole et marchés
+│   ├── weather/         # Météorologie agronomique
+│   ├── kidas/           # Pipeline de traitement et standardisation
+│   ├── _sources/        # Clients externes (WFP, CHIRPS, SoilGrids)
+│   ├── cache.py         # Cache SQLite partagé
+│   ├── config.py        # Configuration centralisée
+│   └── exceptions.py    # Exceptions personnalisées
+├── tests/               # Suite de tests (pytest)
+├── docs/                # Documentation MkDocs
+├── examples/            # Notebooks d'exemples Jupyter
+├── config/              # Fichiers de configuration
+└── pyproject.toml       # Dépendances et métadonnées du package
+```
+
+---
+
+## Lancer les tests
+
+```bash
+# Exécution simple
+pytest tests/ -q
+
+# Avec rapport de couverture de code
+pytest tests/ --cov=kadi --cov-report=term-missing
+```
+
+Les tests couvrent l'ensemble des modules (`io`, `market`, `weather`, `kidas`),
+y compris les connecteurs distants sans dépendance réseau et les composants
+d'infrastructure (`kadi.cache`, `kadi.config`). Aucune clé API n'est nécessaire
+pour les exécuter. La CI GitHub Actions contrôle que la couverture globale reste
+supérieure à **70 %**.
+
+---
+
+## Rétrocompatibilité
+
+Les anciens noms de classes issus des versions antérieures à v1.2.0 sont
+conservés et émettent un `DeprecationWarning` pour guider la migration :
+
+| Ancien nom (avant v1.2.0) | Nouveau nom |
+|---------------------------|-------------|
+| `WeatherSession` | `Weather` |
+| `DataCleaner` | `Cleaner` |
+| `DataValidator` | `Validator` |
+| `DataNormalizer` | `Normalizer` |
+| `DataCache` | `Cache` |
+| `DataPipeline` | `Pipeline` |
+| `CSVDataSource` | `CSVSource` |
+
+Ces anciens noms seront supprimés dans KadiPy v2.0.
+
+---
+
+## Zone géographique (v1.x)
+
+KadiPy v1.x est conçu **exclusivement pour le Bénin**. La validation des
+coordonnées GPS, les algorithmes phénologiques, les facteurs logistiques et les
+données de prix sont calibrés pour le contexte béninois.
+
+Le support d'autres pays d'Afrique de l'Ouest est prévu dans les versions futures.
 
 ---
 
 ## Documentation
 
-La documentation officielle complète (tutoriels, guides d'API, exemples) est disponible sur :
+La documentation complète (guides d'API, exemples) est disponible sur :
 **https://delsDin.github.io/kadipy/**
 
 ---
 
-## Licence & Contribution
+## Licence et contribution
 
 - **Licence** : MIT
 - **Dépôt GitHub** : https://github.com/delsDin/kadipy
 - **Compatibilité Python** : >= 3.9
+- **Version courante** : 1.2.0

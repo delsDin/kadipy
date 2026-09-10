@@ -1,57 +1,89 @@
 # Prévisions de prix (`kadi.market.forecasting`)
 
-Le module `MarketForecasting` anticipe l'évolution future des prix agricoles
-en combinant un modèle de réseau de neurones (`MLPRegressor`) et une régression
-linéaire. Il produit un prix prédit accompagné d'intervalles de confiance.
+La classe `Forecasting` prédit le prix futur d'une culture à partir de
+l'historique de prix. Le modèle est une régression linéaire enrichie de
+features saisonnières (harmoniques de Fourier), entraînée à la demande
+sur les données fournies. Si l'historique est insuffisant (moins de 20
+observations), un fallback simulé clairement signalé est retourné.
 
 ---
 
-## Principe de fonctionnement
+## Importation directe
 
-Le modèle s'entraîne sur l'historique des prix d'un marché et d'une culture
-donnés. Les caractéristiques (`features`) utilisées pour la prédiction sont :
-
-- Le mois de l'année (saisonnalité)
-- Le jour de la semaine
-- Le prix médian sur les 7, 14 et 30 derniers jours (inertie du marché)
-- Le prix de la même période l'année précédente (effet annuel)
-
-L'incertitude de la prédiction est représentée par le RMSE calculé sur les
-données historiques, traduit en intervalles `low_90` et `high_90`.
+```python
+from kadi.market import Forecasting
+```
 
 ---
 
 ## Initialisation
 
-```python
-from kadi.market.forecasting import MarketForecasting
-
-forecasting = MarketForecasting()
-```
-
-Via la façade `Market` (recommandé) :
+`Forecasting` est créée automatiquement par `Market` et accessible via
+`market.forecast`. Pour une instanciation directe :
 
 ```python
-from kadi.market import Market
+from kadi.market import Forecasting
 
-marche = Market(lat=9.30, lon=2.08, location="Parakou")
-# marche.forecasting est un MarketForecasting prêt à l'emploi
+forecast = Forecasting()
 ```
+
+Le module n'a pas d'état persistant : le modèle est entraîné à chaque
+appel de `predict()` sur les données fournies.
 
 ---
 
 ## Méthodes
 
-### `predict_price(crop, market, days_ahead)`
+### `predict(crop, market, ahead, ci, hist)`
 
-Prédit le prix d'une culture sur un marché donné à un horizon futur.
+Prédit le prix futur d'une culture sur un marché donné.
+
+**Pipeline interne :**
+
+1. Validation de l'historique (minimum 20 points). Si insuffisant,
+   bascule sur le fallback simulé.
+2. Construction des features : tendance linéaire + 2 harmoniques de
+   Fourier (annuelle et semi-annuelle sur 365/182.5 jours).
+3. Entraînement d'une régression linéaire sur l'historique complet.
+4. Calcul du RMSE par validation croisée temporelle (TimeSeriesSplit,
+   3 folds).
+5. Calcul de l'intervalle de prévision basé sur le RMSE réel, avec
+   croissance en racine carrée du temps.
 
 ```python
-prevision = forecasting.predict_price(
+import kadi as kd
+
+marche = kd.Market(lat=9.3, lon=2.3, location="Parakou")
+
+# Récupération de l'historique
+df = marche.pricing.fetch("maize", "parakou", days=365)
+
+# Prévision à 30 jours avec intervalle de confiance 90%
+prev = marche.forecast.predict(
     crop="maize",
-    market="Parakou",
-    days_ahead=30,
+    market="parakou",
+    ahead=30,
+    ci=0.9,
+    hist=df,
 )
+
+print(f"Prix prédit  : {prev['predicted_price']:.2f} XOF/kg")
+print(f"Intervalle   : [{prev['low_90']:.2f}, {prev['high_90']:.2f}]")
+print(f"RMSE         : {prev['rmse']} XOF/kg")
+print(f"Modèle       : {prev['model_used']}")
+print(f"Historique   : {prev['nb_history_pts']} points")
+print(f"Simulé       : {prev['is_simulated']}")
+print(f"Confiance    : {prev['confidence_score']:.2f}")
+```
+
+Via la façade Market (pipeline complet en un seul appel) :
+
+```python
+# Market.predict() gère automatiquement la récupération de l'historique
+prev = marche.predict("maize", ahead=30, confidence_interval=0.9, days=365)
+
+print(f"Prix prédit dans 30j : {prev['predicted_price']} XOF/kg")
+print(f"Horizon utilisé      : {prev['ahead']} jours")
 ```
 
 **Paramètres :**
@@ -59,79 +91,59 @@ prevision = forecasting.predict_price(
 | Nom | Type | Défaut | Description |
 |-----|------|--------|-------------|
 | `crop` | `str` | requis | Code de la culture (ex: `'maize'`) |
-| `market` | `str` | requis | Nom du marché (ex: `'Parakou'`) |
-| `days_ahead` | `int` | `30` | Horizon de prévision en jours |
+| `market` | `str` | requis | Nom normalisé du marché (ex: `'cotonou'`) |
+| `ahead` | `int` | `7` | Horizon de prévision en jours |
+| `ci` | `float` | `0.9` | Niveau de confiance : `0.9` (90%) ou `0.95` (95%) |
+| `hist` | `pd.DataFrame` | `None` | Historique avec colonnes `'date'` et `'price'` |
 
 **Retour :** `dict`
 
 | Clé | Type | Description |
 |-----|------|-------------|
-| `predicted_price` | `float` | Prix prédit en XOF/kg |
-| `low_90` | `float` | Borne basse de l'intervalle de confiance à 90% |
-| `high_90` | `float` | Borne haute de l'intervalle de confiance à 90% |
-| `rmse` | `float` | Erreur quadratique moyenne historique |
-| `crop` | `str` | Culture prédite |
-| `market` | `str` | Marché de référence |
-| `horizon_days` | `int` | Horizon de prévision utilisé |
+| `predicted_price` | `float` | Prix predit en XOF/kg |
+| `low_90` | `float` | Borne inferieure de l'intervalle de confiance |
+| `high_90` | `float` | Borne superieure de l'intervalle de confiance |
+| `confidence` | `float` | Niveau de confiance utilise (0.9 ou 0.95) |
+| `model_used` | `str` | `'linear_regression_fourier'` ou `'fallback_simule'` |
+| `rmse` | `float` | RMSE en XOF/kg (None si fallback simule) |
+| `is_simulated` | `bool` | True si les donnees source sont simulees |
+| `confidence_score` | `float` | Score de fiabilite (0.0 a 1.0) |
+| `nb_history_pts` | `int` | Nombre de points d'historique utilises |
+| `days_ahead` | `int` | Horizon de prevision utilise |
+
+**Score de confiance :**
+
+Le score de confiance est calculé selon :
+
+```
+score_source = 0.10 si is_simulated, 0.85 sinon
+facteur_volume = min(1.0, nb_pts / 100.0)
+confidence_score = score_source * (0.5 + 0.5 * facteur_volume)
+```
+
+Un score de `0.85` est le maximum atteignable avec des données réelles.
+Un score de `0.0` indique un fallback entièrement simulé.
+
+**Fallback simulé :**
+
+Activé si `hist` est absent ou contient moins de 20 observations valides.
+Retourne `predicted_price=300.0` XOF/kg avec `is_simulated=True` et
+`confidence_score=0.0`. Ne pas utiliser pour des décisions commerciales.
 
 ---
 
-## Exemples
+## Méthode dépréciée
 
-### Prévision simple
+| Ancienne méthode | Remplacée par | Depuis |
+|------------------|---------------|--------|
+| `predict_price(crop, market, days_ahead, historique)` | `predict(crop, market, ahead, hist)` | v1.2.0 |
 
-```python
-from kadi.market import Market
+## Classe dépréciée
 
-marche = Market(lat=9.30, lon=2.08, location="Parakou")
-
-prevision = marche.forecasting.predict_price("rice", "Parakou", days_ahead=60)
-
-print(f"Prix prévu dans 60 jours : {prevision['predicted_price']:.2f} XOF/kg")
-print(f"Fourchette haute         : {prevision['high_90']:.2f} XOF/kg")
-print(f"Fourchette basse         : {prevision['low_90']:.2f} XOF/kg")
-```
-
-### Prévision via la façade Market
-
-La façade `Market` enrichit la prévision avec le cache SQLite et le contexte
-du marché (lieu, date de calcul).
-
-```python
-prevision = marche.forecast_price("maize", days_ahead=90)
-
-print(f"Marché     : {prevision['market']}")
-print(f"Culture    : {prevision['crop']}")
-print(f"Prix prévu : {prevision['predicted_price']:.2f} XOF/kg")
-```
-
-### Interprétation des intervalles
-
-```python
-prev = marche.forecasting.predict_price("cowpea", "Cotonou", days_ahead=30)
-
-marge = prev['high_90'] - prev['low_90']
-print(f"Incertitude sur le prix : ± {marge / 2:.2f} XOF/kg")
-
-if prev['predicted_price'] > prev['rmse'] * 2:
-    print("Prévision jugée fiable (signal fort devant le bruit)")
-else:
-    print("Prévision à prendre avec précaution (données insuffisantes)")
-```
+| Ancien nom | Remplacé par | Depuis |
+|------------|--------------|--------|
+| `MarketForecasting` | `Forecasting` | v1.2.0 |
 
 ---
 
-## Limites et perspectives
-
-Le modèle actuel (V1) convient bien pour un prototype. Il présente les limites
-suivantes que les versions futures adresseront :
-
-| Limite | Amélioration envisagée |
-|--------|------------------------|
-| MLPRegressor généraliste | Modèles LSTM ou Facebook Prophet (séries temporelles) |
-| Pas de saisonnalité explicite | Décomposition STL + cycle de soudure béninois |
-| Pas de facteurs exogènes | Intégration du SPI et de l'indice de végétation NDVI |
-
----
-
-::: kadi.market.forecasting.MarketForecasting
+::: kadi.market.forecasting.Forecasting

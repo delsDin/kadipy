@@ -1,6 +1,6 @@
 site_name: KadiPy - Documentation Officielle
 site_description: >
-  Le “pandas” de l'agriculture africaine. Interface Python unifiée pour les données
+  Le "pandas" de l'agriculture africaine. Interface Python unifiée pour les données
   météo, de marché et de récoltes au Bénin.
 site_author: Dels Dinla
 site_url: https://delsDin.github.io/kadipy/
@@ -82,27 +82,30 @@ markdown_extensions:
 nav:
   - Accueil: index.md
 
+  - io:
+      - Entrées et sorties: io.md
+
   - market:
       - Vue d'ensemble: market/index.md
-      - Tarification (pricing): market/pricing.md
-      - Prévisions (forecasting): market/forecasting.md
-      - Logistique: market/logistics.md
-      - Aide à la décision: market/decision_support.md
-      - Ingestion des données: market/data_ingestion.md
+      - Tarification (Pricing): market/pricing.md
+      - Prévisions (Forecasting): market/forecasting.md
+      - Logistique (Logistics): market/logistics.md
+      - Aide à la décision (Advisor): market/decision_support.md
 
   - weather:
       - Vue d'ensemble: weather/index.md
-      - Session météo: weather/session.md
+      - Façade (Weather): weather/session.md
       - Phénologie: weather/phenology.md
       - Hydrologie: weather/hydrology.md
-      - Risques climatiques: weather/risk.md
+      - Risques climatiques (Risk): weather/risk.md
 
   - kidas:
       - Vue d'ensemble: kidas/index.md
       - Pipeline: kidas/pipeline.md
-      - Nettoyage: kidas/cleaner.md
-      - Validation: kidas/validator.md
-      - Normalisation: kidas/normalizer.md
+      - Nettoyage (Cleaner): kidas/cleaner.md
+      - Validation (Validator): kidas/validator.md
+      - Normalisation (Normalizer): kidas/normalizer.md
+      - Sources de données: kidas/sources.md
 
 extra:
   social:
@@ -110,7 +113,7 @@ extra:
       link: https://github.com/delsDin/kadipy
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/delsdinla/
-      
+
   version:
     provider: mike
 
