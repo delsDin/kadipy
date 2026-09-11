@@ -271,6 +271,7 @@ rapport = cleaner.report()
 | `lignes_initiales` | `int` | Nombre de lignes avant tout nettoyage |
 | `lignes_finales` | `int` | Nombre de lignes après nettoyage |
 | `colonnes_initiales` | `int` | Nombre de colonnes à l'initialisation |
+| `colonnes_finales` | `int` | Nombre de colonnes après nettoyage |
 | `doublons_supprimes` | `int` | Total des doublons supprimés |
 | `nan_traites` | `int` | Total des valeurs manquantes traitées |
 | `outliers_detectes` | `int` | Total des outliers supprimés |

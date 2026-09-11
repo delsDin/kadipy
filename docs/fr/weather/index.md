@@ -354,6 +354,10 @@ loc = Location(lat=9.3333, lon=2.6333)
 loader = WeatherLoader(loc)
 ```
 
+`cache` est optionnel. Si fourni, il désigne le répertoire de cache passé par
+la façade `Weather`. En pratique, `WeatherLoader` est instancié automatiquement
+par `Weather` et rarement utilisé directement.
+
 **Attributs :**
 
 | Attribut | Type | Description |

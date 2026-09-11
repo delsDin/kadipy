@@ -221,7 +221,7 @@ ajoutées.
 
 ---
 
-### `std_coords(lat, lon)`
+### `std_coords(lat=None, lon=None)`
 
 Crée une colonne `geometry` contenant des objets `shapely.geometry.Point`
 à partir des colonnes de latitude et longitude.
@@ -231,10 +231,14 @@ df_norm = normalizer.std_coords(lat="latitude", lon="longitude")
 # Colonne 'geometry' ajoutée : Point(lon, lat) pour chaque ligne
 ```
 
-| Paramètre | Type | Description |
-|-----------|------|-------------|
-| `lat` | `str` | Nom de la colonne de latitude |
-| `lon` | `str` | Nom de la colonne de longitude |
+| Paramètre | Type | Défaut | Description |
+|-----------|------|--------|-------------|
+| `lat` | `str` ou `None` | `None` | Nom de la colonne de latitude |
+| `lon` | `str` ou `None` | `None` | Nom de la colonne de longitude |
+
+Si `lat` ou `lon` est `None` ou désigne une colonne absente du DataFrame,
+un avertissement est émis dans les logs et le DataFrame est retourné sans
+modification.
 
 Les lignes dont la latitude ou la longitude est `NaN` reçoivent `None`
 dans la colonne `geometry`.

@@ -8,7 +8,7 @@ repo_url: https://github.com/delsDin/kadipy
 repo_name: delsDin/kadipy
 edit_uri: ""
 
-docs_dir: docs
+docs_dir: docs/fr
 site_dir: site
 
 theme:

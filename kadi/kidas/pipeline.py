@@ -548,25 +548,46 @@ class Pipeline:
             elif type_etape == "normalization":
                 # Application des normalisations demandées
                 normalizer = Normalizer(self._df)
-                mappings = params.get("mappings", {})
 
-                # Normalisation des noms de colonnes si demandé
-                if "columns" in mappings or mappings.get("normalize_columns"):
-                    normalizer.norm_cols()
+                # Méthodes disponibles directement par nom via add_step
+                _methodes_directes = {
+                    "norm_cols", "convert_units", "convert_currency",
+                    "std_crops", "std_markets", "std_coords", "mappings",
+                }
 
-                # Normalisation des noms de cultures si demandé
-                if "crops" in mappings:
-                    normalizer.std_crops(col=mappings["crops"])
+                if nom_methode in _methodes_directes:
+                    # Dispatch direct : appel de la méthode par son nom
+                    if not hasattr(normalizer, nom_methode):
+                        raise PipelineError(
+                            f"Méthode de normalisation '{nom_methode}' inconnue."
+                        )
+                    resultat = getattr(normalizer, nom_methode)(**params)
+                    # mappings() retourne un dict, les autres retournent un DataFrame
+                    if isinstance(resultat, pd.DataFrame):
+                        self._df = resultat
 
-                # Normalisation des unités si demandé
-                if "units" in mappings:
-                    normalizer.convert_units(unit_map=mappings["units"])
+                else:
+                    # Ancien mécanisme via le dict 'mappings' (rétrocompatibilité)
+                    mappings = params.get("mappings", {})
 
-                # Normalisation des marchés si demandé
-                if "markets" in mappings:
-                    normalizer.std_markets(col=mappings["markets"])
+                    # Normalisation des noms de colonnes si demandé
+                    if "columns" in mappings or mappings.get("normalize_columns"):
+                        normalizer.norm_cols()
 
-                self._df = normalizer.df
+                    # Normalisation des noms de cultures si demandé
+                    if "crops" in mappings:
+                        normalizer.std_crops(col=mappings["crops"])
+
+                    # Normalisation des unités si demandé
+                    if "units" in mappings:
+                        normalizer.convert_units(unit_map=mappings["units"])
+
+                    # Normalisation des marchés si demandé
+                    if "markets" in mappings:
+                        normalizer.std_markets(col=mappings["markets"])
+
+                    self._df = normalizer.df
+
                 self._reports["normalisation"] = normalizer.mappings()
 
         except PipelineError:
