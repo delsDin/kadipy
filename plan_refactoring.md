@@ -278,47 +278,47 @@ from kadi.kidas import Cleaner, Validator, Normalizer, Pipeline, Cache
 
 ---
 
-## Phase 8 — Tests et documentation
+## Phase 8 — Tests et documentation (7/7 Terminé)
 
 ### Tests
 
-- `[ ]` **8.1** Mettre à jour tous les imports dans `tests/` pour utiliser les
+- `[x]` **8.1** Mettre à jour tous les imports dans `tests/` pour utiliser les
   nouveaux noms.
-- `[ ]` **8.2** Ajouter des tests spécifiques pour les nouvelles fonctions de
+- `[x]` **8.2** Ajouter des tests spécifiques pour les nouvelles fonctions de
   premier niveau (`read_csv`, `read_excel`, `read_json`).
-- `[ ]` **8.3** Vérifier la couverture finale.
+- `[x]` **8.3** Vérifier la couverture finale.
   ```bash
   pytest --cov=kadi --cov-report=term-missing -q > .refactor_coverage_after.txt
   diff .refactor_coverage_before.txt .refactor_coverage_after.txt
   ```
-- `[ ]` **8.4** Vérifier le respect des règles PEP8.
+- `[x]` **8.4** Vérifier le respect des règles PEP8.
   ```bash
   flake8 kadi/ --max-line-length=88
   ```
 
 ### Documentation
 
-- `[ ]` **8.5** Mettre à jour le `README.md` avec les nouveaux exemples
+- `[x]` **8.5** Mettre à jour le `README.md` avec les nouveaux exemples
   d'utilisation.
-- `[ ]` **8.6** Mettre à jour la documentation dans `docs/` si elle existe.
-- `[ ]` **8.7** Vérifier que toutes les docstrings des classes et méthodes
+- `[x]` **8.6** Mettre à jour la documentation dans `docs/` si elle existe.
+- `[x]` **8.7** Vérifier que toutes les docstrings des classes et méthodes
   renommées sont mises à jour (en français, selon les règles du projet).
 
 ---
 
-## Phase 9 — Finalisation
+## Phase 9 — Finalisation (4/4 Terminé)
 
-- `[ ]` **9.1** Lancer la suite de tests complète une dernière fois.
+- `[x]` **9.1** Lancer la suite de tests complète une dernière fois.
   ```bash
   pytest -v
   ```
-- `[ ]` **9.2** Vérifier la liste des exports publics dans chaque `__init__.py`.
-- `[ ]` **9.3** Créer un commit propre.
+- `[x]` **9.2** Vérifier la liste des exports publics dans chaque `__init__.py`.
+- `[x]` **9.3** Créer un commit propre.
   ```bash
   git add -A
   git commit -m "refactor: simplification de l'API publique (noms et chemins)"
   ```
-- `[ ]` **9.4** Ouvrir une Pull Request vers `main` pour revue.
+- `[x]` **9.4** Ouvrir une Pull Request vers `main` pour revue.
 
 ---
 
