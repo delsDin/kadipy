@@ -8,7 +8,7 @@ repo_url: https://github.com/delsDin/kadipy
 repo_name: delsDin/kadipy
 edit_uri: ""
 
-docs_dir: docs/fr
+docs_dir: docs
 site_dir: site
 
 theme:
@@ -46,7 +46,48 @@ theme:
 
 plugins:
   - search:
-      lang: fr
+      lang:
+        - fr
+        - en
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      languages:
+        - locale: fr
+          name: Français
+          build: true
+          default: true
+        - locale: en
+          name: English
+          build: true
+          site_name: KadiPy - Official Documentation
+          nav:
+            - Home: index.md
+
+            - io:
+                - Input/Output: io.md
+
+            - market:
+                - Overview: market/index.md
+                - Pricing: market/pricing.md
+                - Forecasting: market/forecasting.md
+                - Logistics: market/logistics.md
+                - Decision Support: market/decision_support.md
+
+            - weather:
+                - Overview: weather/index.md
+                - Weather Facade: weather/session.md
+                - Phenology: weather/phenology.md
+                - Hydrology: weather/hydrology.md
+                - Climate Risk: weather/risk.md
+
+            - kidas:
+                - Overview: kidas/index.md
+                - Pipeline: kidas/pipeline.md
+                - Cleaner: kidas/cleaner.md
+                - Validator: kidas/validator.md
+                - Normalizer: kidas/normalizer.md
+                - Data Sources: kidas/sources.md
   - mkdocstrings:
       handlers:
         python:
@@ -108,6 +149,14 @@ nav:
       - Sources de données: kidas/sources.md
 
 extra:
+  alternate:
+    - name: Français
+      link: ./
+      lang: fr
+    - name: English
+      link: en/
+      lang: en
+
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/delsDin/kadipy

@@ -54,5 +54,5 @@ jobs:
       # La version est extraite depuis le tag git ou fixée à "latest"
       - name: Publication avec mike
         run: |
-          mike deploy --push --update-aliases 1.1.0 latest
+          mike deploy --push --update-aliases 1.2.0 latest
           mike set-default --push latest
