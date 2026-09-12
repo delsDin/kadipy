@@ -3,57 +3,7 @@
 Ce document présente le planning des versions à venir de KadiPy.
 Il est mis à jour à chaque cycle de release ou à la demande du commiters principaux.
 
-**Dernière mise à jour :** 02 septembre 2026
-
----
-
-## En cours — Refactoring de l'API publique
-
-Priorité absolue avant toute nouvelle fonctionnalité. L'objectif est de
-simplifier radicalement l'expérience développeur en raccourcissant les chemins
-d'importation et en uniformisant la nomenclature des classes, méthodes et
-attributs sur le modèle de Pandas et scikit-learn.
-
-**Périmètre du chantier :**
-
-- 26 classes renommées ou fusionnées (suppression des préfixes redondants :
-  `Data`, `Market`, `Kidas`, `WeatherSession` -> `Weather`, etc.)
-- ~140 méthodes et attributs renommés ou traduits en anglais
-- 4 nouveaux points d'entrée raccourcis (`kadi.Weather`, `kadi.Market`,
-  `kadi.Cleaner`, `kadi.read_csv`, etc.)
-- 1 doublon supprimé (`WFPDataBridgesClient` présent à deux endroits)
-- 15 exceptions simplifiées (suffixe `Error` unifié, préfixe `Kidas` supprimé)
-
-**Objectif d'utilisation après refactoring :**
-
-```python
-import kadi as kd
-
-ws = kd.Weather(lat=12.5, lon=-1.5, name="Ouagadougou")
-mk = kd.Market(lat=12.5, lon=-1.5, location="Ouagadougou", weather_session=ws)
-
-df = kd.read_csv("donnees.csv")
-pipeline = kd.Pipeline().load("source.csv").clean("all").run()
-```
-
-**Phases du refactoring** (ordre strict) :
-
-| Phase | Périmètre | Statut |
-|---|---|---|
-| 0 | Préparation (branche, couverture de base) | Planifié |
-| 1 | Exceptions (`kadi/exceptions.py`) | Planifié |
-| 2 | Sources de données (`kadi/kidas/sources/`) | Planifié |
-| 3 | Pipeline KIDAS (`kadi/kidas/`) | Planifié |
-| 4 | Clients externes (`kadi/_sources/`) | Planifié |
-| 5 | Module weather (`kadi/weather/`) | Planifié |
-| 6 | Module market (`kadi/market/`) | Planifié |
-| 7 | Point d'entrée racine (`kadi/__init__.py`) | Planifié |
-| 8 | Tests et documentation | Planifié |
-| 9 | Finalisation et PR | Planifié |
-
-Le détail complet de chaque phase est documenté dans `_tmp_plan_refactoring.md`
-et les propositions de renommage élément par élément dans
-`_tmp_propositions_renommage.md`.
+**Dernière mise à jour :** 12 septembre 2026
 
 ---
 
