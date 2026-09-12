@@ -1,0 +1,1616 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Le "pandas" de l'agriculture africaine. Interface Python unifiée pour les données météo, de marché et de récoltes au Bénin.
+">
+      
+      
+        <meta name="author" content="Dels Dinla">
+      
+      
+        <link rel="canonical" href="https://delsDin.github.io/kadipy/1.2.0/en/dev/analyse/analyse_1.0.0/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="../../../../dev/analyse/analyse_1.0.0/" hreflang="fr">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Rapport d'analyse technique — KadiPy v1.0.0 - KadiPy - Official Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rapport-danalyse-technique-kadipy-v100" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../" title="KadiPy - Official Documentation" class="md-header__button md-logo" aria-label="KadiPy - Official Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KadiPy - Official Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Rapport d'analyse technique — KadiPy v1.0.0
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Passer en mode sombre"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Passer en mode sombre" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Passer en mode clair"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Passer en mode clair" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../../dev/analyse/analyse_1.0.0/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/delsDin/kadipy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    delsDin/kadipy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../io/" class="md-tabs__link">
+          
+  
+  
+  io
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../market/" class="md-tabs__link">
+          
+  
+  
+  market
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../weather/" class="md-tabs__link">
+          
+  
+  
+  weather
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../kidas/" class="md-tabs__link">
+          
+  
+  
+  kidas
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../" title="KadiPy - Official Documentation" class="md-nav__button md-logo" aria-label="KadiPy - Official Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KadiPy - Official Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/delsDin/kadipy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    delsDin/kadipy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    io
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    io
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input/Output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    market
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    market
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../market/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../market/pricing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pricing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../market/forecasting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Forecasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../market/logistics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../market/decision_support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    weather
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    weather
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../weather/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../weather/session/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weather Facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../weather/phenology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phenology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../weather/hydrology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hydrology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../weather/risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate Risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    kidas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    kidas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kidas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kidas/pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kidas/cleaner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cleaner
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kidas/validator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kidas/normalizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalizer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../kidas/sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="rapport-danalyse-technique-kadipy-v100">Rapport d'analyse technique — KadiPy v1.0.0<a class="headerlink" href="#rapport-danalyse-technique-kadipy-v100" title="Permanent link">&para;</a></h1>
+<p><strong>Date de l'analyse :</strong> 25 juillet 2026</p>
+<p><strong>Branche analysée :</strong> <code>main</code></p>
+<p><strong>Périmètre :</strong> code source complet du package (<code>kadi/</code>), tests (<code>tests/</code>),
+configuration (<code>pyproject.toml</code>, <code>pytest.ini</code>, <code>config/</code>), documentation.</p>
+<hr />
+<h2 id="1-presentation-du-projet">1. Présentation du projet<a class="headerlink" href="#1-presentation-du-projet" title="Permanent link">&para;</a></h2>
+<p>KadiPy est une bibliothèque Python conçue pour les agronomes et développeurs travaillant sur les données agricoles au Bénin et en Afrique de l'Ouest. Son positionnement est celui d'un « pandas de l'agriculture africaine », avec une approche offline-first pour les contextes de connectivité limitée.
+Le package est structuré en trois modules principaux :
+- <strong><code>kadi.weather</code></strong> : données météo, phénologie, hydrologie, indicateurs de risque
+- <strong><code>kadi.market</code></strong> : prix des cultures, prévisions, logistique, aide à la décision
+- <strong><code>kadi.kidas</code></strong> : pipeline de traitement des données agricoles locales (CSV, Excel, etc.)
+L'infrastructure commune est assurée par <code>kadi.cache</code> (SQLite), <code>kadi.config</code> et <code>kadi.exceptions</code>.</p>
+<hr />
+<h2 id="2-points-forts-du-projet">2. Points forts du projet<a class="headerlink" href="#2-points-forts-du-projet" title="Permanent link">&para;</a></h2>
+<p>Avant de présenter les problèmes, il est juste de reconnaître la qualité générale du travail accompli.</p>
+<p><strong>Architecture cohérente.</strong> Les trois modules suivent le même patron : une façade de haut niveau (<code>WeatherSession</code>, <code>Market</code>, <code>DataPipeline</code>) qui orchestre des sous-classes spécialisées. Cela facilite la navigation et la maintenance.</p>
+<p><strong>Gestion des pannes réseau.</strong> La logique offline-first est bien implémentée.
+Chaque module dispose d'un mécanisme de repli en cascade : cache SQLite, puis données simulées avec <code>is_simulated=True</code>. Le flag est propagé à travers toute la chaîne d'appels, ce qui est une bonne pratique.</p>
+<p><strong>Documentation interne.</strong> Les docstrings sont présents sur la quasi-totalité des méthodes publiques et respectent une structure cohérente (Args, Returns, Raises). Les commentaires inline expliquent les choix techniques non évidents.</p>
+<p><strong>Validation des entrées.</strong> Le module <code>market</code> valide les coordonnées GPS et les types dès le constructeur. Le module <code>kidas</code> valide les types dans <code>DataCleaner</code>.</p>
+<p><strong>Exceptions personnalisées.</strong> La hiérarchie d'exceptions est bien pensée (<code>KadiException</code> vers <code>DataSourceError</code>, <code>CacheError</code>, <code>KidasReadError</code>, etc.). Elle permet à l'utilisateur d'attraper des erreurs de manière ciblée.</p>
+<hr />
+<h2 id="3-analyse-par-module">3. Analyse par module<a class="headerlink" href="#3-analyse-par-module" title="Permanent link">&para;</a></h2>
+<h3 id="31-module-kadiweather">3.1 Module <code>kadi.weather</code><a class="headerlink" href="#31-module-kadiweather" title="Permanent link">&para;</a></h3>
+<p><strong>Ce qui fonctionne bien :</strong></p>
+<ul>
+<li>L'API fluide de <code>WeatherSession</code> est agréable à utiliser.</li>
+<li>Le calcul de l'exposant de Hurst (R/S multi-échelle) est une implémentation sérieuse, bien commentée, avec une régression log-log correctement mise en oeuvre.</li>
+<li><code>_normalize_data()</code> gère bien les valeurs aberrantes de température et l'interpolation sur les lacunes courtes.</li>
+<li>La combinaison Markov + API dans <code>rain_probability()</code> est une approche solide pour les zones à faible couverture réseau.</li>
+</ul>
+<p><strong>Problèmes identifiés :</strong></p>
+<p><em>Problème 1 : La source CHIRPS est désactivée sans mention dans la documentation.</em></p>
+<p>Dans <code>session.py</code>, la source CHIRPS est commentée avec la mention « désactivé pour V1, réactivation prévue en V2 ». Mais le fichier <code>kadi/_sources/chirps.py</code> existe et n'est jamais importé. Le README annonce pourtant « Prévisions et historiques via Open-Meteo et CHIRPS ». C'est une inexactitude qui peut tromper les utilisateurs.</p>
+<p><em>Problème 2 : Alias <code>temperature_avg</code> / <code>temperature_mean</code> fragile.</em></p>
+<p>Dans <code>data.py</code>, les colonnes <code>temperature_avg</code> (issue du cache) et <code>temperature_mean</code> (issue de l'API) sont gérées par des alias conditionnels à plusieurs endroits. Cette duplication est une source d'erreurs futures si l'on ajoute une nouvelle source de données.</p>
+<p><em>Problème 3 : SPI calculé via un Z-score, pas via une loi Gamma.</em></p>
+<p>Dans <code>risk.py</code> ligne 88, un commentaire admet explicitement que le SPI est calculé par approximation (Z-score) plutôt que par la méthode standard (ajustement d'une loi Gamma via <code>scipy.stats.gamma.fit</code>). Pour un outil destiné à des agronomes, cette approximation peut produire des valeurs incorrectes, surtout en période sèche ou dans les régions où la distribution des pluies est fortement asymétrique.</p>
+<hr />
+<h3 id="32-module-kadimarket">3.2 Module <code>kadi.market</code><a class="headerlink" href="#32-module-kadimarket" title="Permanent link">&para;</a></h3>
+<p><strong>Ce qui fonctionne bien :</strong></p>
+<ul>
+<li>Le pipeline <code>Market.price_crop()</code> est complet : récupération, normalisation, détection d'anomalies, interpolation, statistiques.</li>
+<li>La propagation du flag <code>is_simulated</code> à travers toute la chaîne est exemplaire.</li>
+<li>Le module <code>backtesting.py</code> est bien conçu : fenêtres glissantes, MAE, RMSE, MAPE, précision directionnelle. La séparation entre <code>run()</code> et <code>summary_report()</code> est une bonne décision d'API.</li>
+<li>L'intégration météo (Phase 4) pour ajuster <code>gamma_route</code> en fonction de la pluie prévue est une idée pertinente, bien exécutée.</li>
+</ul>
+<p><strong>Problèmes identifiés :</strong></p>
+<p><em>Problème 4 : Bornes géographiques non centralisées dans <code>market/__init__.py</code>.</em></p>
+<p>Les constantes <code>_LAT_MIN = 6.0</code>, <code>_LAT_MAX = 12.5</code>, <code>_LON_MIN = 0.5</code>, <code>_LON_MAX = 3.9</code> sont définies en dur dans <code>market/__init__.py</code> lignes 22 à 25, au lieu de lire depuis <code>CONFIG["weather"]["gps_validation_bbox"]</code>. Cela duplique la configuration et risque de créer des incohérences si les bornes sont mises à jour dans <code>config.py</code>.</p>
+<p><em>Problème 5 : <code>get_market_functionality_index()</code> retourne une valeur codée en dur.</em></p>
+<p>Dans <code>data_ingestion.py</code> ligne 615 environ, la méthode retourne toujours <code>7.9</code> sans aucun calcul réel. Cette méthode est exposée publiquement, mais n'a aucune utilité concrète pour l'utilisateur en l'état. Il faut soit la supprimer, soit la déclarer explicitement comme non implémentée avec une <code>NotImplementedError</code>.</p>
+<p><em>Problème 6 : <code>storage_vs_sell_now()</code> force <code>is_simulated=True</code> même avec données réelles.</em></p>
+<p>Dans <code>decision_support.py</code>, ligne 324, le code force <code>est_simule = True</code> avec le commentaire « Le module forecasting V1 reste un stub », écrasant le flag réel retourné par <code>predict_price()</code>. Cela signifie que même avec un historique WFP réel, la recommandation de stockage est toujours marquée comme simulée, ce qui est trompeur pour l'utilisateur.</p>
+<p><em>Problème 7 : Valeur de repli <code>revenu_attendu_cfa</code> codée en dur dans <code>_portfolio_heuristique()</code>.</em></p>
+<p>Dans <code>decision_support.py</code> ligne 582, le revenu de repli est <code>1_500_000.0</code> XOF sans aucun calcul sous-jacent. Cette valeur sans contexte peut induire en erreur l'utilisateur qui lirait ce champ sans consulter le flag <code>methode: 'heuristique'</code>.</p>
+<hr />
+<h3 id="33-module-kadikidas">3.3 Module <code>kadi.kidas</code><a class="headerlink" href="#33-module-kadikidas" title="Permanent link">&para;</a></h3>
+<p><strong>Ce qui fonctionne bien :</strong></p>
+<ul>
+<li>
+<p>L'auto-détection du type de source (CSV, Excel, JSON, NetCDF, API) par extension est solide et extensible.</p>
+</li>
+<li>
+<p><code>DataCleaner</code> implémente toutes les stratégies utiles : IQR, Z-score, MAD.</p>
+</li>
+<li>
+<p>Le rapport de nettoyage est structuré et journalise chaque opération.</p>
+</li>
+<li>
+<p>Le pipeline fluide (<code>source().clean().validate().normalize()</code>) est agréable à utiliser.</p>
+</li>
+</ul>
+<p><strong>Problème connu et documenté :</strong></p>
+<p><em>Problème 8 : Incohérence entre <code>execute()</code> et la documentation (bug.md)(déjà corrigé).</em></p>
+<p>C'est le bug déjà consigné dans <code>bug.md</code>. La documentation indique que <code>execute()</code> retourne un rapport avec les clés <code>steps_summary</code>, <code>quality_score</code>, <code>warnings</code>, <code>nb_rows_in</code>, <code>nb_rows_out</code>. Le code retourne en réalité un dictionnaire avec les clés <code>source</code>, <code>etapes_appliquees</code>, <code>nettoyage</code>, <code>validation</code>, <code>normalisation</code>, <code>cache_utilise</code>, <code>lignes_finales</code>. Le champ <code>quality_score</code> n'est présent que si une étape de validation est incluse dans le pipeline.
+Ce bug est bloquant pour tout utilisateur qui s'appuie sur la documentation.</p>
+<p><strong>Autres problèmes :</strong></p>
+<p><em>Problème 9 : <code>nb_dates_corrigees</code> calculé incorrectement dans <code>fix_dates()</code>.</em></p>
+<p>Dans <code>cleaner.py</code> lignes 362 à 363 :</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">nb_corrigees</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nb_avant</span> <span class="o">-</span> <span class="p">(</span><span class="n">nb_avant</span> <span class="o">-</span> <span class="n">nb_apres</span><span class="p">))</span>  <span class="c1"># Toujours egal a nb_apres</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">nb_dates_corrigees</span> <span class="o">+=</span> <span class="n">nb_avant</span>                         <span class="c1"># On accumule nb_avant, pas nb_corrigees</span>
+</span></code></pre></div>
+<p>La variable <code>nb_corrigees</code> est calculée mais jamais utilisée. Le rapport accumule <code>nb_avant</code> au lieu du nombre réel de dates converties. C'est un bug silencieux : le rapport de nettoyage affiche un chiffre gonflé.</p>
+<p><em>Problème 10 : Clé de cache non sécurisée dans <code>execute()</code>.</em></p>
+<p>Dans <code>pipeline.py</code>, la clé de cache est construite à partir du chemin brut du fichier source. Si le chemin contient des caractères spéciaux, cela peut provoquer des collisions de clés ou des erreurs d'encodage. Un hachage SHA256 du chemin serait plus robuste.</p>
+<hr />
+<h3 id="34-infrastructure-commune-cachepy-configpy-exceptionspy">3.4 Infrastructure commune (<code>cache.py</code>, <code>config.py</code>, <code>exceptions.py</code>)<a class="headerlink" href="#34-infrastructure-commune-cachepy-configpy-exceptionspy" title="Permanent link">&para;</a></h3>
+<p><strong>Problème 11 : <code>MODELS_DIR</code> pointe vers un dossier inexistant.</strong></p>
+<p>Dans <code>config.py</code> ligne 33 environ :</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">MODELS_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"_ml"</span> <span class="o">/</span> <span class="s2">"models"</span>
+</span></code></pre></div>
+<p>Le répertoire <code>kadi/_ml/</code> n'existe pas dans le dépôt. <code>MODELS_DIR</code> n'est référencé nulle part dans le code de production. C'est une configuration morte qui laisse entendre qu'un module ML était prévu mais jamais livré.</p>
+<p><strong>Problème 12 : <code>EXCHANGE_RATES</code> statiques sans mise à jour automatique.</strong></p>
+<p>Dans <code>config.py</code>, le commentaire indique « Mise à jour quotidienne prévue » mais aucun mécanisme n'est implémenté. Les taux XOF/USD et XOF/EUR utilisés dans <code>pricing.py</code> sont donc figés à leur valeur d'initialisation.</p>
+<p><strong>Problème 13 : <code>requirements.txt</code> désynchronisé avec <code>pyproject.toml</code>.</strong></p>
+<p>Le fichier <code>requirements.txt</code> déclare <code>xlrd&lt;2.0</code> et <code>dask&gt;=2023.1</code>, qui sontabsents de <code>pyproject.toml</code>. Or <code>pyproject.toml</code> est la source de vérité pour<code>pip install kadipy</code>. Un utilisateur installant le package via PyPI n'aura ni la lecture des fichiers <code>.xls</code> anciens, ni le support Dask. Ce fichier est probablement un résidu de développement créant une confusion sur les dépendances réelles.</p>
+<hr />
+<h3 id="35-tests">3.5 Tests<a class="headerlink" href="#35-tests" title="Permanent link">&para;</a></h3>
+<p>La couverture est globalement satisfaisante pour un projet V1 :</p>
+<ul>
+<li><code>tests/test_market/</code> : 3 fichiers (composants, intégration, backtesting)</li>
+<li><code>tests/test_kidas/</code> : 4 fichiers (sources CSV, traitement, pipeline)</li>
+<li><code>tests/weather/</code> : 7 fichiers (par composant)</li>
+</ul>
+<p><strong>Manques identifiés :</strong></p>
+<p><em>Problème 14 : Absence de tests directs pour <code>kadi.cache</code>.</em></p>
+<p>Les fonctions <code>get_connection()</code> et <code>init_db()</code> de <code>kadi/cache.py</code> ne sont pas testées directement. Elles sont le socle du mode offline-first et méritent des tests unitaires avec une base de données temporaire (<code>tmp_path</code>).</p>
+<p><em>Problème 15 : Pas de test pour <code>kadi.config</code>.</em></p>
+<p>Aucun test ne vérifie que la configuration se charge correctement ou que les variables d'environnement (ex: <code>OPENMETEO_API_URL</code>) surchargent bien les valeurs par défaut.</p>
+<p><em>Problème 16 : Absence de mesure de couverture dans la CI.</em></p>
+<p>Il n'y a pas de rapport de couverture (<code>pytest-cov</code>) dans le workflow GitHub Actions. Il est impossible de savoir quelle proportion du code est actuellement couverte par les tests ou de détecter une régression de couverture.</p>
+<hr />
+<h2 id="4-tableau-recapitulatif">4. Tableau récapitulatif<a class="headerlink" href="#4-tableau-recapitulatif" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Module</th>
+<th>Sévérité</th>
+<th>Description courte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>weather</code></td>
+<td>Moyenne</td>
+<td>CHIRPS annoncé dans le README mais désactivé sans mention</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>weather</code></td>
+<td>Faible</td>
+<td>Alias <code>temperature_avg/mean</code> dupliqué dans plusieurs fichiers</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>weather</code></td>
+<td>Haute</td>
+<td>SPI approximé par Z-score plutôt que par loi Gamma</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>market</code></td>
+<td>Haute</td>
+<td>Bornes GPS dupliquées en dur au lieu de lire <code>CONFIG</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>market</code></td>
+<td>Moyenne</td>
+<td><code>get_market_functionality_index()</code> retourne toujours 7.9</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>market</code></td>
+<td>Haute</td>
+<td><code>storage_vs_sell_now()</code> force <code>is_simulated=True</code> sur données réelles</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>market</code></td>
+<td>Faible</td>
+<td>Valeur magique <code>1_500_000</code> codée en dur dans le fallback heuristique</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>kidas</code></td>
+<td>Critique</td>
+<td>Structure du rapport de <code>execute()</code> ne correspond pas à la documentation</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>kidas</code></td>
+<td>Haute</td>
+<td><code>nb_dates_corrigees</code> calculé incorrectement dans <code>fix_dates()</code></td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>kidas</code></td>
+<td>Faible</td>
+<td>Clé de cache non hachée, risque de collision avec chemins spéciaux</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>config</code></td>
+<td>Faible</td>
+<td><code>MODELS_DIR</code> pointe vers <code>kadi/_ml/</code> qui n'existe pas</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>config</code></td>
+<td>Moyenne</td>
+<td><code>EXCHANGE_RATES</code> statiques, mise à jour prévue non implémentée</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>config</code></td>
+<td>Haute</td>
+<td><code>requirements.txt</code> désynchronisé avec <code>pyproject.toml</code></td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>tests</code></td>
+<td>Moyenne</td>
+<td><code>kadi.cache</code> non testé directement</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>tests</code></td>
+<td>Faible</td>
+<td><code>kadi.config</code> non testé</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>CI</code></td>
+<td>Moyenne</td>
+<td>Pas de rapport de couverture pytest-cov dans la CI</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-ameliorations-urgentes-pour-la-version-110">5. Améliorations urgentes pour la version 1.1.0<a class="headerlink" href="#5-ameliorations-urgentes-pour-la-version-110" title="Permanent link">&para;</a></h2>
+<p>Les corrections sont classées par ordre de priorité décroissante.</p>
+<hr />
+<h3 id="priorite-1-corriger-le-bug-du-rapport-de-pipeline-probleme-8">Priorité 1 — Corriger le bug du rapport de pipeline (Problème 8)<a class="headerlink" href="#priorite-1-corriger-le-bug-du-rapport-de-pipeline-probleme-8" title="Permanent link">&para;</a></h3>
+<p>C'est le seul bug critique qui peut bloquer des utilisateurs directement. La documentation et le code produisent des structures différentes pour le rapport de <code>execute()</code>. Il faut choisir une structure définitive et aligner les deux.</p>
+<p><strong>Action recommandée :</strong> adopter la structure documentée (plus lisible) et modifier le code de <code>execute()</code> dans <code>pipeline.py</code> pour la produire :</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">rapport</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="s2">"nb_rows_in"</span><span class="p">:</span> <span class="n">lignes_avant</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="s2">"nb_rows_out"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_df</span><span class="p">),</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="s2">"steps_summary"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="s2">"nom"</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_etapes</span><span class="p">],</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="s2">"quality_score"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rapports</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"quality_score"</span><span class="p">),</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="s2">"warnings"</span><span class="p">:</span> <span class="p">[],</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="s2">"cache_utilise"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="s2">"details"</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="s2">"source"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rapports</span><span class="p">[</span><span class="s2">"source"</span><span class="p">],</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="s2">"nettoyage"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rapports</span><span class="p">[</span><span class="s2">"nettoyage"</span><span class="p">],</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="s2">"validation"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rapports</span><span class="p">[</span><span class="s2">"validation"</span><span class="p">],</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>        <span class="s2">"normalisation"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rapports</span><span class="p">[</span><span class="s2">"normalisation"</span><span class="p">],</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="p">}</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-2-corriger-storage_vs_sell_now-probleme-6">Priorité 2 — Corriger <code>storage_vs_sell_now()</code> (Problème 6)<a class="headerlink" href="#priorite-2-corriger-storage_vs_sell_now-probleme-6" title="Permanent link">&para;</a></h3>
+<p>Dans <code>decision_support.py</code>, supprimer la ligne qui force <code>est_simule = True</code> apres l'appel a <code>predict_price()</code>. Le flag doit etre propage depuis le resultat :</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Avant (incorrect)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">est_simule</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Le module forecasting V1 reste un stub</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Apres (correct)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">est_simule</span> <span class="o">=</span> <span class="n">prevision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"is_simulated"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-3-reconcilier-requirementstxt-et-pyprojecttoml-probleme-13">Priorité 3 — Reconcilier <code>requirements.txt</code> et <code>pyproject.toml</code> (Problème 13)<a class="headerlink" href="#priorite-3-reconcilier-requirementstxt-et-pyprojecttoml-probleme-13" title="Permanent link">&para;</a></h3>
+<p>Supprimer <code>requirements.txt</code> ou le regenerer a partir de <code>pyproject.toml</code>. Si <code>xlrd</code> est necessaire pour les vieux fichiers <code>.xls</code> l'ajouter dans les dependances optionnelles de <code>pyproject.toml</code> :</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[project.optional-dependencies]</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">xls</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"xlrd&lt;2.0"</span><span class="p">]</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-4-corriger-le-spi-probleme-3">Priorité 4 — Corriger le SPI (Problème 3)<a class="headerlink" href="#priorite-4-corriger-le-spi-probleme-3" title="Permanent link">&para;</a></h3>
+<p>Remplacer l'approximation Z-score par un ajustement de loi Gamma dans <code>risk.py</code>. <code>scipy.stats</code> est deja une dependance du projet.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">gamma</span> <span class="k">as</span> <span class="n">gamma_dist</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">valid_data</span> <span class="o">=</span> <span class="n">rolling_sum</span><span class="p">[</span><span class="n">rolling_sum</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">shape</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">gamma_dist</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">valid_data</span><span class="p">,</span> <span class="n">floc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">prob_cumul</span> <span class="o">=</span> <span class="n">gamma_dist</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">current_val</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Conversion en score SPI via la loi normale inverse</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">norm</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">spi_val</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">prob_cumul</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-5-centraliser-les-bornes-gps-du-module-market-probleme-4">Priorité 5 — Centraliser les bornes GPS du module <code>market</code> (Problème 4)<a class="headerlink" href="#priorite-5-centraliser-les-bornes-gps-du-module-market-probleme-4" title="Permanent link">&para;</a></h3>
+<p>Dans <code>market/__init__.py</code>, remplacer les constantes en dur par une lecture depuis <code>CONFIG</code> :</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">_bbox</span> <span class="o">=</span> <span class="n">CONFIG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"weather"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"gps_validation_bbox"</span><span class="p">,</span> <span class="p">{})</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">_LAT_MIN</span> <span class="o">=</span> <span class="n">_bbox</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"min_lat"</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">_LAT_MAX</span> <span class="o">=</span> <span class="n">_bbox</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max_lat"</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">_LON_MIN</span> <span class="o">=</span> <span class="n">_bbox</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"min_lon"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">_LON_MAX</span> <span class="o">=</span> <span class="n">_bbox</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max_lon"</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-6-corriger-fix_dates-dans-datacleaner-probleme-9">Priorité 6 — Corriger <code>fix_dates()</code> dans <code>DataCleaner</code> (Problème 9)<a class="headerlink" href="#priorite-6-corriger-fix_dates-dans-datacleaner-probleme-9" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Avant (incorrect)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">nb_corrigees</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nb_avant</span> <span class="o">-</span> <span class="p">(</span><span class="n">nb_avant</span> <span class="o">-</span> <span class="n">nb_apres</span><span class="p">))</span>  <span class="c1"># toujours = nb_apres</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">nb_dates_corrigees</span> <span class="o">+=</span> <span class="n">nb_avant</span>                         <span class="c1"># mauvais compteur</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Apres (correct)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">nb_corrigees</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nb_apres</span><span class="p">)</span>   <span class="c1"># nombre de dates effectivement converties</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">nb_dates_corrigees</span> <span class="o">+=</span> <span class="n">nb_corrigees</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-7-supprimer-ou-declarer-get_market_functionality_index-probleme-5">Priorité 7 — Supprimer ou declarer <code>get_market_functionality_index()</code> (Problème 5)<a class="headerlink" href="#priorite-7-supprimer-ou-declarer-get_market_functionality_index-probleme-5" title="Permanent link">&para;</a></h3>
+<p>Lever une <code>NotImplementedError</code> explicite jusqu'a ce qu'une vraie source de donnees soit integree :</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_market_functionality_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">market_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>        <span class="s2">"get_market_functionality_index() n'est pas encore implementee. "</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>        <span class="s2">"Elle sera disponible apres integration de la source FEWSNET."</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="priorite-8-ajouter-pytest-cov-a-la-ci-probleme-16">Priorité 8 — Ajouter <code>pytest-cov</code> a la CI (Problème 16)<a class="headerlink" href="#priorite-8-ajouter-pytest-cov-a-la-ci-probleme-16" title="Permanent link">&para;</a></h3>
+<p>Ajouter dans le workflow GitHub Actions :</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Lancer les tests avec couverture</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="no">pytest tests/ --cov=kadi --cov-report=xml --cov-report=term-missing</span>
+</span></code></pre></div>
+<p>Un seuil minimal peut etre fixe avec <code>--cov-fail-under=70</code> pour detecter
+toute regression.</p>
+<hr />
+<h3 id="priorite-9-integration-transparente-de-lapi-wfp-databridges-nouvelle-fonctionnalite-v110">Priorité 9 — Intégration transparente de l'API WFP DataBridges (Nouvelle fonctionnalité v1.1.0)<a class="headerlink" href="#priorite-9-integration-transparente-de-lapi-wfp-databridges-nouvelle-fonctionnalite-v110" title="Permanent link">&para;</a></h3>
+<p>Dans la version 1.1.0, l'API WFP (World Food Programme DataBridges) sera directement intégrée pour le chargement des données de prix réelles. L'utilisateur n'aura pas besoin d'inscrire ou d'injecter une clé API personnelle (<code>WFP_API_Token</code>). Le client gérera automatiquement l'accès transparent aux endpoints publics ou l'utilisation d'un jeton par défaut embarqué.</p>
+<hr />
+<h2 id="6-problemes-de-moindre-urgence-v120-ou-ulterieure">6. Problemes de moindre urgence (V1.2.0 ou ulterieure)<a class="headerlink" href="#6-problemes-de-moindre-urgence-v120-ou-ulterieure" title="Permanent link">&para;</a></h2>
+<p>Ces points ne bloquent pas le fonctionnement actuel.</p>
+<ul>
+<li>
+<p><strong>Problème 2</strong> : refactorer l'alias <code>temperature_avg/mean</code> en une seule colonne canonique avec une migration du cache SQLite si necessaire.</p>
+</li>
+<li>
+<p><strong>Problème 10</strong> : securiser la cle de cache dans <code>execute()</code> avec <code>hashlib.sha256(path.encode()).hexdigest()[:16]</code>.</p>
+</li>
+<li>
+<p><strong>Problème 11</strong> : supprimer <code>MODELS_DIR</code> de <code>config.py</code> ou creer le dossier <code>kadi/_ml/models/</code> et le documenter.</p>
+</li>
+<li>
+<p><strong>Problème 12</strong> : mettre en place une mise a jour des taux de change via un fichier JSON heberge, similaire au mecanisme deja en place pour les prix du carburant dans <code>logistics.py</code>.</p>
+</li>
+<li>
+<p><strong>Problème 1</strong> : mettre a jour le README pour retirer la mention de CHIRPS ou ajouter une note explicite « fonctionnalite en cours de developpement ».</p>
+</li>
+<li>
+<p><strong>Problème 7</strong> : remplacer la valeur magique <code>1_500_000</code> dans <code>_portfolio_heuristique()</code> par un calcul base sur les prix et rendements de reference.</p>
+</li>
+<li>
+<p><strong>Problèmes 14 et 15</strong> : ecrire des tests unitaires pour <code>kadi.cache</code> et <code>kadi.config</code> en utilisant des fixtures <code>tmp_path</code> et <code>monkeypatch</code>.</p>
+</li>
+</ul>
+<hr />
+<h2 id="7-conclusion">7. Conclusion<a class="headerlink" href="#7-conclusion" title="Permanent link">&para;</a></h2>
+<p>KadiPy v1.0.0 est un package sérieux et bien architecturé pour un premier release. Les trois modules fonctionnent ensemble de façon cohérente, la gestion du mode hors ligne est une vraie valeur ajoutée, et la qualité de la documentation interne est au-dessus de la moyenne des projets open source de cette taille.</p>
+<p>Les corrections prioritaires pour la v1.1.0 se concentrent sur trois axes :</p>
+<ol>
+<li>
+<p><strong>Exactitude des données :</strong> le bug du rapport de pipeline (Problème 8), le flag <code>is_simulated</code> incorrectement force (Problème 6), et le compteur de dates errone (Problème 9) induisent les utilisateurs en erreur sur la qualite des donnees qu'ils traitent.</p>
+</li>
+<li>
+<p><strong>Accès direct aux données WFP :</strong> intégration de l'API WFP sans nécessiter de clé utilisateur, permettant un chargement instantané des données de marché réelles.</p>
+</li>
+<li>
+<p><strong>Coherence de la configuration :</strong> la desynchronisation entre <code>requirements.txt</code> et <code>pyproject.toml</code> (Problème 13) peut creer des problemes d'installation chez les utilisateurs finaux.</p>
+</li>
+</ol>
+<p>La correction de l'exactitude scientifique du SPI (Problème 3) et la centralisation des bornes GPS (Problème 4) peuvent suivre sans urgence absolue, mais sont importantes pour la credibilite du package aupres des agronomes et chercheurs qui constituent le public cible.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Dels Dinla -  KadiPy Contributors - Bénin, Afrique de l'Ouest
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/delsDin/kadipy" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/delsdinla/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "toc.integrate", "content.code.copy", "content.code.annotate", "search.suggest", "search.highlight"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3126 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Le "pandas" de l'agriculture africaine. Interface Python unifiée pour les données météo, de marché et de récoltes au Bénin.
+">
+      
+      
+        <meta name="author" content="Dels Dinla">
+      
+      
+        <link rel="canonical" href="https://delsDin.github.io/kadipy/1.2.0/en/dev/renommage/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="../../../dev/renommage/" hreflang="fr">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Renommage - kadipy - KadiPy - Official Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#renommage-kadipy" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="KadiPy - Official Documentation" class="md-header__button md-logo" aria-label="KadiPy - Official Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KadiPy - Official Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Renommage - kadipy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Passer en mode sombre"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Passer en mode sombre" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Passer en mode clair"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Passer en mode clair" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../dev/renommage/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/delsDin/kadipy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    delsDin/kadipy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../io/" class="md-tabs__link">
+          
+  
+  
+  io
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../market/" class="md-tabs__link">
+          
+  
+  
+  market
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../weather/" class="md-tabs__link">
+          
+  
+  
+  weather
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../kidas/" class="md-tabs__link">
+          
+  
+  
+  kidas
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="KadiPy - Official Documentation" class="md-nav__button md-logo" aria-label="KadiPy - Official Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KadiPy - Official Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/delsDin/kadipy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    delsDin/kadipy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    io
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    io
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input/Output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    market
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    market
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../market/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../market/pricing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pricing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../market/forecasting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Forecasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../market/logistics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../market/decision_support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    weather
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    weather
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../weather/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../weather/session/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weather Facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../weather/phenology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phenology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../weather/hydrology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hydrology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../weather/risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Climate Risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    kidas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    kidas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kidas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kidas/pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kidas/cleaner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cleaner
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kidas/validator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kidas/normalizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Normalizer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../kidas/sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="renommage-kadipy">Renommage - kadipy<a class="headerlink" href="#renommage-kadipy" title="Permanent link">&para;</a></h1>
+<p>Chaque élément actuel (classe, méthode, attribut) est mis en regard de sa
+proposition améliorée. Les conventions retenues s'inspirent de Pandas et de
+l'écosystème scientifique Python : noms courts, sans préfixe redondant,
+entièrement en anglais, lisibles en un coup d'oeil.</p>
+<p>Convention : <code>_</code> en tête = méthode/attribut interne (inchangé).</p>
+<hr />
+<h2 id="1-chemins-dimportation-modules">1. Chemins d'importation (modules)<a class="headerlink" href="#1-chemins-dimportation-modules" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Chemin actuel</th>
+<th>Chemin proposé</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kadi.kidas.sources.csv_source</code></td>
+<td><code>kadi.io</code> (via <code>__init__</code>)</td>
+<td>Accès direct depuis le niveau <code>kadi</code></td>
+</tr>
+<tr>
+<td><code>kadi.kidas.sources.excel_source</code></td>
+<td><code>kadi.io</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.sources.json_source</code></td>
+<td><code>kadi.io</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.sources.netcdf_source</code></td>
+<td><code>kadi.io</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.sources.api_source</code></td>
+<td><code>kadi.io</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.cleaner</code></td>
+<td><code>kadi.kidas</code></td>
+<td>Exposé directement dans <code>kadi.kidas</code></td>
+</tr>
+<tr>
+<td><code>kadi.kidas.validator</code></td>
+<td><code>kadi.kidas</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.normalizer</code></td>
+<td><code>kadi.kidas</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.pipeline</code></td>
+<td><code>kadi.kidas</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.kidas.cache</code></td>
+<td><code>kadi.kidas</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>kadi.weather.session</code></td>
+<td><code>kadi.weather</code></td>
+<td><code>WeatherSession</code> devient <code>Weather</code>, exposé au niveau <code>kadi</code></td>
+</tr>
+<tr>
+<td><code>kadi.market.__init__</code></td>
+<td><code>kadi.market</code></td>
+<td><code>Market</code> déjà en façade, ok</td>
+</tr>
+<tr>
+<td><code>kadi._sources.exchange_client</code></td>
+<td>Privé, inchangé</td>
+<td>Interne, non public</td>
+</tr>
+<tr>
+<td><code>kadi._sources.wfp_client</code></td>
+<td>Privé, inchangé</td>
+<td>Interne, non public</td>
+</tr>
+<tr>
+<td><code>kadi.market.data_ingestion</code></td>
+<td>Fusionner dans <code>kadi._sources.wfp_client</code></td>
+<td>Doublon à supprimer</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-exceptions-kadiexceptions">2. Exceptions — <code>kadi.exceptions</code><a class="headerlink" href="#2-exceptions-kadiexceptions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nom actuel</th>
+<th>Nom proposé</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KadiException</code></td>
+<td><code>KadiError</code></td>
+<td>Suffixe <code>Error</code> est le standard Python (<code>ValueError</code>, <code>IOError</code>)</td>
+</tr>
+<tr>
+<td><code>DataSourceError</code></td>
+<td><code>SourceError</code></td>
+<td>Préfixe <code>Data</code> redondant dans ce contexte</td>
+</tr>
+<tr>
+<td><code>CacheError</code></td>
+<td><code>CacheError</code></td>
+<td>Déjà bon, conservé</td>
+</tr>
+<tr>
+<td><code>ValidationError</code></td>
+<td><code>ValidationError</code></td>
+<td>Déjà bon, conservé</td>
+</tr>
+<tr>
+<td><code>OfflineError</code></td>
+<td><code>OfflineError</code></td>
+<td>Déjà bon, conservé</td>
+</tr>
+<tr>
+<td><code>LocationNotFound</code></td>
+<td><code>LocationError</code></td>
+<td>Plus cohérent avec le suffixe <code>Error</code></td>
+</tr>
+<tr>
+<td><code>CropNotFound</code></td>
+<td><code>CropError</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>InsufficientData</code></td>
+<td><code>DataError</code></td>
+<td>Plus court et cohérent</td>
+</tr>
+<tr>
+<td><code>KidasReadError</code></td>
+<td><code>ReadError</code></td>
+<td>Préfixe <code>Kidas</code> redondant si dans <code>kadi.exceptions</code></td>
+</tr>
+<tr>
+<td><code>KidasWriteError</code></td>
+<td><code>WriteError</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>KidasConnectionError</code></td>
+<td><code>ConnectionError</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>KidasCleaningError</code></td>
+<td><code>CleanError</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>KidasValidationError</code></td>
+<td>Fusionner avec <code>ValidationError</code></td>
+<td>Doublon</td>
+</tr>
+<tr>
+<td><code>KidasCacheError</code></td>
+<td>Fusionner avec <code>CacheError</code></td>
+<td>Doublon</td>
+</tr>
+<tr>
+<td><code>KidasPipelineError</code></td>
+<td><code>PipelineError</code></td>
+<td>Préfixe supprimé</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-sources-de-donnees-kadiio">3. Sources de données — <code>kadi.io</code><a class="headerlink" href="#3-sources-de-donnees-kadiio" title="Permanent link">&para;</a></h2>
+<h3 id="classe-de-base-datasource">Classe de base <code>DataSource</code><a class="headerlink" href="#classe-de-base-datasource" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataSource</code> (classe)</td>
+<td><code>Source</code></td>
+<td>Préfixe <code>Data</code> redondant, idem Pandas <code>Index</code>, <code>Series</code></td>
+</tr>
+<tr>
+<td><code>self.source_path</code></td>
+<td><code>self.path</code></td>
+<td>Plus court, sans redondance</td>
+</tr>
+<tr>
+<td><code>self.source_type</code></td>
+<td><code>self.kind</code></td>
+<td>Evite la collision avec <code>type()</code> builtin</td>
+</tr>
+<tr>
+<td><code>self.encoding</code></td>
+<td>inchangé</td>
+<td>Déjà clair</td>
+</tr>
+<tr>
+<td><code>self.last_read</code></td>
+<td><code>self.last_read</code></td>
+<td>Déjà clair</td>
+</tr>
+<tr>
+<td><code>validate_connection()</code></td>
+<td><code>ping()</code></td>
+<td>Plus court et expressif</td>
+</tr>
+<tr>
+<td><code>_update_last_read()</code></td>
+<td><code>_touch()</code></td>
+<td>Analogie UNIX, très claire</td>
+</tr>
+<tr>
+<td><code>get_metadata()</code></td>
+<td><code>info()</code></td>
+<td>Analogie Pandas <code>df.info()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="csvdatasource"><code>CSVDataSource</code><a class="headerlink" href="#csvdatasource" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CSVDataSource</code> (classe)</td>
+<td><code>CSVSource</code></td>
+<td>Suppression du suffixe <code>Data</code></td>
+</tr>
+<tr>
+<td><code>self._detected_delimiter</code></td>
+<td><code>self._sep</code></td>
+<td>Abréviation standard (Pandas utilise <code>sep=</code>)</td>
+</tr>
+<tr>
+<td><code>self._detected_encoding</code></td>
+<td><code>self._enc</code></td>
+<td>Abréviation cohérente</td>
+</tr>
+<tr>
+<td><code>self.decimal</code></td>
+<td>inchangé</td>
+<td>Standard Pandas</td>
+</tr>
+<tr>
+<td><code>self.delimiter</code></td>
+<td><code>self.sep</code></td>
+<td>Alignement sur Pandas</td>
+</tr>
+<tr>
+<td><code>self.file_path</code></td>
+<td><code>self.path</code></td>
+<td>Cohérence avec la classe de base</td>
+</tr>
+<tr>
+<td><code>detect_encoding()</code></td>
+<td><code>_sniff_encoding()</code></td>
+<td><code>detect</code> trop vague, <code>sniff</code> est le terme standard</td>
+</tr>
+<tr>
+<td><code>detect_delimiter()</code></td>
+<td><code>_sniff_sep()</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>read(nrows, skip_rows)</code></td>
+<td><code>read(n, skip)</code></td>
+<td>Paramètres courts, naturels</td>
+</tr>
+<tr>
+<td><code>write(data, index)</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+</tbody>
+</table>
+<h3 id="exceldatasource"><code>ExcelDataSource</code><a class="headerlink" href="#exceldatasource" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExcelDataSource</code> (classe)</td>
+<td><code>ExcelSource</code></td>
+<td>Suppression de <code>Data</code></td>
+</tr>
+<tr>
+<td><code>self._detected_header_row</code></td>
+<td><code>self._header</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.file_path</code></td>
+<td><code>self.path</code></td>
+<td>Cohérence</td>
+</tr>
+<tr>
+<td><code>self.header_row</code></td>
+<td><code>self.header</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.sheet_name</code></td>
+<td><code>self.sheet</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>detect_header_row()</code></td>
+<td><code>_sniff_header()</code></td>
+<td>Cohérence avec <code>CSVSource</code></td>
+</tr>
+<tr>
+<td><code>list_sheets()</code></td>
+<td><code>sheets()</code></td>
+<td>Verbe inutile, <code>df.columns</code> pas <code>list_columns()</code></td>
+</tr>
+<tr>
+<td><code>get_sheet_metadata(sheet_name)</code></td>
+<td><code>sheet_info(sheet)</code></td>
+<td>Cohérence avec <code>info()</code></td>
+</tr>
+<tr>
+<td><code>unmerge_cells(df)</code></td>
+<td><code>_unmerge(df)</code></td>
+<td>Méthode interne, préfixe <code>_</code> ajouté</td>
+</tr>
+</tbody>
+</table>
+<h3 id="jsondatasource"><code>JSONDataSource</code><a class="headerlink" href="#jsondatasource" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>JSONDataSource</code> (classe)</td>
+<td><code>JSONSource</code></td>
+<td>Suppression de <code>Data</code></td>
+</tr>
+<tr>
+<td><code>self._dict_source</code></td>
+<td><code>self._raw</code></td>
+<td>Plus générique et court</td>
+</tr>
+<tr>
+<td><code>self.file_path</code></td>
+<td><code>self.path</code></td>
+<td>Cohérence</td>
+</tr>
+<tr>
+<td><code>flatten_json(json_obj, separateur)</code></td>
+<td><code>flatten(obj, sep)</code></td>
+<td>Sans redondance avec le nom de la classe</td>
+</tr>
+<tr>
+<td><code>_charger_json_brut()</code></td>
+<td><code>_load_raw()</code></td>
+<td>En anglais, cohérent</td>
+</tr>
+</tbody>
+</table>
+<h3 id="netcdfdatasource"><code>NetCDFDataSource</code><a class="headerlink" href="#netcdfdatasource" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NetCDFDataSource</code> (classe)</td>
+<td><code>NetCDFSource</code></td>
+<td>Suppression de <code>Data</code></td>
+</tr>
+<tr>
+<td><code>self._dataset</code></td>
+<td><code>self._ds</code></td>
+<td>Abréviation standard xarray (<code>ds</code>)</td>
+</tr>
+<tr>
+<td><code>self._last_data_array</code></td>
+<td><code>self._da</code></td>
+<td>Abréviation standard xarray (<code>da</code>)</td>
+</tr>
+<tr>
+<td><code>self.file_path</code></td>
+<td><code>self.path</code></td>
+<td>Cohérence</td>
+</tr>
+<tr>
+<td><code>self.use_dask</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>_charger_dataset()</code></td>
+<td><code>_open()</code></td>
+<td>Simple et expressif</td>
+</tr>
+<tr>
+<td><code>get_dimensions()</code></td>
+<td><code>dims()</code></td>
+<td>Analogie xarray <code>ds.dims</code></td>
+</tr>
+<tr>
+<td><code>to_dataframe()</code></td>
+<td><code>to_df()</code></td>
+<td>Abréviation courante</td>
+</tr>
+</tbody>
+</table>
+<h3 id="apidatasource"><code>APIDataSource</code><a class="headerlink" href="#apidatasource" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>APIDataSource</code> (classe)</td>
+<td><code>APISource</code></td>
+<td>Suppression de <code>Data</code></td>
+</tr>
+<tr>
+<td><code>self._last_request_time</code></td>
+<td><code>self._last_req</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self._schema_cache</code></td>
+<td><code>self._schema</code></td>
+<td>Plus simple</td>
+</tr>
+<tr>
+<td><code>self.api_url</code></td>
+<td><code>self.url</code></td>
+<td>Sans redondance (<code>APISource.url</code>, c'est déjà une URL d'API)</td>
+</tr>
+<tr>
+<td><code>self.auth_token</code></td>
+<td><code>self.token</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.rate_limit_per_sec</code></td>
+<td><code>self.rate_limit</code></td>
+<td>L'unité est implicite (sec standard)</td>
+</tr>
+<tr>
+<td><code>_construire_entetes()</code></td>
+<td><code>_build_headers()</code></td>
+<td>En anglais, cohérent</td>
+</tr>
+<tr>
+<td><code>_respecter_rate_limit()</code></td>
+<td><code>_throttle()</code></td>
+<td>Terme technique consacré</td>
+</tr>
+<tr>
+<td><code>fetch_with_retry(params, max_retries, backoff_sec)</code></td>
+<td><code>fetch(params, retries, backoff)</code></td>
+<td>Retrait de <code>with_retry</code> (comportement intégré)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-pipeline-kidas-kadikidas">4. Pipeline KIDAS — <code>kadi.kidas</code><a class="headerlink" href="#4-pipeline-kidas-kadikidas" title="Permanent link">&para;</a></h2>
+<h3 id="datacleaner"><code>DataCleaner</code><a class="headerlink" href="#datacleaner" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataCleaner</code> (classe)</td>
+<td><code>Cleaner</code></td>
+<td>Préfixe <code>Data</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._rapport</code></td>
+<td><code>self._report</code></td>
+<td>En anglais, cohérent avec le reste du code</td>
+</tr>
+<tr>
+<td><code>self.df</code></td>
+<td>inchangé</td>
+<td>Standard universel</td>
+</tr>
+<tr>
+<td><code>remove_duplicates(subset, keep)</code></td>
+<td><code>drop_dupes(subset, keep)</code></td>
+<td><code>drop_</code> préfixe Pandas (<code>drop_duplicates</code>)</td>
+</tr>
+<tr>
+<td><code>handle_missing_values(strategy, columns)</code></td>
+<td><code>fill_missing(strategy, cols)</code></td>
+<td>Plus court et expressif</td>
+</tr>
+<tr>
+<td><code>remove_outliers(method, threshold, columns)</code></td>
+<td><code>drop_outliers(method, thresh, cols)</code></td>
+<td>Cohérence <code>drop_</code> + abréviations</td>
+</tr>
+<tr>
+<td><code>fix_dates(columns, infer_format)</code></td>
+<td><code>parse_dates(cols, infer)</code></td>
+<td>Analogie Pandas <code>parse_dates=</code></td>
+</tr>
+<tr>
+<td><code>standardize_text(columns, case)</code></td>
+<td><code>norm_text(cols, case)</code></td>
+<td><code>norm_</code> préfixe cohérent</td>
+</tr>
+<tr>
+<td><code>remove_special_chars(columns, keep_chars)</code></td>
+<td><code>strip_chars(cols, keep)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>detect_inconsistent_decimals(columns)</code></td>
+<td><code>check_decimals(cols)</code></td>
+<td><code>check_</code> clair et neutre</td>
+</tr>
+<tr>
+<td><code>get_cleaning_report()</code></td>
+<td><code>report()</code></td>
+<td>Cohérence avec <code>info()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="datavalidator"><code>DataValidator</code><a class="headerlink" href="#datavalidator" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataValidator</code> (classe)</td>
+<td><code>Validator</code></td>
+<td>Préfixe <code>Data</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._rapport</code></td>
+<td><code>self._report</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>validate_schema(schema)</code></td>
+<td><code>check_schema(schema)</code></td>
+<td><code>check_</code> plus court que <code>validate_</code></td>
+</tr>
+<tr>
+<td><code>validate_types(column_dtypes)</code></td>
+<td><code>check_types(dtypes)</code></td>
+<td>Idem, paramètre abrégé</td>
+</tr>
+<tr>
+<td><code>validate_ranges(column_bounds)</code></td>
+<td><code>check_ranges(bounds)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>validate_coordinates(lat_col, lon_col, region)</code></td>
+<td><code>check_coords(lat, lon, region)</code></td>
+<td>Abréviation naturelle</td>
+</tr>
+<tr>
+<td><code>validate_uniqueness(columns)</code></td>
+<td><code>check_unique(cols)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>validate_referential_integrity(fk_col, reference_set)</code></td>
+<td><code>check_fk(fk_col, ref)</code></td>
+<td><code>fk</code> = clé étrangère, terme clair</td>
+</tr>
+<tr>
+<td><code>compute_quality_score()</code></td>
+<td><code>quality_score()</code></td>
+<td>Suppression de <code>compute_</code>, résultat direct</td>
+</tr>
+<tr>
+<td><code>get_validation_report()</code></td>
+<td><code>report()</code></td>
+<td>Cohérence</td>
+</tr>
+</tbody>
+</table>
+<h3 id="datanormalizer"><code>DataNormalizer</code><a class="headerlink" href="#datanormalizer" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataNormalizer</code> (classe)</td>
+<td><code>Normalizer</code></td>
+<td>Préfixe <code>Data</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._mappings</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>_vers_snake_case(texte)</code></td>
+<td><code>_to_snake(text)</code></td>
+<td>En anglais, plus court</td>
+</tr>
+<tr>
+<td><code>normalize_column_names(style)</code></td>
+<td><code>norm_cols(style)</code></td>
+<td>Plus direct</td>
+</tr>
+<tr>
+<td><code>normalize_units(unit_map)</code></td>
+<td><code>convert_units(unit_map)</code></td>
+<td><code>convert_</code> plus précis</td>
+</tr>
+<tr>
+<td><code>normalize_currencies(col, from_currency, to_currency, exchange_date)</code></td>
+<td><code>convert_currency(col, from, to, date)</code></td>
+<td>Singulier, paramètres courts</td>
+</tr>
+<tr>
+<td><code>normalize_crop_names(col, target_standard)</code></td>
+<td><code>std_crops(col, std)</code></td>
+<td><code>std_</code> préfixe pour standardisation</td>
+</tr>
+<tr>
+<td><code>normalize_market_names(col, region)</code></td>
+<td><code>std_markets(col, region)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>normalize_geometry(lat_col, lon_col)</code></td>
+<td><code>std_coords(lat, lon)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>get_normalization_mapping()</code></td>
+<td><code>mappings()</code></td>
+<td>Direct, sans verbe</td>
+</tr>
+</tbody>
+</table>
+<h3 id="datacache"><code>DataCache</code><a class="headerlink" href="#datacache" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataCache</code> (classe)</td>
+<td><code>Cache</code></td>
+<td>Préfixe <code>Data</code> redondant</td>
+</tr>
+<tr>
+<td><code>self.cache_dir</code></td>
+<td><code>self.dir</code></td>
+<td>Plus court dans ce contexte</td>
+</tr>
+<tr>
+<td><code>self.db_path</code></td>
+<td><code>self.db</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.max_age_days</code></td>
+<td><code>self.ttl</code></td>
+<td><code>ttl</code> = Time-To-Live, terme standard</td>
+</tr>
+<tr>
+<td><code>_creer_repertoire()</code></td>
+<td><code>_mkdir()</code></td>
+<td>Terme UNIX consacré</td>
+</tr>
+<tr>
+<td><code>_obtenir_connexion()</code></td>
+<td><code>_connect()</code></td>
+<td>Standard</td>
+</tr>
+<tr>
+<td><code>_initialiser_db()</code></td>
+<td><code>_init_db()</code></td>
+<td>Abréviation standard</td>
+</tr>
+<tr>
+<td><code>_serialiser(data)</code></td>
+<td><code>_pack(data)</code></td>
+<td>Court et expressif</td>
+</tr>
+<tr>
+<td><code>_deserialiser(blob)</code></td>
+<td><code>_unpack(blob)</code></td>
+<td>Symétrique</td>
+</tr>
+<tr>
+<td><code>save(key, data, metadata)</code></td>
+<td><code>set(key, data, meta)</code></td>
+<td>Analogie dict/Redis</td>
+</tr>
+<tr>
+<td><code>load(key, check_validity)</code></td>
+<td><code>get(key, check)</code></td>
+<td>Analogie dict/Redis</td>
+</tr>
+<tr>
+<td><code>get_cached_keys()</code></td>
+<td><code>keys()</code></td>
+<td>Analogie dict</td>
+</tr>
+<tr>
+<td><code>invalidate(key)</code></td>
+<td><code>delete(key)</code></td>
+<td>Terme standard</td>
+</tr>
+<tr>
+<td><code>invalidate_older_than(days)</code></td>
+<td><code>purge(days)</code></td>
+<td>Court et précis</td>
+</tr>
+<tr>
+<td><code>get_cache_size()</code></td>
+<td><code>size()</code></td>
+<td>Direct</td>
+</tr>
+<tr>
+<td><code>clear()</code></td>
+<td>inchangé</td>
+<td>Déjà parfait (analogie dict)</td>
+</tr>
+<tr>
+<td><code>get_history(key)</code></td>
+<td><code>history(key)</code></td>
+<td>Sans <code>get_</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="datapipeline"><code>DataPipeline</code><a class="headerlink" href="#datapipeline" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DataPipeline</code> (classe)</td>
+<td><code>Pipeline</code></td>
+<td>Préfixe <code>Data</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._cache</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self._df</code></td>
+<td>inchangé</td>
+<td>Standard</td>
+</tr>
+<tr>
+<td><code>self._etapes</code></td>
+<td><code>self._steps</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>self._lignes_avant</code></td>
+<td><code>self._nrows_in</code></td>
+<td>En anglais, plus précis</td>
+</tr>
+<tr>
+<td><code>self._rapports</code></td>
+<td><code>self._reports</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>self._source</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>_detecter_type_source(source)</code></td>
+<td><code>_detect_kind(source)</code></td>
+<td>En anglais, <code>kind</code> cohérent</td>
+</tr>
+<tr>
+<td><code>load_data(source)</code></td>
+<td><code>load(source)</code></td>
+<td><code>_data</code> redondant</td>
+</tr>
+<tr>
+<td><code>add_cleaning_step(step_name)</code></td>
+<td><code>clean(step)</code></td>
+<td>Verbe direct, sans <code>add_</code></td>
+</tr>
+<tr>
+<td><code>add_validation_step(schema)</code></td>
+<td><code>validate(schema)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>add_normalization_step(mappings)</code></td>
+<td><code>normalize(mappings)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>execute(cache)</code></td>
+<td><code>run(cache)</code></td>
+<td>Terme universel</td>
+</tr>
+<tr>
+<td><code>_extraire_warnings()</code></td>
+<td><code>_collect_warnings()</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_executer_etape(etape)</code></td>
+<td><code>_run_step(step)</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>get_pipeline_config()</code></td>
+<td><code>config()</code></td>
+<td>Sans <code>get_</code></td>
+</tr>
+<tr>
+<td><code>export_report(filepath)</code></td>
+<td><code>export(path)</code></td>
+<td>Plus court</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-module-market-kadimarket">5. Module market — <code>kadi.market</code><a class="headerlink" href="#5-module-market-kadimarket" title="Permanent link">&para;</a></h2>
+<h3 id="market-facade"><code>Market</code> (façade)<a class="headerlink" href="#market-facade" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Market</code> (classe)</td>
+<td>inchangé</td>
+<td>Déjà court et clair</td>
+</tr>
+<tr>
+<td><code>self.decision_support</code></td>
+<td><code>self.advisor</code></td>
+<td>Plus court et expressif</td>
+</tr>
+<tr>
+<td><code>self.forecasting</code></td>
+<td><code>self.forecast</code></td>
+<td>Nom du module, pas de la fonction</td>
+</tr>
+<tr>
+<td><code>self.lat</code></td>
+<td>inchangé</td>
+<td>Standard géographique</td>
+</tr>
+<tr>
+<td><code>self.location</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.logistics</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.lon</code></td>
+<td>inchangé</td>
+<td>Standard géographique</td>
+</tr>
+<tr>
+<td><code>self.pricing</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.simulated</code></td>
+<td><code>self.sim</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.weather_session</code></td>
+<td><code>self.weather</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>price_crop(crop, days_back, normalize_to_xof_kg, simulated)</code></td>
+<td><code>price(crop, days, normalize, sim)</code></td>
+<td>Sans <code>_crop</code>, paramètres courts</td>
+</tr>
+<tr>
+<td><code>predict_price(crop, days_ahead, confidence_interval, days_back, simulated)</code></td>
+<td><code>predict(crop, ahead, ci, days, sim)</code></td>
+<td><code>ci</code> = confidence interval, standard</td>
+</tr>
+<tr>
+<td><code>seasonality(crop, days_back, simulated)</code></td>
+<td><code>seasonality(crop, days, sim)</code></td>
+<td><code>sim</code> = Plus court</td>
+</tr>
+<tr>
+<td><code>assess_climate_risk(days_ahead)</code></td>
+<td><code>climate_risk(ahead)</code></td>
+<td>Sans <code>assess_</code>, plus direct</td>
+</tr>
+</tbody>
+</table>
+<h3 id="marketpricing"><code>MarketPricing</code><a class="headerlink" href="#marketpricing" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MarketPricing</code> (classe)</td>
+<td><code>Pricing</code></td>
+<td>Préfixe <code>Market</code> redondant dans <code>kadi.market</code></td>
+</tr>
+<tr>
+<td><code>self._exchange_rates</code></td>
+<td><code>self._fx</code></td>
+<td><code>fx</code> = foreign exchange, abréviation standard</td>
+</tr>
+<tr>
+<td><code>self.simulated</code></td>
+<td><code>self.sim</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.wfp_client</code></td>
+<td><code>self.client</code></td>
+<td>Sans redondance dans ce contexte</td>
+</tr>
+<tr>
+<td><code>fetch_prices(crop, market, days_back, simulated)</code></td>
+<td><code>fetch(crop, market, days, sim)</code></td>
+<td>Sans <code>_prices</code>, paramètres courts</td>
+</tr>
+<tr>
+<td><code>_generer_donnees_simulees(...)</code></td>
+<td><code>_simulate(...)</code></td>
+<td>En anglais, plus court</td>
+</tr>
+<tr>
+<td><code>normalize_units(value, unit_orig, crop)</code></td>
+<td><code>convert_unit(value, unit, crop)</code></td>
+<td><code>convert_</code> plus précis, singulier</td>
+</tr>
+<tr>
+<td><code>detect_anomalies(price_series, z_threshold)</code></td>
+<td><code>anomalies(series, z)</code></td>
+<td>Sans <code>detect_</code>, résultat direct</td>
+</tr>
+<tr>
+<td><code>interpolate_gaps(price_series, max_gap_days)</code></td>
+<td><code>fill_gaps(series, max_gap)</code></td>
+<td><code>fill_</code> plus intuitif</td>
+</tr>
+<tr>
+<td><code>get_data_source(price_series)</code></td>
+<td><code>source(series)</code></td>
+<td>Sans <code>get_data_</code></td>
+</tr>
+<tr>
+<td><code>seasonality(historique, min_observations_par_mois)</code></td>
+<td><code>seasonality(hist, min_obs)</code></td>
+<td>Paramètres abrégés</td>
+</tr>
+</tbody>
+</table>
+<h3 id="marketforecasting"><code>MarketForecasting</code><a class="headerlink" href="#marketforecasting" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MarketForecasting</code> (classe)</td>
+<td><code>Forecasting</code></td>
+<td>Préfixe <code>Market</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._modele</code></td>
+<td><code>self._model</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_preparer_features(prix_series)</code></td>
+<td><code>_build_features(series)</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_calculer_rmse_cv(X, y)</code></td>
+<td><code>_cv_rmse(X, y)</code></td>
+<td>Ordre logique : méthode d'abord</td>
+</tr>
+<tr>
+<td><code>_construire_df_propre(historique)</code></td>
+<td><code>_clean_df(hist)</code></td>
+<td>En anglais, plus court</td>
+</tr>
+<tr>
+<td><code>_fallback_simule(days_ahead, confidence_interval)</code></td>
+<td><code>_fallback(ahead, ci)</code></td>
+<td>Paramètres courts</td>
+</tr>
+<tr>
+<td><code>predict_price(crop, market, days_ahead, confidence_interval, historique)</code></td>
+<td><code>predict(crop, market, ahead, ci, hist)</code></td>
+<td>Sans <code>_price</code>, paramètres courts</td>
+</tr>
+</tbody>
+</table>
+<h3 id="marketlogistics"><code>MarketLogistics</code><a class="headerlink" href="#marketlogistics" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MarketLogistics</code> (classe)</td>
+<td><code>Logistics</code></td>
+<td>Préfixe <code>Market</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._cached_fuel_price</code></td>
+<td><code>self._fuel</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self._cached_prob_pluie</code></td>
+<td><code>self._rain_prob</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>self.cache</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.cache_file</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.weather_session</code></td>
+<td><code>self.weather</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>_get_prob_pluie()</code></td>
+<td><code>_rain_prob()</code></td>
+<td>En anglais, cohérent avec l'attribut</td>
+</tr>
+<tr>
+<td><code>_haversine_distance(lon1, lat1, lon2, lat2)</code></td>
+<td><code>_haversine(lon1, lat1, lon2, lat2)</code></td>
+<td>Sans <code>_distance</code>, déjà implicite</td>
+</tr>
+<tr>
+<td><code>_geocode_city(city_name)</code></td>
+<td><code>_geocode(city)</code></td>
+<td>Sans <code>_city</code>, paramètre raccourci</td>
+</tr>
+<tr>
+<td><code>_fetch_osrm_distance(lon1, lat1, lon2, lat2)</code></td>
+<td><code>_osrm_dist(lon1, lat1, lon2, lat2)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>get_distance(origine, destination)</code></td>
+<td><code>distance(origin, dest)</code></td>
+<td>Sans <code>get_</code>, <code>origin</code> anglais standard</td>
+</tr>
+<tr>
+<td><code>_fetch_fuel_price()</code></td>
+<td><code>_fetch_fuel()</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>calculate_transfer_cost(origine, destination, prix_carburant, crop)</code></td>
+<td><code>transfer_cost(origin, dest, fuel_price, crop)</code></td>
+<td>En anglais, sans <code>calculate_</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="decisionsupport"><code>DecisionSupport</code><a class="headerlink" href="#decisionsupport" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DecisionSupport</code> (classe)</td>
+<td><code>Advisor</code></td>
+<td>Plus court, plus expressif</td>
+</tr>
+<tr>
+<td><code>self.forecasting</code></td>
+<td><code>self.forecast</code></td>
+<td>Nom raccourci</td>
+</tr>
+<tr>
+<td><code>self.logistics</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.pricing</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>__init__(forecasting_module, logistics_module, pricing_module)</code></td>
+<td><code>__init__(forecast, logistics, pricing)</code></td>
+<td>Sans <code>_module</code></td>
+</tr>
+<tr>
+<td><code>_obtenir_prix_marche(crop, market)</code></td>
+<td><code>_get_price(crop, market)</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_calculer_confidence_score(...)</code></td>
+<td><code>_confidence(...)</code></td>
+<td>Plus court, sans <code>_calculer_score</code></td>
+</tr>
+<tr>
+<td><code>arbitrage_decision(crop, market_from, market_to, qty_tons)</code></td>
+<td><code>arbitrage(crop, m_from, to, qty)</code></td>
+<td>Sans <code>_decision</code>, <code>from_</code> évite le mot-clé Python</td>
+</tr>
+<tr>
+<td><code>storage_vs_sell_now(crop, market, current_price, qty_tons, mois_stockage)</code></td>
+<td><code>store_sell(crop, market, price, qty, months)</code></td>
+<td>Plus clair, paramètres en anglais</td>
+</tr>
+<tr>
+<td><code>portfolio_optimization(available_land_ha, climate_forecast, market_forecast, rendements_t_ha)</code></td>
+<td><code>optimize(land_ha, climate, market, yields)</code></td>
+<td>Beaucoup plus court</td>
+</tr>
+<tr>
+<td><code>_portfolio_heuristique(available_land_ha, climate_forecast, market_forecast)</code></td>
+<td><code>_heuristic(land_ha, climate, market)</code></td>
+<td>En anglais, sans <code>_portfolio</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="marketbacktester"><code>MarketBacktester</code><a class="headerlink" href="#marketbacktester" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MarketBacktester</code> (classe)</td>
+<td><code>Backtester</code></td>
+<td>Préfixe <code>Market</code> redondant</td>
+</tr>
+<tr>
+<td><code>self._forecaster</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self._resultats</code></td>
+<td><code>self._results</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_calculer_mae(y_reel, y_pred)</code></td>
+<td><code>_mae(y_true, y_pred)</code></td>
+<td><code>y_true</code> est le standard scikit-learn</td>
+</tr>
+<tr>
+<td><code>_calculer_rmse(y_reel, y_pred)</code></td>
+<td><code>_rmse(y_true, y_pred)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>_calculer_mape(y_reel, y_pred)</code></td>
+<td><code>_mape(y_true, y_pred)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>_calculer_precision_directionnelle(y_reel, y_pred)</code></td>
+<td><code>_dir_acc(y_true, y_pred)</code></td>
+<td><code>dir_acc</code> = directional accuracy</td>
+</tr>
+<tr>
+<td><code>run(crop, market, historique, window_days, horizon_days, nb_fenetres)</code></td>
+<td><code>run(crop, market, hist, window, horizon, n)</code></td>
+<td>Paramètres courts</td>
+</tr>
+<tr>
+<td><code>summary_report()</code></td>
+<td><code>summary()</code></td>
+<td>Sans <code>_report</code>, cohérent avec <code>report()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="wfpdatabridgesclient-dans-marketdata_ingestion"><code>WFPDataBridgesClient</code> (dans <code>market.data_ingestion</code>)<a class="headerlink" href="#wfpdatabridgesclient-dans-marketdata_ingestion" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>A fusionner avec <code>kadi._sources.wfp_client</code>. En attendant, propositions :</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WFPDataBridgesClient</code> (classe)</td>
+<td><code>WFPClient</code></td>
+<td>Suppression de <code>DataBridges</code>, plus court</td>
+</tr>
+<tr>
+<td><code>self.base_url</code></td>
+<td><code>self.url</code></td>
+<td>Cohérence avec les autres clients</td>
+</tr>
+<tr>
+<td><code>self.retry_attempts</code></td>
+<td><code>self.retries</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.retry_backoff_sec</code></td>
+<td><code>self.backoff</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.use_local_mirror</code></td>
+<td><code>self.mirror</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>_charger_cache_ids()</code></td>
+<td><code>_load_ids()</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_sauvegarder_cache_ids()</code></td>
+<td><code>_save_ids()</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_charger_token(env_file)</code></td>
+<td><code>_load_token(env_file)</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_recuperer_commodites()</code></td>
+<td><code>_fetch_commodities()</code></td>
+<td>En anglais</td>
+</tr>
+<tr>
+<td><code>_recuperer_marches(country_code)</code></td>
+<td><code>_fetch_markets(country)</code></td>
+<td>En anglais, paramètre court</td>
+</tr>
+<tr>
+<td><code>_get_commodity_id(commodity_name)</code></td>
+<td><code>_commodity_id(name)</code></td>
+<td>Sans <code>_get_</code>, paramètre court</td>
+</tr>
+<tr>
+<td><code>_get_market_id(market_name)</code></td>
+<td><code>_market_id(name)</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>_validate_api_response_items(items)</code></td>
+<td><code>_check_items(items)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>get_market_prices(market_name, commodity, time_range)</code></td>
+<td><code>prices(market, commodity, range_)</code></td>
+<td>Sans <code>get_market_</code>, <code>range_</code> évite le builtin</td>
+</tr>
+<tr>
+<td><code>get_market_functionality_index(market_id)</code></td>
+<td><code>mfi(market_id)</code></td>
+<td><code>mfi</code> = Market Functionality Index, acronyme standard WFP</td>
+</tr>
+<tr>
+<td><code>_generer_donnees_simulees(time_range)</code></td>
+<td><code>_simulate(range_)</code></td>
+<td>Cohérence</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-module-weather-kadiweather">6. Module weather — <code>kadi.weather</code><a class="headerlink" href="#6-module-weather-kadiweather" title="Permanent link">&para;</a></h2>
+<h3 id="location"><code>Location</code><a class="headerlink" href="#location" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Location</code> (classe)</td>
+<td>inchangé</td>
+<td>Déjà court et universel</td>
+</tr>
+<tr>
+<td><code>self.climate_regime</code></td>
+<td><code>self.regime</code></td>
+<td><code>climate_</code> redondant dans ce contexte</td>
+</tr>
+<tr>
+<td><code>self.latitude</code></td>
+<td><code>self.lat</code></td>
+<td>Abréviation standard géo (Pandas GeoDataFrame)</td>
+</tr>
+<tr>
+<td><code>self.longitude</code></td>
+<td><code>self.lon</code></td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>self.name</code></td>
+<td>inchangé</td>
+<td>Parfait</td>
+</tr>
+<tr>
+<td><code>self.zone</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>detect_zone()</code></td>
+<td><code>zone()</code></td>
+<td>Résultat direct, sans <code>detect_</code></td>
+</tr>
+<tr>
+<td><code>_detect_regime()</code></td>
+<td><code>_regime()</code></td>
+<td>Idem, interne</td>
+</tr>
+<tr>
+<td><code>get_climate_params()</code></td>
+<td><code>climate()</code></td>
+<td>Sans <code>get_</code> et <code>_params</code></td>
+</tr>
+<tr>
+<td><code>to_dict()</code></td>
+<td>inchangé</td>
+<td>Standard Python</td>
+</tr>
+</tbody>
+</table>
+<h3 id="weatherdata"><code>WeatherData</code><a class="headerlink" href="#weatherdata" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WeatherData</code> (classe)</td>
+<td><code>WeatherLoader</code></td>
+<td><code>Data</code> trop générique, <code>Loader</code> décrit le rôle</td>
+</tr>
+<tr>
+<td><code>self.data_source</code></td>
+<td><code>self.source</code></td>
+<td>Sans <code>data_</code></td>
+</tr>
+<tr>
+<td><code>self.forecast_data</code></td>
+<td><code>self.forecast</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>self.historical_data</code></td>
+<td><code>self.historical</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>self.location</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>_unifier_colonne_temperature(df)</code></td>
+<td><code>_unify_temp(df)</code></td>
+<td>En anglais, plus court</td>
+</tr>
+<tr>
+<td><code>fetch_forecast(days, force_refresh)</code></td>
+<td><code>get_forecast(days, refresh)</code></td>
+<td>Paramètre court</td>
+</tr>
+<tr>
+<td><code>fetch_historical(months_back, force_refresh, source)</code></td>
+<td><code>get_historical(months, refresh, source)</code></td>
+<td><code>months</code> plus court</td>
+</tr>
+<tr>
+<td><code>_get_from_cache(start_date, end_date)</code></td>
+<td><code>_from_cache(start, end)</code></td>
+<td>Sans <code>_get_</code>, paramètres courts</td>
+</tr>
+<tr>
+<td><code>_save_to_cache(data, data_type)</code></td>
+<td><code>_to_cache(data, kind)</code></td>
+<td>Symétrique, <code>kind</code> cohérent</td>
+</tr>
+<tr>
+<td><code>_fetch_forecast_data(days)</code></td>
+<td><code>_fetch_forecast(days)</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>_fetch_historical_data(days, source)</code></td>
+<td><code>_fetch_historical(days, source)</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>_normalize_data(raw_data)</code></td>
+<td><code>_normalize(raw)</code></td>
+<td>Sans <code>_data</code>, paramètre court</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hydrology"><code>Hydrology</code><a class="headerlink" href="#hydrology" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Hydrology</code> (classe)</td>
+<td>inchangé</td>
+<td>Terme scientifique précis, déjà bon</td>
+</tr>
+<tr>
+<td><code>self.balance_result</code></td>
+<td><code>self.balance</code></td>
+<td>Sans <code>_result</code></td>
+</tr>
+<tr>
+<td><code>self.crop</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.location</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.rainfall_data</code></td>
+<td><code>self.rainfall</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>self.soil_params</code></td>
+<td><code>self.soil</code></td>
+<td>Sans <code>_params</code></td>
+</tr>
+<tr>
+<td><code>self.soil_type</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.temperature_data</code></td>
+<td><code>self.temperature</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>_resolve_soil_type_from_cache(location)</code></td>
+<td><code>_resolve_soil(location)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>et0_hargreaves(tmin, tmax, day_of_year)</code></td>
+<td>inchangé</td>
+<td>Nom scientifique officiel, à conserver</td>
+</tr>
+<tr>
+<td><code>et0_fao56_penman(tmin, tmax, humidity, wind_speed, solar_rad)</code></td>
+<td>inchangé</td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>runoff_cn(precipitation, prior_5d_rain)</code></td>
+<td>inchangé</td>
+<td>Terme agronomique standard</td>
+</tr>
+<tr>
+<td><code>compute_water_balance()</code></td>
+<td><code>water_balance()</code></td>
+<td>Sans <code>compute_</code></td>
+</tr>
+<tr>
+<td><code>get_soil_params(soil_type)</code></td>
+<td><code>soil_params(soil_type)</code></td>
+<td>Sans <code>get_</code></td>
+</tr>
+<tr>
+<td><code>get_crop_coefficients(crop, stage)</code></td>
+<td><code>crop_kc(crop, stage)</code></td>
+<td><code>kc</code> = crop coefficient, terme FAO standard</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phenology"><code>Phenology</code><a class="headerlink" href="#phenology" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Phenology</code> (classe)</td>
+<td>inchangé</td>
+<td>Terme scientifique précis</td>
+</tr>
+<tr>
+<td><code>self.crop_params</code></td>
+<td><code>self.crop</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.location</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.onset_date</code></td>
+<td><code>self.onset</code></td>
+<td>Sans <code>_date</code>, le type est évident</td>
+</tr>
+<tr>
+<td><code>self.rainfall_data</code></td>
+<td><code>self.rainfall</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>self.temperature_data</code></td>
+<td><code>self.temperature</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>onset(threshold_days_after)</code></td>
+<td><code>onset(threshold)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>cessation()</code></td>
+<td>inchangé</td>
+<td>Terme agronomique standard</td>
+</tr>
+<tr>
+<td><code>growing_degree_days(crop, start_date, end_date)</code></td>
+<td><code>gdd(crop, start, end)</code></td>
+<td><code>gdd</code> = Growing Degree Days, acronyme consacré</td>
+</tr>
+<tr>
+<td><code>_sivakumar(...)</code></td>
+<td>inchangé</td>
+<td>Nom de l'auteur de la méthode, à conserver</td>
+</tr>
+<tr>
+<td><code>_walter_anyadike(year, annual_precipitation)</code></td>
+<td>inchangé</td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>_walter_anyadike_bimodal(year, season)</code></td>
+<td>inchangé</td>
+<td>Idem</td>
+</tr>
+<tr>
+<td><code>_cessation_in_window(...)</code></td>
+<td>inchangé</td>
+<td>Suffisamment clair</td>
+</tr>
+</tbody>
+</table>
+<h3 id="riskindicators"><code>RiskIndicators</code><a class="headerlink" href="#riskindicators" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RiskIndicators</code> (classe)</td>
+<td><code>Risk</code></td>
+<td>Plus court, sans <code>Indicators</code></td>
+</tr>
+<tr>
+<td><code>self.forecast_data</code></td>
+<td><code>self.forecast</code></td>
+<td>Sans <code>_data</code></td>
+</tr>
+<tr>
+<td><code>self.location</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.rainfall_historical</code></td>
+<td><code>self.rainfall</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>drought_index(method, window_months)</code></td>
+<td><code>drought(method, window)</code></td>
+<td>Sans <code>_index</code>, plus court</td>
+</tr>
+<tr>
+<td><code>spi(window_months)</code></td>
+<td><code>spi(window)</code></td>
+<td>Paramètre raccourci</td>
+</tr>
+<tr>
+<td><code>markov_transition(threshold_mm)</code></td>
+<td><code>markov(thresh)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>hurst_exponent(window)</code></td>
+<td><code>hurst(window)</code></td>
+<td>Sans <code>_exponent</code></td>
+</tr>
+<tr>
+<td><code>rain_probability(days_ahead, min_rainfall_mm)</code></td>
+<td><code>rain_prob(days, min_mm)</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>_get_severity_level(spi_value)</code></td>
+<td><code>_severity(spi)</code></td>
+<td>Sans <code>get_</code> et <code>_level</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="weathersession-facade"><code>WeatherSession</code> (façade)<a class="headerlink" href="#weathersession-facade" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Elément actuel</th>
+<th>Proposition</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WeatherSession</code> (classe)</td>
+<td><code>Weather</code></td>
+<td>Façade principale : nom simple comme <code>Market</code></td>
+</tr>
+<tr>
+<td><code>self.cache_dir</code></td>
+<td><code>self.cache</code></td>
+<td>Plus court</td>
+</tr>
+<tr>
+<td><code>self.hydrology</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.location</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.phenology</code></td>
+<td>inchangé</td>
+<td>Clair</td>
+</tr>
+<tr>
+<td><code>self.risk_indicators</code></td>
+<td><code>self.risk</code></td>
+<td>Cohérence avec la classe <code>Risk</code></td>
+</tr>
+<tr>
+<td><code>self.weather_data</code></td>
+<td><code>self.loader</code></td>
+<td>Cohérence avec <code>WeatherLoader</code></td>
+</tr>
+<tr>
+<td><code>__init__(latitude, longitude, name, cache_dir)</code></td>
+<td><code>__init__(lat, lon, name, cache)</code></td>
+<td>Paramètres courts</td>
+</tr>
+<tr>
+<td><code>_ensure_data(require_forecast, require_historical)</code></td>
+<td><code>_load_data(forecast, historical)</code></td>
+<td>Plus direct</td>
+</tr>
+<tr>
+<td><code>_ensure_components(component)</code></td>
+<td><code>_init_component(component)</code></td>
+<td>Plus précis</td>
+</tr>
+<tr>
+<td><code>forecast(days)</code></td>
+<td>inchangé</td>
+<td>Déjà parfait</td>
+</tr>
+<tr>
+<td><code>historical(metric, months_back, source)</code></td>
+<td><code>historical(metric, months, source)</code></td>
+<td><code>months</code> plus court</td>
+</tr>
+<tr>
+<td><code>growing_degree_days(crop, start_date, end_date)</code></td>
+<td><code>gdd(crop, start, end)</code></td>
+<td>Cohérence avec <code>Phenology</code></td>
+</tr>
+<tr>
+<td><code>onset()</code></td>
+<td>inchangé</td>
+<td>Standard agronomique</td>
+</tr>
+<tr>
+<td><code>cessation()</code></td>
+<td>inchangé</td>
+<td>Standard agronomique</td>
+</tr>
+<tr>
+<td><code>drought_index(method, window_months)</code></td>
+<td><code>drought(method, window)</code></td>
+<td>Cohérence avec <code>Risk</code></td>
+</tr>
+<tr>
+<td><code>rain_probability(days_ahead, min_rainfall_mm)</code></td>
+<td><code>rain_prob(days, min_mm)</code></td>
+<td>Cohérence avec <code>Risk</code></td>
+</tr>
+<tr>
+<td><code>water_balance(crop, soil_type)</code></td>
+<td>inchangé</td>
+<td>Terme agronomique standard</td>
+</tr>
+<tr>
+<td><code>et0_hargreaves(tmin, tmax, day_of_year)</code></td>
+<td>inchangé</td>
+<td>Terme scientifique standard</td>
+</tr>
+<tr>
+<td><code>_init_all_components()</code></td>
+<td><code>_setup()</code></td>
+<td>Plus court et universel</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Dels Dinla -  KadiPy Contributors - Bénin, Afrique de l'Ouest
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/delsDin/kadipy" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/delsdinla/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "toc.integrate", "content.code.copy", "content.code.annotate", "search.suggest", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
