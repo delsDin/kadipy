@@ -94,12 +94,12 @@ class ExchangeRateClient:
             dict: Dictionnaire ``{"USD_TO_XOF": float, "EUR_TO_XOF": float}``.
         """
         # Vérification de la validité du cache
-        if self._cache_valide():
+        if self._cache_valid():
             logger.debug("Taux de change servis depuis le cache mémoire.")
             return dict(self._cache)
 
         # Tentative de récupération depuis l'API
-        taux = self._recuperer_depuis_api()
+        taux = self._fetch_from_api()
 
         if taux is not None:
             # Mise à jour du cache avec les taux récupérés
@@ -119,7 +119,7 @@ class ExchangeRateClient:
         )
         return dict(EXCHANGE_RATES)
 
-    def _cache_valide(self) -> bool:
+    def _cache_valid(self) -> bool:
         """
         Vérifie si le cache mémoire est encore dans sa période de validité.
 
@@ -134,7 +134,7 @@ class ExchangeRateClient:
         age_secondes = time.monotonic() - self._cache_timestamp
         return age_secondes < self._ttl_secondes
 
-    def _recuperer_depuis_api(self) -> Optional[dict]:
+    def _fetch_from_api(self) -> Optional[dict]:
         """
         Appelle l'API Frankfurter pour obtenir les taux XOF/USD et XOF/EUR.
 

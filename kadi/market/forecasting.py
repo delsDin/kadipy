@@ -10,6 +10,7 @@ Implémentation basée sur des données réelles (Phase 3) :
 """
 
 import logging
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -25,14 +26,18 @@ _MIN_HISTORY_POINTS = 20
 # Nombre de folds pour la validation croisée temporelle
 _CV_N_SPLITS = 3
 
+# Table de rétrocompatibilité : ancien nom -> nouveau nom (méthodes publiques)
+_DEPRECATED_METHODS = {
+    "predict_price": "predict",
+}
 
-class MarketForecasting:
+class Forecasting:
     """
     Classe gérant la prévision de prix agricoles à partir de l'historique réel.
 
     Le modèle principal est une régression linéaire enrichie de features
     saisonnières (harmoniques de Fourier). Il est entraîné à chaque appel
-    de predict_price() sur l'historique fourni, sans état persistant entre
+    de predict() sur l'historique fourni, sans état persistant entre
     les appels. Cela garantit que les prévisions sont toujours basées sur
     les données les plus récentes disponibles.
 
@@ -45,50 +50,81 @@ class MarketForecasting:
         Initialise le module de prévision.
 
         Aucun état persistant n'est conservé entre les appels : le modèle
-        est entraîné à la demande dans predict_price().
+        est entraîné à la demande dans predict().
         """
         # Modèle de régression linéaire (sans état entre les appels)
-        self._modele = LinearRegression()
+        self._model = LinearRegression()
+
+    # ------------------------------------------------------------------
+    # Rétrocompatibilité : méthodes publiques renommées
+    # ------------------------------------------------------------------
+    
+
+    def __getattr__(self, name: str):
+        """Intercepte les accès aux anciens noms de méthodes publiques.
+
+        Délègue vers le nouveau nom et émet un DeprecationWarning.
+
+        Args:
+            name (str): Nom de l'attribut ou méthode demandé.
+
+        Returns:
+            callable: La méthode correspondante sous son nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est ni nouveau ni ancien.
+        """
+        # Vérification dans la table de rétrocompatibilité
+        if name in _DEPRECATED_METHODS:
+            new_name = _DEPRECATED_METHODS[name]
+            warnings.warn(
+                f"Forecasting.{name}() est obsolète et sera supprimé dans "
+                f"KadiPy v2.0. Utilisez Forecasting.{new_name}() à la place.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_name)
+        raise AttributeError(f"'Forecasting' n'a pas d'attribut '{name}'.")
 
     # ------------------------------------------------------------------
     # Méthodes privées : préparation des données et entraînement
     # ------------------------------------------------------------------
 
-    def _preparer_features(self, prix_series: np.ndarray) -> np.ndarray:
+    def _build_features(self, series: np.ndarray) -> np.ndarray:
         """
         Construit la matrice de features temporelles pour la régression.
 
         Les features générées sont :
-            - t          : indice séquentiel (0, 1, 2, …) – capture la tendance
-            - sin_365    : harmonique annuelle (sin) – pic de saison des récoltes
+            - t          : indice séquentiel (0, 1, 2, …) - capture la tendance
+            - sin_365    : harmonique annuelle (sin) - pic de saison des récoltes
             - cos_365    : harmonique annuelle (cos)
-            - sin_182    : harmonique semi-annuelle (sin) – deuxième cycle de culture
+            - sin_182    : harmonique semi-annuelle (sin) - deuxième cycle de culture
             - cos_182    : harmonique semi-annuelle (cos)
 
         Toutes les features sont construites à partir de l'indice temporel
         pour être extrapolables vers le futur (pas besoin de prix futurs).
 
         Args:
-            prix_series (np.ndarray): Vecteur d'indices temporels (entiers).
+            series (np.ndarray): Vecteur d'indices temporels (entiers).
 
         Returns:
             np.ndarray: Matrice de shape (n, 5) contenant les 5 features.
         """
         # Indice temporel normalisé vers [0, 2*pi] sur une année (365 jours)
-        t = prix_series.astype(float)
+        t = series.astype(float)
         angle_annuel = 2.0 * np.pi * t / 365.0
         angle_semi_annuel = 2.0 * np.pi * t / 182.5
 
         # Empilement des features en colonnes
         return np.column_stack([
-            t,                        # Tendance linéaire
-            np.sin(angle_annuel),     # Saisonnalité annuelle (sinus)
-            np.cos(angle_annuel),     # Saisonnalité annuelle (cosinus)
+            t,                          # Tendance linéaire
+            np.sin(angle_annuel),       # Saisonnalité annuelle (sinus)
+            np.cos(angle_annuel),       # Saisonnalité annuelle (cosinus)
             np.sin(angle_semi_annuel),  # Saisonnalité semi-annuelle (sinus)
             np.cos(angle_semi_annuel),  # Saisonnalité semi-annuelle (cosinus)
         ])
 
-    def _calculer_rmse_cv(
+    def _cv_rmse(
         self, X: np.ndarray, y: np.ndarray
     ) -> float:
         """
@@ -133,7 +169,7 @@ class MarketForecasting:
 
         return float(np.mean(erreurs))
 
-    def _construire_df_propre(self, historique: pd.DataFrame) -> pd.DataFrame:
+    def _clean_df(self, hist: pd.DataFrame) -> pd.DataFrame:
         """
         Nettoie et prépare le DataFrame historique pour l'entraînement.
 
@@ -144,20 +180,20 @@ class MarketForecasting:
             4. Suppression des prix non positifs (protection contre les anomalies)
 
         Args:
-            historique (pd.DataFrame): DataFrame brut avec au moins 'date' et 'price'.
+            hist (pd.DataFrame): DataFrame brut avec au moins 'date' et 'price'.
 
         Returns:
             pd.DataFrame: DataFrame nettoyé, trié par date, sans valeurs aberrantes.
                 Peut être vide si toutes les lignes sont filtrées.
         """
-        if "date" not in historique.columns or "price" not in historique.columns:
+        if "date" not in hist.columns or "price" not in hist.columns:
             logger.warning(
                 "L'historique fourni doit contenir les colonnes 'date' et 'price'."
             )
             return pd.DataFrame()
 
         # Copie pour ne pas modifier le DataFrame d'entrée
-        df = historique[["date", "price"]].copy()
+        df = hist[["date", "price"]].copy()
 
         # Conversion de la colonne date en datetime si nécessaire
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -173,8 +209,8 @@ class MarketForecasting:
 
         return df
 
-    def _fallback_simule(
-        self, days_ahead: int, confidence_interval: float
+    def _fallback(
+        self, ahead: int, ci: float
     ) -> dict:
         """
         Génère une prévision de repli simulée quand l'historique est insuffisant.
@@ -184,8 +220,8 @@ class MarketForecasting:
         prévision fiable.
 
         Args:
-            days_ahead (int): Horizon de prévision en jours.
-            confidence_interval (float): Niveau de confiance demandé (0.9 ou 0.95).
+            ahead (int): Horizon de prévision en jours.
+            ci (float): Niveau de confiance demandé (0.9 ou 0.95).
 
         Returns:
             dict: Prévision simulée avec tous les champs standards.
@@ -194,14 +230,14 @@ class MarketForecasting:
         prix_reference = 300.0
 
         # Volatilité simulée croissante avec le temps (GARCH-like)
-        volatilite = prix_reference * 0.05 * np.sqrt(days_ahead)
+        volatilite = prix_reference * 0.05 * np.sqrt(ahead)
 
         # Facteur z-score pour l'intervalle de confiance
-        z_score = 1.645 if confidence_interval == 0.9 else 1.96
+        z_score = 1.645 if ci == 0.9 else 1.96
         marge = volatilite * z_score
 
         logger.warning(
-            "predict_price() : historique insuffisant ou absent. "
+            "predict() : historique insuffisant ou absent. "
             "Prévision simulée retournée (is_simulated=True, confidence_score=0.0). "
             "Cette prévision ne doit pas être utilisée pour des décisions commerciales."
         )
@@ -210,26 +246,27 @@ class MarketForecasting:
             "predicted_price": round(prix_reference, 2),
             "low_90": round(max(0.0, prix_reference - marge), 2),
             "high_90": round(prix_reference + marge, 2),
-            "confidence": confidence_interval,
+            "confidence": ci,
             "model_used": "fallback_simule",
             "rmse": None,
             "is_simulated": True,
             "confidence_score": 0.0,
             "nb_history_pts": 0,
-            "days_ahead": days_ahead,
+            "days_ahead": ahead,
         }
 
     # ------------------------------------------------------------------
     # Méthode publique principale
     # ------------------------------------------------------------------
 
-    def predict_price(
+    def predict(
         self,
         crop: str,
         market: str,
-        days_ahead: int = 7,
-        confidence_interval: float = 0.9,
-        historique: pd.DataFrame = None,
+        ahead: int = 7,
+        ci: float = 0.9,
+        hist: pd.DataFrame = None,
+        **kwargs,
     ) -> dict:
         """
         Prédit le prix futur d'une culture sur un marché donné.
@@ -246,15 +283,16 @@ class MarketForecasting:
         Args:
             crop (str): Code de la culture (ex: 'maize', 'rice').
             market (str): Nom normalisé du marché (ex: 'cotonou').
-            days_ahead (int, optional): Horizon de prévision en jours.
+            ahead (int, optional): Horizon de prévision en jours.
                 Défaut : 7. La précision décroît avec l'horizon.
-            confidence_interval (float, optional): Niveau de confiance pour
-                l'intervalle de prévision. Valeurs supportées : 0.9 (90%)
-                et 0.95 (95%). Défaut : 0.9.
-            historique (pd.DataFrame, optional): DataFrame avec au moins
-                les colonnes 'date' (datetime) et 'price' (float en XOF/kg).
-                Typiquement fourni par MarketPricing.fetch_prices().
-                Si None ou insuffisant, le fallback simulé est activé.
+            ci (float, optional): Niveau de confiance pour l'intervalle de
+                prévision. Valeurs supportées : 0.9 (90%) et 0.95 (95%).
+                Défaut : 0.9.
+            hist (pd.DataFrame, optional): DataFrame avec au moins les colonnes
+                'date' (datetime) et 'price' (float en XOF/kg). Typiquement
+                fourni par Pricing.fetch(). Si None ou insuffisant, le
+                fallback simulé est activé.
+            **kwargs: Anciens arguments (days_ahead, historique) pour rétrocompatibilité.
 
         Returns:
             dict: Dictionnaire contenant :
@@ -269,27 +307,33 @@ class MarketForecasting:
                 - 'nb_history_pts' (int)    : nombre de points d'historique utilisés
                 - 'days_ahead' (int)        : horizon de prévision utilisé
         """
+        # Prise en charge des anciens noms de paramètres pour la rétrocompatibilité
+        if "days_ahead" in kwargs:
+            ahead = kwargs.pop("days_ahead")
+        if "historique" in kwargs:
+            hist = kwargs.pop("historique")
+
         # ------------------------------------------------------------------
         # Étape 1 : vérification de la disponibilité de l'historique
         # ------------------------------------------------------------------
-        if historique is None or historique.empty:
+        if hist is None or hist.empty:
             logger.info(
-                f"predict_price({crop}/{market}) : aucun historique fourni. "
+                f"predict({crop}/{market}) : aucun historique fourni. "
                 "Fallback simulé activé."
             )
-            return self._fallback_simule(days_ahead, confidence_interval)
+            return self._fallback(ahead, ci)
 
         # Nettoyage et préparation du DataFrame
-        df_propre = self._construire_df_propre(historique)
+        df_propre = self._clean_df(hist)
 
         # Vérification du seuil minimum d'observations pour le modèle
         if len(df_propre) < _MIN_HISTORY_POINTS:
             logger.info(
-                f"predict_price({crop}/{market}) : historique insuffisant "
+                f"predict({crop}/{market}) : historique insuffisant "
                 f"({len(df_propre)} points < {_MIN_HISTORY_POINTS} requis). "
                 "Fallback simulé activé."
             )
-            return self._fallback_simule(days_ahead, confidence_interval)
+            return self._fallback(ahead, ci)
 
         # ------------------------------------------------------------------
         # Étape 2 : construction des features et entraînement
@@ -300,22 +344,22 @@ class MarketForecasting:
         indices_train = np.arange(nb_pts)
 
         # Construction de la matrice de features et du vecteur cible
-        X_train = self._preparer_features(indices_train)
+        X_train = self._build_features(indices_train)
         y_train = df_propre["price"].values
 
         # Entraînement du modèle sur la totalité de l'historique disponible
-        self._modele.fit(X_train, y_train)
+        self._model.fit(X_train, y_train)
 
         # ------------------------------------------------------------------
         # Étape 3 : prédiction pour l'horizon demandé
         # ------------------------------------------------------------------
 
         # L'indice du point futur est la continuation séquentielle de l'historique
-        indice_futur = np.array([nb_pts - 1 + days_ahead])
-        X_futur = self._preparer_features(indice_futur)
+        indice_futur = np.array([nb_pts - 1 + ahead])
+        X_futur = self._build_features(indice_futur)
 
         # Prix prédit par le modèle entraîné
-        prix_predit = float(self._modele.predict(X_futur)[0])
+        prix_predit = float(self._model.predict(X_futur)[0])
 
         # Protection contre les prix négatifs (peut arriver en fin de tendance)
         prix_predit = max(0.0, prix_predit)
@@ -323,22 +367,22 @@ class MarketForecasting:
         # ------------------------------------------------------------------
         # Étape 4 : calcul du RMSE par validation croisée temporelle
         # ------------------------------------------------------------------
-        rmse = self._calculer_rmse_cv(X_train, y_train)
+        rmse = self._cv_rmse(X_train, y_train)
 
         # ------------------------------------------------------------------
         # Étape 5 : calcul de l'intervalle de prévision
         # ------------------------------------------------------------------
 
         # Facteur z-score pour l'intervalle de confiance demandé
-        z_score = 1.645 if confidence_interval == 0.9 else 1.96
+        z_score = 1.645 if ci == 0.9 else 1.96
 
         # Marge basée sur le RMSE réel si disponible, sinon 5% du prix prédit
         if not np.isnan(rmse):
             # L'incertitude croît avec l'horizon (racine carrée du temps)
-            marge = z_score * rmse * np.sqrt(days_ahead / 7.0)
+            marge = z_score * rmse * np.sqrt(ahead / 7.0)
         else:
             # Fallback de marge si la cross-validation a échoué
-            marge = prix_predit * 0.05 * np.sqrt(days_ahead)
+            marge = prix_predit * 0.05 * np.sqrt(ahead)
 
         borne_basse = round(max(0.0, prix_predit - marge), 2)
         borne_haute = round(prix_predit + marge, 2)
@@ -349,8 +393,8 @@ class MarketForecasting:
 
         # Si l'historique est partiellement simulé, le signal se propage
         est_simule = False
-        if "is_simulated" in historique.columns:
-            est_simule = bool(historique["is_simulated"].any())
+        if "is_simulated" in hist.columns:
+            est_simule = bool(hist["is_simulated"].any())
 
         # Calcul du score de confiance basé sur la source et la taille de l'historique
         # Formule : score_source * facteur_volume_données
@@ -367,17 +411,17 @@ class MarketForecasting:
             "predicted_price": round(prix_predit, 2),
             "low_90": borne_basse,
             "high_90": borne_haute,
-            "confidence": confidence_interval,
+            "confidence": ci,
             "model_used": "linear_regression_fourier",
             "rmse": rmse_arrondi,
             "is_simulated": est_simule,
             "confidence_score": score_confiance,
             "nb_history_pts": nb_pts,
-            "days_ahead": days_ahead,
+            "days_ahead": ahead,
         }
 
         logger.info(
-            f"Prévision {crop}/{market} à {days_ahead}j : "
+            f"Prévision {crop}/{market} à {ahead}j : "
             f"{prix_predit:.0f} XOF/kg "
             f"[{borne_basse:.0f} - {borne_haute:.0f}], "
             f"RMSE={rmse_arrondi}, is_simulated={est_simule}, "
@@ -385,3 +429,36 @@ class MarketForecasting:
         )
 
         return resultat
+
+# Alias de rétrocompatibilité
+# MarketForecasting = Forecasting
+
+_DEPRECATED = {
+    "MarketForecasting": ("Forecasting", Forecasting),
+}
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.forecasting.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.forecasting' n'a pas d'attribut '{name}'."
+    )

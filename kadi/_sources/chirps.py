@@ -24,13 +24,13 @@ from typing import Optional
 import pandas as pd
 
 from kadi.config import CHIRPS_BASE_URL, CONFIG
-from kadi.exceptions import DataSourceError
+from kadi.exceptions import SourceError
 
 # Journaliseur dédié à ce module
 logger = logging.getLogger(__name__)
 
 
-def _chirps_disponible_pour(jour: date) -> bool:
+def _is_available(day: date) -> bool:
     """
     Détermine si les données CHIRPS finales sont disponibles pour un jour donné.
 
@@ -38,18 +38,18 @@ def _chirps_disponible_pour(jour: date) -> bool:
     du mois M+1. Cette fonction calcule la date de disponibilité attendue pour
     le mois du jour demandé et la compare à la date d'aujourd'hui.
 
-    :param jour: Date pour laquelle on vérifie la disponibilité.
+    :param day: Date pour laquelle on vérifie la disponibilité.
     :return: True si les données finales sont probablement publiées, False sinon.
     """
     # Récupération du délai configuré (en jours après la fin du mois)
     lag = CONFIG["weather"]["chirps"]["availability_lag_days_after_month_end"]
 
     # Calcul du premier jour du mois suivant celui du jour demandé
-    if jour.month == 12:
+    if day.month == 12:
         # Cas du mois de décembre : le mois suivant est janvier de l'année suivante
-        premier_mois_suivant = date(jour.year + 1, 1, 1)
+        premier_mois_suivant = date(day.year + 1, 1, 1)
     else:
-        premier_mois_suivant = date(jour.year, jour.month + 1, 1)
+        premier_mois_suivant = date(day.year, day.month + 1, 1)
 
     # La date de disponibilité est le premier du mois suivant + le délai configuré
     date_disponible = premier_mois_suivant + timedelta(days=lag)
@@ -57,38 +57,38 @@ def _chirps_disponible_pour(jour: date) -> bool:
     return date.today() >= date_disponible
 
 
-def _chemin_raster_cache(jour: date) -> Path:
+def _cache_path(day: date) -> Path:
     """
     Construit le chemin local du fichier GeoTIFF découpé pour un jour donné.
 
     Les rasters sont stockés dans le dossier de cache configuré, organisés par
     année : <raster_cache_dir>/<YYYY>/chirps-v2.0.YYYY.MM.DD.tif.
 
-    :param jour: Date du raster à localiser.
+    :param day: Date du raster à localiser.
     :return: Chemin absolu vers le fichier GeoTIFF découpé.
     """
     cache_dir = Path(CONFIG["weather"]["chirps"]["raster_cache_dir"])
     # Sous-dossier par année pour limiter le nombre de fichiers par répertoire
-    dossier_annee = cache_dir / str(jour.year)
-    nom_fichier = f"chirps-v2.0.{jour.strftime('%Y.%m.%d')}.tif"
+    dossier_annee = cache_dir / str(day.year)
+    nom_fichier = f"chirps-v2.0.{day.strftime('%Y.%m.%d')}.tif"
     return dossier_annee / nom_fichier
 
 
-def _construire_url(jour: date) -> str:
+def _build_url(day: date) -> str:
     """
     Construit l'URL du fichier GeoTIFF compressé (.tif.gz) pour un jour donné.
 
     Convention de nommage CHIRPS africa_daily :
     <base_url>/<YYYY>/chirps-v2.0.YYYY.MM.DD.tif.gz
 
-    :param jour: Date du raster à télécharger.
+    :param day: Date du raster à télécharger.
     :return: URL complète vers le fichier .tif.gz sur les serveurs CHC.
     """
-    nom_fichier = f"chirps-v2.0.{jour.strftime('%Y.%m.%d')}.tif.gz"
-    return f"{CHIRPS_BASE_URL}/{jour.year}/{nom_fichier}"
+    nom_fichier = f"chirps-v2.0.{day.strftime('%Y.%m.%d')}.tif.gz"
+    return f"{CHIRPS_BASE_URL}/{day.year}/{nom_fichier}"
 
 
-def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
+def _download_and_clip(day: date, cache_path: Path) -> None:
     """
     Télécharge le raster CHIRPS compressé, le décompresse, le découpe sur la
     zone d'étude (bbox depuis config.py) et le sauvegarde en local.
@@ -99,16 +99,16 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
     Le fichier partiellement téléchargé est supprimé en cas d'erreur pour
     éviter toute corruption du cache local.
 
-    :param jour: Date du raster à télécharger.
-    :param chemin_cache: Chemin de destination du GeoTIFF découpé.
-    :raises DataSourceError: Si le serveur est inaccessible ou si le fichier
+    :param day: Date du raster à télécharger.
+    :param cache_path: Chemin de destination du GeoTIFF découpé.
+    :raises SourceError: Si le serveur est inaccessible ou si le fichier
         n'existe pas pour cette date sur le serveur CHC.
     """
     # Import conditionnel : rioxarray n'est requis que pour ce connecteur
     try:
         import rioxarray  # noqa: F401 (import utilisé via xarray accessor)
     except ImportError as exc:
-        raise DataSourceError(
+        raise SourceError(
             "Le connecteur CHIRPS nécessite rioxarray et rasterio. "
             "Installez-les avec : pip install rioxarray rasterio"
         ) from exc
@@ -120,13 +120,13 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
     max_lon = bbox_cfg["max_lon"]
     max_lat = bbox_cfg["max_lat"]
 
-    url = _construire_url(jour)
+    url = _build_url(day)
     timeout = CONFIG["weather"]["chirps"]["http_timeout_sec"]
 
     logger.debug("Téléchargement CHIRPS : %s", url)
 
     # Création du dossier de cache si nécessaire
-    chemin_cache.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         # Téléchargement du fichier .tif.gz en mémoire
@@ -135,14 +135,14 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
 
     except urllib.error.HTTPError as exc:
         # Erreur 404 : la date demandée n'existe pas (jour hors plage CHIRPS)
-        raise DataSourceError(
-            f"Données CHIRPS introuvables pour le {jour.isoformat()} "
+        raise SourceError(
+            f"Données CHIRPS introuvables pour le {day.isoformat()} "
             f"(HTTP {exc.code}). URL : {url}"
         ) from exc
     except OSError as exc:
         # Erreur réseau générique (timeout, DNS, etc.)
-        raise DataSourceError(
-            f"Impossible de joindre le serveur CHIRPS pour le {jour.isoformat()}. "
+        raise SourceError(
+            f"Impossible de joindre le serveur CHIRPS pour le {day.isoformat()}. "
             f"Vérifiez la connexion Internet. Détail : {exc}"
         ) from exc
 
@@ -167,34 +167,34 @@ def _telecharger_et_decouper_raster(jour: date, chemin_cache: Path) -> None:
         )
 
         # Sauvegarde du GeoTIFF découpé en local
-        rds_decoupe.rio.to_raster(str(chemin_cache))
-        logger.debug("Raster CHIRPS sauvegardé : %s", chemin_cache)
+        rds_decoupe.rio.to_raster(str(cache_path))
+        logger.debug("Raster CHIRPS sauvegardé : %s", cache_path)
 
     except Exception as exc:
         # Nettoyage du fichier partiel pour éviter la corruption du cache
-        if chemin_cache.exists():
-            chemin_cache.unlink()
-            logger.warning("Fichier CHIRPS partiel supprimé : %s", chemin_cache)
-        raise DataSourceError(
-            f"Erreur lors du traitement du raster CHIRPS pour le {jour.isoformat()} : {exc}"
+        if cache_path.exists():
+            cache_path.unlink()
+            logger.warning("Fichier CHIRPS partiel supprimé : %s", cache_path)
+        raise SourceError(
+            f"Erreur lors du traitement du raster CHIRPS pour le {day.isoformat()} : {exc}"
         ) from exc
 
 
-def _extraire_valeur_ponctuelle(chemin_raster: Path, lat: float, lon: float) -> float:
+def _extract_point(raster_path: Path, lat: float, lon: float) -> float:
     """
     Extrait la valeur de précipitation au pixel le plus proche du point GPS demandé.
 
-    :param chemin_raster: Chemin vers le fichier GeoTIFF local.
+    :param raster_path: Chemin vers le fichier GeoTIFF local.
     :param lat: Latitude du point d'extraction.
     :param lon: Longitude du point d'extraction.
     :return: Valeur de précipitation en millimètres (float).
-    :raises DataSourceError: Si la lecture du raster échoue.
+    :raises SourceError: Si la lecture du raster échoue.
     """
     try:
         import xarray as xr
 
         # Ouverture du raster avec chunking minimal pour l'extraction ponctuelle
-        rds = xr.open_dataset(str(chemin_raster), engine="rasterio")
+        rds = xr.open_dataset(str(raster_path), engine="rasterio")
 
         # Sélection du pixel le plus proche du point GPS demandé
         # Les dimensions x et y correspondent à la longitude et à la latitude
@@ -211,8 +211,8 @@ def _extraire_valeur_ponctuelle(chemin_raster: Path, lat: float, lon: float) -> 
         return precip
 
     except Exception as exc:
-        raise DataSourceError(
-            f"Impossible d'extraire la valeur ponctuelle depuis {chemin_raster} : {exc}"
+        raise SourceError(
+            f"Impossible d'extraire la valeur ponctuelle depuis {raster_path} : {exc}"
         ) from exc
 
 
@@ -270,18 +270,18 @@ def fetch_historical_precipitation(
     while jour_courant <= fin:
 
         # Vérification du délai de disponibilité des données finales CHIRPS
-        if not _chirps_disponible_pour(jour_courant):
+        if not _is_available(jour_courant):
             nb_ignorees_delai += 1
             jour_courant += timedelta(days=1)
             continue
 
-        chemin_cache = _chemin_raster_cache(jour_courant)
+        chemin_cache = _cache_path(jour_courant)
 
         # Téléchargement uniquement si le raster n'est pas déjà en cache local
         if not chemin_cache.exists():
             try:
-                _telecharger_et_decouper_raster(jour_courant, chemin_cache)
-            except DataSourceError as exc:
+                _download_and_clip(jour_courant, chemin_cache)
+            except SourceError as exc:
                 # On enregistre l'erreur mais on continue sur les autres dates
                 logger.warning(
                     "CHIRPS indisponible pour le %s (repli sur Open-Meteo prévu). "
@@ -295,8 +295,8 @@ def fetch_historical_precipitation(
 
         # Extraction de la valeur ponctuelle depuis le raster en cache
         try:
-            precip = _extraire_valeur_ponctuelle(chemin_cache, lat, lon)
-        except DataSourceError as exc:
+            precip = _extract_point(chemin_cache, lat, lon)
+        except SourceError as exc:
             logger.warning(
                 "Extraction CHIRPS impossible pour le %s : %s",
                 jour_courant.isoformat(),
@@ -347,3 +347,40 @@ def fetch_historical_precipitation(
     df = df.sort_values("date").reset_index(drop=True)
 
     return df
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+_DEPRECATED = {
+    "_chirps_disponible_pour": ("is_available", _is_available),
+    "_chemin_raster_cache": ("_cache_path", _cache_path),
+    "_construire_url": ("_build_url", _build_url),
+    "_telecharger_et_decouper_raster": ("_download_and_clip", _download_and_clip),
+    "_extraire_valeur_ponctuelle": ("_extract_point", _extract_point),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.cache.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.cache' n'a pas d'attribut '{name}'."
+    )

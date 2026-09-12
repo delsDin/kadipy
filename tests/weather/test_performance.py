@@ -13,7 +13,7 @@ import pytest
 from unittest.mock import patch
 
 from kadi.weather.hydrology import Hydrology
-from kadi.weather.risk import RiskIndicators
+from kadi.weather.risk import Risk
 from kadi.weather.location import Location
 
 # Limite de temps autorisée (en secondes) pour chaque opération
@@ -50,20 +50,20 @@ def donnees_10_ans():
 # Tests de performance du bilan hydrique
 # ---------------------------------------------------------------------------
 
-@patch('kadi.weather.hydrology.Hydrology._resolve_soil_type_from_cache')
+@patch('kadi.weather.hydrology.Hydrology._resolve_soil')
 def test_performance_bilan_hydrique(mock_soil, donnees_10_ans):
-    """compute_water_balance() sur 10 ans doit s'exécuter en moins de 1 seconde."""
+    """water_balance() sur 10 ans doit s'exécuter en moins de 1 seconde."""
     mock_soil.return_value = 'ferrugineux'
     location, precip, temp_df = donnees_10_ans
 
     hydro = Hydrology(location, precip, temp_df)
 
     debut = time.perf_counter()
-    hydro.compute_water_balance()
+    hydro.water_balance()
     duree = time.perf_counter() - debut
 
     assert duree < LIMITE_SECONDES, (
-        f"compute_water_balance() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
+        f"water_balance() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
     )
 
 
@@ -72,42 +72,42 @@ def test_performance_bilan_hydrique(mock_soil, donnees_10_ans):
 # ---------------------------------------------------------------------------
 
 def test_performance_hurst(donnees_10_ans):
-    """hurst_exponent() sur 10 ans doit s'exécuter en moins de 1 seconde."""
+    """hurst() sur 10 ans doit s'exécuter en moins de 1 seconde."""
     location, precip, _ = donnees_10_ans
-    risk = RiskIndicators(location, precip, pd.DataFrame())
+    risk = Risk(location, precip, pd.DataFrame())
 
     debut = time.perf_counter()
-    risk.hurst_exponent()
+    risk.hurst()
     duree = time.perf_counter() - debut
 
     assert duree < LIMITE_SECONDES, (
-        f"hurst_exponent() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
+        f"hurst() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
     )
 
 
 def test_performance_markov(donnees_10_ans):
-    """markov_transition() sur 10 ans doit s'exécuter en moins de 1 seconde."""
+    """markov() sur 10 ans doit s'exécuter en moins de 1 seconde."""
     location, precip, _ = donnees_10_ans
-    risk = RiskIndicators(location, precip, pd.DataFrame())
+    risk = Risk(location, precip, pd.DataFrame())
 
     debut = time.perf_counter()
-    risk.markov_transition()
+    risk.markov()
     duree = time.perf_counter() - debut
 
     assert duree < LIMITE_SECONDES, (
-        f"markov_transition() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
+        f"markov() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
     )
 
 
 def test_performance_drought_index(donnees_10_ans):
-    """drought_index() sur 10 ans doit s'exécuter en moins de 1 seconde."""
+    """drought() sur 10 ans doit s'exécuter en moins de 1 seconde."""
     location, precip, _ = donnees_10_ans
-    risk = RiskIndicators(location, precip, pd.DataFrame())
+    risk = Risk(location, precip, pd.DataFrame())
 
     debut = time.perf_counter()
-    risk.drought_index(window_months=3)
+    risk.drought(window=3)
     duree = time.perf_counter() - debut
 
     assert duree < LIMITE_SECONDES, (
-        f"drought_index() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
+        f"drought() trop lent : {duree:.2f}s > {LIMITE_SECONDES}s"
     )

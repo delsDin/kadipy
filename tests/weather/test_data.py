@@ -1,5 +1,5 @@
 """
-Tests de WeatherData : récupération depuis l'API, le cache, et normalisation des données.
+Tests de WeatherLoader : récupération depuis l'API, le cache SQLite, et normalisation des données.
 """
 
 import pytest
@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from unittest.mock import patch
 
-from kadi.weather.data import WeatherData
+from kadi.weather.data import WeatherLoader, WeatherData
 from kadi.weather.location import Location
 
 
@@ -53,18 +53,18 @@ def df_historique_30j():
 # Tests de récupération des prévisions
 # ---------------------------------------------------------------------------
 
-@patch('kadi.weather.data.WeatherData._save_to_cache')
-@patch('kadi.weather.data.WeatherData._fetch_forecast_data')
-@patch('kadi.weather.data.WeatherData._get_from_cache')
+@patch('kadi.weather.data.WeatherLoader._to_cache')
+@patch('kadi.weather.data.WeatherLoader._fetch_forecast')
+@patch('kadi.weather.data.WeatherLoader._from_cache')
 def test_forecast_retourne_donnees(mock_cache, mock_fetch, mock_save, location, df_forecast_7j):
-    """fetch_forecast() doit retourner un DataFrame non vide de 7 jours."""
+    """get_forecast() doit retourner un DataFrame non vide de 7 jours."""
     # Cache vide : force l'appel API
     mock_cache.return_value = pd.DataFrame()
     df = df_forecast_7j.set_index('date')
     mock_fetch.return_value = df
 
-    weather = WeatherData(location)
-    result = weather.fetch_forecast(days=7)
+    weather = WeatherLoader(location)
+    result = weather.get_forecast(days=7)
 
     assert not result.empty
     assert len(result) == 7
@@ -75,17 +75,17 @@ def test_forecast_retourne_donnees(mock_cache, mock_fetch, mock_save, location, 
 # Tests de récupération de l'historique
 # ---------------------------------------------------------------------------
 
-@patch('kadi.weather.data.WeatherData._save_to_cache')
-@patch('kadi.weather.data.WeatherData._fetch_historical_data')
-@patch('kadi.weather.data.WeatherData._get_from_cache')
+@patch('kadi.weather.data.WeatherLoader._to_cache')
+@patch('kadi.weather.data.WeatherLoader._fetch_historical')
+@patch('kadi.weather.data.WeatherLoader._from_cache')
 def test_historical_retourne_donnees(mock_cache, mock_fetch, mock_save, location, df_historique_30j):
-    """fetch_historical() doit retourner un DataFrame non vide de 30 jours."""
+    """get_historical() doit retourner un DataFrame non vide de 30 jours."""
     mock_cache.return_value = pd.DataFrame()
     df = df_historique_30j.set_index('date')
     mock_fetch.return_value = df
 
-    weather = WeatherData(location)
-    result = weather.fetch_historical(months_back=1)
+    weather = WeatherLoader(location)
+    result = weather.get_historical(months=1)
 
     assert not result.empty
     assert len(result) == 30
@@ -99,7 +99,7 @@ def test_historical_retourne_donnees(mock_cache, mock_fetch, mock_save, location
 
 def test_normalize_corrige_temperature_aberrante(location):
     """Les températures hors [-5, 55]°C doivent être interpolées."""
-    weather = WeatherData(location)
+    weather = WeatherLoader(location)
     dates = pd.date_range(start='2026-06-01', periods=5)
     df = pd.DataFrame({
         'date': dates,
@@ -109,7 +109,7 @@ def test_normalize_corrige_temperature_aberrante(location):
         'precipitation': [0.0, 5.0, 3.0, 3.0, 0.0],
     })
 
-    result = weather._normalize_data(df)
+    result = weather._normalize(df)
 
     # Après interpolation, la valeur aberrante doit être < 55
     assert result['temperature_min'].iloc[2] < 55.0
@@ -117,7 +117,7 @@ def test_normalize_corrige_temperature_aberrante(location):
 
 def test_normalize_corrige_precipitation_negative(location):
     """Les précipitations négatives doivent être remises à 0."""
-    weather = WeatherData(location)
+    weather = WeatherLoader(location)
     dates = pd.date_range(start='2026-06-01', periods=3)
     df = pd.DataFrame({
         'date': dates,
@@ -126,7 +126,7 @@ def test_normalize_corrige_precipitation_negative(location):
         'precipitation': [5.0, -3.0, 0.0],   # -3 est physiquement impossible
     })
 
-    result = weather._normalize_data(df)
+    result = weather._normalize(df)
 
     # Aucune précipitation ne doit être négative
     assert (result['precipitation'] >= 0.0).all()
@@ -134,7 +134,7 @@ def test_normalize_corrige_precipitation_negative(location):
 
 def test_normalize_ajoute_data_quality(location):
     """La normalisation doit générer une colonne 'data_quality'."""
-    weather = WeatherData(location)
+    weather = WeatherLoader(location)
     dates = pd.date_range(start='2026-06-01', periods=5)
     df = pd.DataFrame({
         'date': dates,
@@ -143,7 +143,7 @@ def test_normalize_ajoute_data_quality(location):
         'precipitation': [0.0] * 5,
     })
 
-    result = weather._normalize_data(df)
+    result = weather._normalize(df)
 
     assert 'data_quality' in result.columns
     # Données complètes : qualité = 1.0
@@ -152,14 +152,14 @@ def test_normalize_ajoute_data_quality(location):
 
 def test_normalize_dataframe_vide_retourne_vide(location):
     """Un DataFrame vide en entrée doit être retourné vide sans exception."""
-    weather = WeatherData(location)
-    result = weather._normalize_data(pd.DataFrame())
+    weather = WeatherLoader(location)
+    result = weather._normalize(pd.DataFrame())
     assert result.empty
 
 
 def test_normalize_calcule_temperature_mean(location):
     """temperature_mean doit être calculée comme moyenne de min et max si absente."""
-    weather = WeatherData(location)
+    weather = WeatherLoader(location)
     dates = pd.date_range(start='2026-06-01', periods=3)
     df = pd.DataFrame({
         'date': dates,
@@ -168,8 +168,15 @@ def test_normalize_calcule_temperature_mean(location):
         'precipitation': [0.0, 0.0, 0.0],
     })
 
-    result = weather._normalize_data(df)
+    result = weather._normalize(df)
 
     assert 'temperature_mean' in result.columns
     # Vérification du calcul : (20+30)/2 = 25
     assert result['temperature_mean'].iloc[0] == pytest.approx(25.0)
+
+
+def test_alias_retrocompatibilite_weather_data(location):
+    """L'ancien alias WeatherData doit pointer vers WeatherLoader."""
+    assert WeatherData is WeatherLoader
+    weather = WeatherData(location)
+    assert isinstance(weather, WeatherLoader)

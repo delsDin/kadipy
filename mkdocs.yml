@@ -1,6 +1,6 @@
 site_name: KadiPy - Documentation Officielle
 site_description: >
-  Le “pandas” de l'agriculture africaine. Interface Python unifiée pour les données
+  Le "pandas" de l'agriculture africaine. Interface Python unifiée pour les données
   météo, de marché et de récoltes au Bénin.
 site_author: Dels Dinla
 site_url: https://delsDin.github.io/kadipy/
@@ -46,7 +46,48 @@ theme:
 
 plugins:
   - search:
-      lang: fr
+      lang:
+        - fr
+        - en
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      languages:
+        - locale: fr
+          name: Français
+          build: true
+          default: true
+        - locale: en
+          name: English
+          build: true
+          site_name: KadiPy - Official Documentation
+          nav:
+            - Home: index.md
+
+            - io:
+                - Input/Output: io.md
+
+            - market:
+                - Overview: market/index.md
+                - Pricing: market/pricing.md
+                - Forecasting: market/forecasting.md
+                - Logistics: market/logistics.md
+                - Decision Support: market/decision_support.md
+
+            - weather:
+                - Overview: weather/index.md
+                - Weather Facade: weather/session.md
+                - Phenology: weather/phenology.md
+                - Hydrology: weather/hydrology.md
+                - Climate Risk: weather/risk.md
+
+            - kidas:
+                - Overview: kidas/index.md
+                - Pipeline: kidas/pipeline.md
+                - Cleaner: kidas/cleaner.md
+                - Validator: kidas/validator.md
+                - Normalizer: kidas/normalizer.md
+                - Data Sources: kidas/sources.md
   - mkdocstrings:
       handlers:
         python:
@@ -82,35 +123,46 @@ markdown_extensions:
 nav:
   - Accueil: index.md
 
+  - io:
+      - Entrées et sorties: io.md
+
   - market:
       - Vue d'ensemble: market/index.md
-      - Tarification (pricing): market/pricing.md
-      - Prévisions (forecasting): market/forecasting.md
-      - Logistique: market/logistics.md
-      - Aide à la décision: market/decision_support.md
-      - Ingestion des données: market/data_ingestion.md
+      - Tarification (Pricing): market/pricing.md
+      - Prévisions (Forecasting): market/forecasting.md
+      - Logistique (Logistics): market/logistics.md
+      - Aide à la décision (Advisor): market/decision_support.md
 
   - weather:
       - Vue d'ensemble: weather/index.md
-      - Session météo: weather/session.md
+      - Façade (Weather): weather/session.md
       - Phénologie: weather/phenology.md
       - Hydrologie: weather/hydrology.md
-      - Risques climatiques: weather/risk.md
+      - Risques climatiques (Risk): weather/risk.md
 
   - kidas:
       - Vue d'ensemble: kidas/index.md
       - Pipeline: kidas/pipeline.md
-      - Nettoyage: kidas/cleaner.md
-      - Validation: kidas/validator.md
-      - Normalisation: kidas/normalizer.md
+      - Nettoyage (Cleaner): kidas/cleaner.md
+      - Validation (Validator): kidas/validator.md
+      - Normalisation (Normalizer): kidas/normalizer.md
+      - Sources de données: kidas/sources.md
 
 extra:
+  alternate:
+    - name: Français
+      link: ./
+      lang: fr
+    - name: English
+      link: en/
+      lang: en
+
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/delsDin/kadipy
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/delsdinla/
-      
+
   version:
     provider: mike
 

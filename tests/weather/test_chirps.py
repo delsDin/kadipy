@@ -22,14 +22,14 @@ import pandas as pd
 import pytest
 
 from kadi._sources.chirps import (
-    _chirps_disponible_pour,
-    _construire_url,
-    _telecharger_et_decouper_raster,
-    _extraire_valeur_ponctuelle,
+    _is_available,
+    _build_url,
+    _download_and_clip,
+    _extract_point,
     fetch_historical_precipitation,
 )
-from kadi.exceptions import DataSourceError
-from kadi.weather.data import WeatherData
+from kadi.exceptions import SourceError
+from kadi.weather.data import WeatherLoader
 from kadi.weather.location import Location
 
 
@@ -76,23 +76,23 @@ def df_openmeteo_30j():
 # ---------------------------------------------------------------------------
 
 
-def test_chirps_disponible_pour_date_ancienne():
+def test_is_available_date_ancienne():
     """Une date de l'année passée doit toujours être disponible."""
     # Janvier 2020 : données disponibles depuis mi-février 2020
-    assert _chirps_disponible_pour(date(2020, 1, 15)) is True
+    assert _is_available(date(2020, 1, 15)) is True
 
 
 def test_chirps_indisponible_pour_mois_courant():
     """Le mois en cours ne doit jamais être disponible (délai non écoulé)."""
     mois_courant = date.today().replace(day=1)
-    assert _chirps_disponible_pour(mois_courant) is False
+    assert _is_available(mois_courant) is False
 
 
 def test_chirps_disponible_decembre_annee_precedente():
     """Décembre de l'année précédente doit être disponible (mi-janvier écoulé)."""
     annee_precedente = date.today().year - 1
     decembre = date(annee_precedente, 12, 15)
-    assert _chirps_disponible_pour(decembre) is True
+    assert _is_available(decembre) is True
 
 
 # ---------------------------------------------------------------------------
@@ -143,13 +143,13 @@ def test_fetch_precipitation_erreur_reseau_retourne_none(tmp_path):
     la fonction doit retourner None après avoir émis des avertissements.
     """
     # On utilise une date ancienne (janvier 2020) qui est certifiée disponible
-    avec_erreur = DataSourceError("Serveur CHC inaccessible")
+    avec_erreur = SourceError("Serveur CHC inaccessible")
 
     with patch(
-        "kadi._sources.chirps._telecharger_et_decouper_raster",
+        "kadi._sources.chirps._download_and_clip",
         side_effect=avec_erreur
     ), patch(
-        "kadi._sources.chirps._chemin_raster_cache",
+        "kadi._sources.chirps._cache_path",
         return_value=tmp_path / "raster_inexistant.tif"
     ):
         result = fetch_historical_precipitation(
@@ -174,13 +174,13 @@ def test_fetch_precipitation_depuis_cache_local(tmp_path):
     valeur_attendue = 4.7
 
     with patch(
-        "kadi._sources.chirps._chemin_raster_cache",
+        "kadi._sources.chirps._cache_path",
         return_value=fichier_cache
     ), patch(
-        "kadi._sources.chirps._extraire_valeur_ponctuelle",
+        "kadi._sources.chirps._extract_point",
         return_value=valeur_attendue
     ), patch(
-        "kadi._sources.chirps._telecharger_et_decouper_raster"
+        "kadi._sources.chirps._download_and_clip"
     ) as mock_dl:
         result = fetch_historical_precipitation(
             lat=9.337, lon=2.630,
@@ -204,8 +204,8 @@ def test_fetch_precipitation_structure_dataframe(tmp_path):
     fichier_cache = tmp_path / "chirps-v2.0.2020.03.01.tif"
     fichier_cache.write_bytes(b"FAKE")
 
-    with patch("kadi._sources.chirps._chemin_raster_cache", return_value=fichier_cache), \
-         patch("kadi._sources.chirps._extraire_valeur_ponctuelle", return_value=5.2):
+    with patch("kadi._sources.chirps._cache_path", return_value=fichier_cache), \
+         patch("kadi._sources.chirps._extract_point", return_value=5.2):
 
         result = fetch_historical_precipitation(
             lat=9.337, lon=2.630,
@@ -226,13 +226,13 @@ def test_fetch_precipitation_structure_dataframe(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_openmeteo_utilise_open_meteo_uniquement(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j
 ):
     """
-    Avec source='openmeteo', fetch_historical doit utiliser exclusivement Open-Meteo.
+    Avec source='openmeteo', get_historical doit utiliser exclusivement Open-Meteo.
     CHIRPS ne doit pas être appelé.
     """
     mock_cache.return_value = pd.DataFrame()
@@ -243,8 +243,8 @@ def test_source_openmeteo_utilise_open_meteo_uniquement(
     ), patch(
         "kadi._sources.chirps.fetch_historical_precipitation"
     ) as mock_chirps:
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="openmeteo")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="openmeteo")
 
     # CHIRPS ne doit pas avoir été appelé
     mock_chirps.assert_not_called()
@@ -253,8 +253,8 @@ def test_source_openmeteo_utilise_open_meteo_uniquement(
     assert (result["data_source"] == "open-meteo").all()
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_chirps_met_a_jour_precipitation(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j, df_chirps_3j
 ):
@@ -275,8 +275,8 @@ def test_source_chirps_met_a_jour_precipitation(
         "kadi._sources.chirps.fetch_historical_precipitation",
         return_value=df_chirps_3j
     ):
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="chirps")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="chirps")
 
     # Les lignes couvertes par CHIRPS doivent indiquer 'chirps'
     dates_chirps = pd.to_datetime(df_chirps_3j["date"])
@@ -287,8 +287,8 @@ def test_source_chirps_met_a_jour_precipitation(
     assert result.loc[~masque, "data_source"].eq("open-meteo").all()
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_chirps_repli_openmeteo_si_chirps_echoue(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j
 ):
@@ -307,8 +307,8 @@ def test_source_chirps_repli_openmeteo_si_chirps_echoue(
         "kadi._sources.chirps.fetch_historical_precipitation",
         return_value=None  # Aucune donnée CHIRPS disponible
     ):
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="chirps")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="chirps")
 
     # Le DataFrame ne doit pas être vide (repli sur Open-Meteo)
     assert not result.empty
@@ -316,8 +316,8 @@ def test_source_chirps_repli_openmeteo_si_chirps_echoue(
     assert (result["data_source"] == "open-meteo").all()
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_source_both_combine_chirps_et_openmeteo(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j, df_chirps_3j
 ):
@@ -336,8 +336,8 @@ def test_source_both_combine_chirps_et_openmeteo(
         "kadi._sources.chirps.fetch_historical_precipitation",
         return_value=df_chirps_3j
     ):
-        weather = WeatherData(location_parakou)
-        result = weather.fetch_historical(months_back=1, source="both")
+        weather = WeatherLoader(location_parakou)
+        result = weather.get_historical(months=1, source="both")
 
     dates_chirps = pd.to_datetime(df_chirps_3j["date"])
     masque_chirps = result.index.isin(dates_chirps)
@@ -352,14 +352,14 @@ def test_source_both_combine_chirps_et_openmeteo(
 # ---------------------------------------------------------------------------
 
 
-@patch("kadi.weather.data.WeatherData._save_to_cache")
-@patch("kadi.weather.data.WeatherData._get_from_cache")
+@patch("kadi.weather.data.WeatherLoader._to_cache")
+@patch("kadi.weather.data.WeatherLoader._from_cache")
 def test_session_historical_propage_source(
     mock_cache, mock_save, location_parakou, df_openmeteo_30j
 ):
     """
     WeatherSession.historical(source='openmeteo') doit propager le paramètre
-    source à WeatherData.fetch_historical().
+    source à WeatherLoader.get_historical().
     """
     from kadi.weather.session import WeatherSession
 
@@ -374,11 +374,11 @@ def test_session_historical_propage_source(
         "kadi._sources.chirps.fetch_historical_precipitation"
     ) as mock_chirps:
         session = WeatherSession(
-            latitude=location_parakou.latitude,
-            longitude=location_parakou.longitude,
+            latitude=location_parakou.lat,
+            longitude=location_parakou.lon,
             name=location_parakou.name,
         )
-        result = session.historical(months_back=1, source="openmeteo")
+        result = session.historical(months=1, source="openmeteo")
 
     # CHIRPS ne doit pas avoir été appelé
     mock_chirps.assert_not_called()
@@ -386,13 +386,13 @@ def test_session_historical_propage_source(
 
 
 # ---------------------------------------------------------------------------
-# Tests de _construire_url
+# Tests de _build_url
 # ---------------------------------------------------------------------------
 
 
-def test_construire_url_format_correct():
+def test_build_url_format_correct():
     """L'URL générée doit respecter le format du serveur CHC pour africa_daily."""
-    url = _construire_url(date(2024, 3, 15))
+    url = _build_url(date(2024, 3, 15))
 
     # L'URL doit pointer vers le bon dossier annuel et au bon fichier compressé
     assert "2024" in url
@@ -400,18 +400,18 @@ def test_construire_url_format_correct():
     assert url.startswith("http")
 
 
-def test_construire_url_mois_decembre():
+def test_build_url_mois_decembre():
     """Décembre (mois 12) ne doit pas produire un mois 00 ni de débordement."""
-    url = _construire_url(date(2023, 12, 31))
+    url = _build_url(date(2023, 12, 31))
 
     # La date doit être correctement zéro-paddée
     assert "chirps-v2.0.2023.12.31.tif.gz" in url
 
 
-def test_construire_url_annee_differente():
+def test_build_url_annee_differente():
     """L'année doit changer correctement dans l'URL selon la date."""
-    url_2019 = _construire_url(date(2019, 6, 1))
-    url_2022 = _construire_url(date(2022, 6, 1))
+    url_2019 = _build_url(date(2019, 6, 1))
+    url_2022 = _build_url(date(2022, 6, 1))
 
     # Les deux URLs ne doivent pas être identiques
     assert url_2019 != url_2022
@@ -420,11 +420,11 @@ def test_construire_url_annee_differente():
 
 
 # ---------------------------------------------------------------------------
-# Tests de _telecharger_et_decouper_raster
+# Tests de _download_and_clip
 # ---------------------------------------------------------------------------
 
 
-def test_telecharger_et_decouper_raster_ok(tmp_path):
+def test_download_and_clip_ok(tmp_path):
     """
     En cas de téléchargement réussi, le raster découpé doit être écrit sur disque.
     Le traitement xarray/rasterio est entièrement mocké.
@@ -456,7 +456,7 @@ def test_telecharger_et_decouper_raster_ok(tmp_path):
          patch("xarray.open_dataset", return_value=mock_rds), \
          patch.dict("sys.modules", {"rioxarray": MagicMock()}):
         # On exécute sans lever d'exception : le chemin de cache doit être créé
-        _telecharger_et_decouper_raster(date(2024, 3, 15), chemin_cache)
+        _download_and_clip(date(2024, 3, 15), chemin_cache)
 
     # Le dossier parent doit avoir été créé
     assert chemin_cache.parent.exists()
@@ -464,9 +464,9 @@ def test_telecharger_et_decouper_raster_ok(tmp_path):
     mock_rds_decoupe.rio.to_raster.assert_called_once_with(str(chemin_cache))
 
 
-def test_telecharger_et_decouper_raster_erreur_http(tmp_path):
+def test_download_and_clip_erreur_http(tmp_path):
     """
-    Une erreur HTTP 404 du serveur CHC doit lever DataSourceError,
+    Une erreur HTTP 404 du serveur CHC doit lever SourceError,
     pas une exception générique urllib.
     """
     import urllib.error
@@ -485,16 +485,16 @@ def test_telecharger_et_decouper_raster_erreur_http(tmp_path):
 
     with patch("urllib.request.urlopen", side_effect=erreur_404), \
          patch("rioxarray.open_rasterio", MagicMock()):
-        with pytest.raises(DataSourceError, match="404"):
-            _telecharger_et_decouper_raster(date(2020, 6, 15), chemin_cache)
+        with pytest.raises(SourceError, match="404"):
+            _download_and_clip(date(2020, 6, 15), chemin_cache)
 
     # Aucun fichier corrompu ne doit subsister dans le cache
     assert not chemin_cache.exists()
 
 
-def test_telecharger_et_decouper_raster_erreur_reseau(tmp_path):
+def test_download_and_clip_erreur_reseau(tmp_path):
     """
-    Une OSError (timeout, DNS, etc.) doit lever DataSourceError avec un
+    Une OSError (timeout, DNS, etc.) doit lever SourceError avec un
     message indiquant l'impossibilité de joindre le serveur.
     """
     from unittest.mock import patch
@@ -502,11 +502,11 @@ def test_telecharger_et_decouper_raster_erreur_reseau(tmp_path):
     chemin_cache = tmp_path / "chirps-v2.0.2020.07.10.tif"
 
     with patch("urllib.request.urlopen", side_effect=OSError("Connection refused")):
-        with pytest.raises(DataSourceError, match="serveur CHIRPS"):
-            _telecharger_et_decouper_raster(date(2020, 7, 10), chemin_cache)
+        with pytest.raises(SourceError, match="serveur CHIRPS"):
+            _download_and_clip(date(2020, 7, 10), chemin_cache)
 
 
-def test_telecharger_et_decouper_raster_erreur_traitement_nettoyage(tmp_path):
+def test_download_and_clip_erreur_traitement_nettoyage(tmp_path):
     """
     En cas d'erreur pendant le traitement xarray, le fichier cache partiel
     doit être supprimé pour éviter la corruption.
@@ -526,19 +526,19 @@ def test_telecharger_et_decouper_raster_erreur_traitement_nettoyage(tmp_path):
     with patch("urllib.request.urlopen", return_value=mock_reponse), \
          patch("gzip.decompress", return_value=b"DATA"), \
          patch("xarray.open_dataset", side_effect=RuntimeError("rasterio error")):
-        with pytest.raises(DataSourceError):
-            _telecharger_et_decouper_raster(date(2020, 8, 1), chemin_cache)
+        with pytest.raises(SourceError):
+            _download_and_clip(date(2020, 8, 1), chemin_cache)
 
     # Le fichier partiel ne doit pas subsister
     assert not chemin_cache.exists()
 
 
 # ---------------------------------------------------------------------------
-# Tests de _extraire_valeur_ponctuelle
+# Tests de _extract_point
 # ---------------------------------------------------------------------------
 
 
-def test_extraire_valeur_ponctuelle_valeur_positive(tmp_path):
+def test_extract_point_valeur_positive(tmp_path):
     """
     Avec un raster valide, la valeur de précipitation extraite doit être >= 0.
     xarray est entièrement mocké pour éviter la dépendance à rasterio.
@@ -571,17 +571,17 @@ def test_extraire_valeur_ponctuelle_valeur_positive(tmp_path):
     with patch("xarray.open_dataset", return_value=mock_ds):
         # On mock aussi float() pour contrôler la valeur retournée
         with patch(
-            "kadi._sources.chirps._extraire_valeur_ponctuelle",
+            "kadi._sources.chirps._extract_point",
             return_value=7.3
         ):
-            precip = _extraire_valeur_ponctuelle(chemin_raster, lat=9.337, lon=2.630)
+            precip = _extract_point(chemin_raster, lat=9.337, lon=2.630)
 
     # La valeur doit être un float positif
     assert isinstance(precip, float)
     assert precip >= 0.0
 
 
-def test_extraire_valeur_ponctuelle_valeur_negative_remplacee(tmp_path):
+def test_extract_point_valeur_negative_remplacee(tmp_path):
     """
     Les valeurs de nodata CHIRPS (-9999.0) doivent être remplacées par 0.0.
     On teste via fetch_historical_precipitation avec une valeur négative mockée.
@@ -591,24 +591,24 @@ def test_extraire_valeur_ponctuelle_valeur_negative_remplacee(tmp_path):
     fichier_cache = tmp_path / "chirps-v2.0.2020.05.01.tif"
     fichier_cache.write_bytes(b"FAKE")
 
-    with patch("kadi._sources.chirps._chemin_raster_cache", return_value=fichier_cache), \
-         patch("kadi._sources.chirps._extraire_valeur_ponctuelle", return_value=-9999.0):
+    with patch("kadi._sources.chirps._cache_path", return_value=fichier_cache), \
+         patch("kadi._sources.chirps._extract_point", return_value=-9999.0):
         result = fetch_historical_precipitation(
             lat=9.337, lon=2.630,
             start_date="2020-05-01",
             end_date="2020-05-01",
         )
 
-    # La valeur -9999.0 est traitée dans _extraire_valeur_ponctuelle.
+    # La valeur -9999.0 est traitée dans _extract_point.
     # Ici on simule le cas où le mock retourne directement -9999.0 :
     # fetch_historical_precipitation la reçoit telle quelle et la stocke.
     # Ce test vérifie que le code ne plante pas avec une valeur négative.
     assert result is not None
 
 
-def test_extraire_valeur_ponctuelle_leve_data_source_error(tmp_path):
+def test_extract_point_leve_data_source_error(tmp_path):
     """
-    Une exception lors de la lecture du raster doit lever DataSourceError.
+    Une exception lors de la lecture du raster doit lever SourceError.
     """
     from unittest.mock import patch
 
@@ -616,5 +616,5 @@ def test_extraire_valeur_ponctuelle_leve_data_source_error(tmp_path):
     chemin_raster.write_bytes(b"NOT_A_REAL_TIF")
 
     with patch("xarray.open_dataset", side_effect=Exception("rasterio: invalid file")):
-        with pytest.raises(DataSourceError, match="extraire la valeur"):
-            _extraire_valeur_ponctuelle(chemin_raster, lat=9.337, lon=2.630)
+        with pytest.raises(SourceError, match="extraire la valeur"):
+            _extract_point(chemin_raster, lat=9.337, lon=2.630)

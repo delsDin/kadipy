@@ -9,7 +9,7 @@ import pandas as pd
 
 from kadi.weather.phenology import Phenology
 from kadi.weather.location import Location
-from kadi.exceptions import InsufficientData
+from kadi.exceptions import DataError
 
 
 # ---------------------------------------------------------------------------
@@ -72,10 +72,10 @@ def test_growing_degree_days(nord_setup):
 
 
 def test_growing_degree_days_insufficient_data(nord_setup):
-    """Un GDD sur des données vides doit lever InsufficientData."""
+    """Un GDD sur des données vides doit lever DataError."""
     location, _, _ = nord_setup
     pheno = Phenology(location, pd.Series(dtype=float), pd.DataFrame())
-    with pytest.raises(InsufficientData):
+    with pytest.raises(DataError):
         pheno.growing_degree_days('maize', '2026-05-01', '2026-05-10')
 
 
@@ -125,8 +125,8 @@ def test_onset_bimodal_retrocompatibilite(sud_bimodal_setup):
 
 
 def test_onset_donnees_vides(nord_setup):
-    """Un onset sur des données vides doit lever InsufficientData."""
+    """Un onset sur des données vides doit lever DataError."""
     location, _, temp_df = nord_setup
     pheno = Phenology(location, pd.Series(dtype=float), temp_df)
-    with pytest.raises(InsufficientData):
+    with pytest.raises(DataError):
         pheno.onset()

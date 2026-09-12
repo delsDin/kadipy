@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module implémentant DataValidator pour la validation qualité des données agricoles.
+Module implémentant Validator pour la validation qualité des données agricoles.
 
 Ce module fournit des outils de validation adaptés aux contextes AgriTech :
 validation de schéma, vérification des types pandas, contrôle d'intervalles,
@@ -9,13 +9,14 @@ de qualité multicritère pour chaque jeu de données.
 """
 
 import logging
+import warnings
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
 
 # Import des exceptions personnalisées
-from kadi.exceptions import KidasValidationError
+from kadi.exceptions import ValidationError
 
 # Initialisation du logger pour ce module
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ _TYPE_MAP: Dict[str, type] = {
 }
 
 
-class DataValidator:
+class Validator:
     """Classe de validation qualité des données agricoles tabulaires.
 
     Fournit une suite de vérifications permettant de s'assurer que les
@@ -50,18 +51,30 @@ class DataValidator:
 
     Attributs:
         df (pd.DataFrame): Le DataFrame à valider.
-        _rapport (dict): Journal des résultats de validation.
+        _report (dict): Journal des résultats de validation.
 
     Exemple:
-        >>> validator = DataValidator(df)
-        >>> valide, erreurs = validator.validate_schema({
+        >>> validator = Validator(df)
+        >>> valide, erreurs = validator.check_schema({
         ...     'culture': 'str',
         ...     'rendement_kg': 'float',
         ... })
-        >>> score = validator.compute_quality_score()
+        >>> score = validator.quality_score()
         >>> print(score['overall'])
         0.87
     """
+
+    # Table de rétrocompatibilité des méthodes d'instance.
+    _METHODES_DEPRECATED = {
+        "validate_schema":               "check_schema",
+        "validate_types":                "check_types",
+        "validate_ranges":               "check_ranges",
+        "validate_coordinates":          "check_coords",
+        "validate_uniqueness":           "check_unique",
+        "validate_referential_integrity":"check_fk",
+        "compute_quality_score":         "quality_score",
+        "get_validation_report":         "report",
+    }
 
     def __init__(self, df: pd.DataFrame) -> None:
         """Initialise le validateur avec le DataFrame à contrôler.
@@ -70,12 +83,12 @@ class DataValidator:
             df (pd.DataFrame): Le DataFrame à valider.
 
         Raises:
-            KidasValidationError: Si l'argument fourni n'est pas un DataFrame.
+            ValidationError: Si l'argument fourni n'est pas un DataFrame.
         """
         # Vérification du type d'entrée
         if not isinstance(df, pd.DataFrame):
-            raise KidasValidationError(
-                f"DataValidator attend un pandas DataFrame, "
+            raise ValidationError(
+                f"Validator attend un pandas DataFrame, "
                 f"reçu : {type(df).__name__}."
             )
 
@@ -83,13 +96,13 @@ class DataValidator:
         self.df: pd.DataFrame = df
 
         # Rapport de validation initialisé
-        self._rapport: Dict = {
+        self._report: Dict = {
             "lignes": len(df),
             "colonnes": len(df.columns),
             "validations": [],
         }
 
-    def validate_schema(
+    def check_schema(
         self,
         schema: Dict[str, str],
     ) -> Tuple[bool, List[str]]:
@@ -158,7 +171,7 @@ class DataValidator:
         )
 
         # Enregistrement dans le rapport
-        self._rapport["validations"].append(
+        self._report["validations"].append(
             {
                 "type": "schema",
                 "valide": est_valide,
@@ -169,24 +182,30 @@ class DataValidator:
 
         return est_valide, erreurs
 
-    def validate_types(
+    def check_types(
         self,
-        column_dtypes: Dict[str, str],
+        dtypes: Dict[str, str],
+        **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie la conformité des types pandas pour chaque colonne.
 
         Args:
-            column_dtypes (dict[str, str]): Dictionnaire nom_colonne → type
+            dtypes (dict[str, str]): Dictionnaire nom_colonne → type
                 pandas attendu (ex: 'int64', 'float64', 'object', 'datetime64[ns]').
+                Alias accepté : column_dtypes= (rétrocompatibilité).
 
         Returns:
             tuple[bool, pd.DataFrame]: Tuple contenant :
                 - True si tous les types correspondent.
                 - DataFrame des colonnes avec des types incorrects (vide si OK).
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "column_dtypes" in kwargs:
+            dtypes = kwargs.pop("column_dtypes")
+
         lignes_erreurs = []
 
-        for colonne, dtype_attendu in column_dtypes.items():
+        for colonne, dtype_attendu in dtypes.items():
             if colonne not in self.df.columns:
                 lignes_erreurs.append({
                     "colonne": colonne,
@@ -222,31 +241,37 @@ class DataValidator:
             len(df_erreurs),
         )
 
-        self._rapport["validations"].append(
+        self._report["validations"].append(
             {"type": "types", "valide": est_valide, "nb_erreurs": len(df_erreurs)}
         )
 
         return est_valide, df_erreurs
 
-    def validate_ranges(
+    def check_ranges(
         self,
-        column_bounds: Dict[str, Tuple[Any, Any]],
+        bounds: Dict[str, Tuple[Any, Any]],
+        **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie que les valeurs numériques respectent des intervalles.
 
         Args:
-            column_bounds (dict[str, tuple]): Dictionnaire nom_colonne →
+            bounds (dict[str, tuple]): Dictionnaire nom_colonne →
                 (valeur_min, valeur_max). Exemple :
                 {'temperature': (-10, 50), 'rendement_kg': (0, 50000)}.
+                Alias accepté : column_bounds= (rétrocompatibilité).
 
         Returns:
             tuple[bool, pd.DataFrame]: Tuple contenant :
                 - True si toutes les valeurs respectent les bornes.
                 - DataFrame des lignes hors-intervalle (vide si OK).
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "column_bounds" in kwargs:
+            bounds = kwargs.pop("column_bounds")
+
         masque_erreurs = pd.Series(False, index=self.df.index)
 
-        for colonne, (borne_min, borne_max) in column_bounds.items():
+        for colonne, (borne_min, borne_max) in bounds.items():
             if colonne not in self.df.columns:
                 logger.warning(
                     "Colonne '%s' introuvable pour la validation d'intervalle.",
@@ -274,17 +299,18 @@ class DataValidator:
         df_hors_borne = self.df[masque_erreurs].copy()
         est_valide = len(df_hors_borne) == 0
 
-        self._rapport["validations"].append(
+        self._report["validations"].append(
             {"type": "ranges", "valide": est_valide, "hors_borne": len(df_hors_borne)}
         )
 
         return est_valide, df_hors_borne
 
-    def validate_coordinates(
+    def check_coords(
         self,
-        lat_col: str,
-        lon_col: str,
+        lat: str,
+        lon: str,
         region: str = "benin",
+        **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie la cohérence géographique des coordonnées GPS.
 
@@ -293,8 +319,10 @@ class DataValidator:
         lat/lon accidentelles.
 
         Args:
-            lat_col (str): Nom de la colonne de latitude.
-            lon_col (str): Nom de la colonne de longitude.
+            lat (str): Nom de la colonne de latitude.
+                Alias accepté : lat_col= (rétrocompatibilité).
+            lon (str): Nom de la colonne de longitude.
+                Alias accepté : lon_col= (rétrocompatibilité).
             region (str): Région de référence pour la bbox. 'benin' utilise
                 lat∈[2.5, 12.5], lon∈[-1.5, 4.0]. Par défaut 'benin'.
 
@@ -304,12 +332,18 @@ class DataValidator:
                 - DataFrame des lignes avec coordonnées invalides.
 
         Raises:
-            KidasValidationError: Si les colonnes lat/lon sont absentes.
+            ValidationError: Si les colonnes lat/lon sont absentes.
         """
+        # Rétrocompatibilité : anciens paramètres acceptés
+        if "lat_col" in kwargs:
+            lat = kwargs.pop("lat_col")
+        if "lon_col" in kwargs:
+            lon = kwargs.pop("lon_col")
+
         # Vérification de la présence des colonnes
-        for colonne in (lat_col, lon_col):
+        for colonne in (lat, lon):
             if colonne not in self.df.columns:
-                raise KidasValidationError(
+                raise ValidationError(
                     f"Colonne de coordonnées '{colonne}' introuvable dans le DataFrame."
                 )
 
@@ -324,11 +358,11 @@ class DataValidator:
 
         # Détection des coordonnées hors bbox
         hors_bbox = (
-            (self.df[lat_col] < lat_min) |
-            (self.df[lat_col] > lat_max) |
-            (self.df[lon_col] < lon_min) |
-            (self.df[lon_col] > lon_max)
-        ) & self.df[lat_col].notna() & self.df[lon_col].notna()
+            (self.df[lat] < lat_min) |
+            (self.df[lat] > lat_max) |
+            (self.df[lon] < lon_min) |
+            (self.df[lon] > lon_max)
+        ) & self.df[lat].notna() & self.df[lon].notna()
 
         df_invalides = self.df[hors_bbox].copy()
         nb_invalides = len(df_invalides)
@@ -343,7 +377,7 @@ class DataValidator:
 
         est_valide = nb_invalides == 0
 
-        self._rapport["validations"].append(
+        self._report["validations"].append(
             {
                 "type": "coordinates",
                 "region": region,
@@ -354,51 +388,59 @@ class DataValidator:
 
         return est_valide, df_invalides
 
-    def validate_uniqueness(
+    def check_unique(
         self,
-        columns: List[str],
+        cols: List[str],
+        **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie l'unicité des valeurs sur les colonnes spécifiées.
 
         Args:
-            columns (list[str]): Colonnes dont la combinaison doit être unique
+            cols (list[str]): Colonnes dont la combinaison doit être unique
                 (équivalent d'une clé primaire composite).
+                Alias accepté : columns= (rétrocompatibilité).
 
         Returns:
             tuple[bool, pd.DataFrame]: Tuple contenant :
                 - True si la combinaison est unique sur toutes les lignes.
                 - DataFrame des lignes dupliquées (vide si OK).
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "columns" in kwargs:
+            cols = kwargs.pop("columns")
+
         # Détection des lignes dupliquées sur les colonnes spécifiées
-        masque_doublons = self.df.duplicated(subset=columns, keep=False)
+        masque_doublons = self.df.duplicated(subset=cols, keep=False)
         df_doublons = self.df[masque_doublons].copy()
 
         est_valide = len(df_doublons) == 0
 
         logger.info(
             "Validation unicité sur %s : %s (%d doublon(s)).",
-            columns,
+            cols,
             "OK" if est_valide else "ECHEC",
             len(df_doublons),
         )
 
-        self._rapport["validations"].append(
-            {"type": "uniqueness", "columns": columns, "valide": est_valide}
+        self._report["validations"].append(
+            {"type": "uniqueness", "cols": cols, "valide": est_valide}
         )
 
         return est_valide, df_doublons
 
-    def validate_referential_integrity(
+    def check_fk(
         self,
         fk_col: str,
-        reference_set: Set[Any],
+        ref: Set[Any],
+        **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie l'intégrité référentielle d'une clé étrangère.
 
         Args:
             fk_col (str): Nom de la colonne contenant la clé étrangère.
-            reference_set (set): Ensemble des valeurs valides de référence
+            ref (set): Ensemble des valeurs valides de référence
                 (ex: ensemble des market_id existants).
+                Alias accepté : reference_set= (rétrocompatibilité).
 
         Returns:
             tuple[bool, pd.DataFrame]: Tuple contenant :
@@ -406,15 +448,19 @@ class DataValidator:
                 - DataFrame des lignes avec des références manquantes.
 
         Raises:
-            KidasValidationError: Si la colonne de clé est absente.
+            ValidationError: Si la colonne de clé est absente.
         """
+        # Rétrocompatibilité : ancien paramètre accepté
+        if "reference_set" in kwargs:
+            ref = kwargs.pop("reference_set")
+
         if fk_col not in self.df.columns:
-            raise KidasValidationError(
+            raise ValidationError(
                 f"Colonne de clé étrangère '{fk_col}' introuvable."
             )
 
         # Détection des valeurs absentes de l'ensemble de référence
-        masque_manquants = ~self.df[fk_col].isin(reference_set) & self.df[fk_col].notna()
+        masque_manquants = ~self.df[fk_col].isin(ref) & self.df[fk_col].notna()
         df_manquants = self.df[masque_manquants].copy()
 
         est_valide = len(df_manquants) == 0
@@ -426,7 +472,7 @@ class DataValidator:
             len(df_manquants),
         )
 
-        self._rapport["validations"].append(
+        self._report["validations"].append(
             {
                 "type": "referential_integrity",
                 "fk_col": fk_col,
@@ -437,7 +483,7 @@ class DataValidator:
 
         return est_valide, df_manquants
 
-    def compute_quality_score(self) -> dict:
+    def quality_score(self) -> dict:
         """Calcule un score de qualité global et par dimension.
 
         Le score global est la moyenne pondérée de trois dimensions :
@@ -491,14 +537,74 @@ class DataValidator:
 
         logger.info("Score qualité calculé : overall=%.2f", score_global)
 
-        self._rapport["quality_score"] = score
+        self._report["quality_score"] = score
         return score
 
-    def get_validation_report(self) -> dict:
+    def report(self) -> dict:
         """Retourne le rapport complet des validations effectuées.
 
         Returns:
             dict: Rapport structuré contenant l'ensemble des résultats
                 de validation et le score de qualité (si calculé).
         """
-        return self._rapport.copy()
+        return self._report.copy()
+
+
+    def __getattr__(self, name: str):
+        """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
+
+        Args:
+            name (str): Nom de la méthode demandée.
+
+        Returns:
+            callable: La méthode correspondant au nouveau nom.
+
+        Raises:
+            AttributeError: Si le nom n'est pas un alias connu.
+        """
+        if name in Validator._METHODES_DEPRECATED:
+            # Récupération du nouveau nom
+            nouveau_nom = Validator._METHODES_DEPRECATED[name]
+            warnings.warn(
+                f"Validator.{name}() est obsolète et sera supprimé dans KadiPy v2.0. "
+                f"Utilisez Validator.{nouveau_nom}() à la place.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, nouveau_nom)
+        raise AttributeError(
+            f"'Validator' n'a pas de méthode '{name}'."
+        )
+
+
+# Table des anciens noms -> (nouveau nom, classe cible)
+_DEPRECATED = {
+    "DataValidator": ("Validator", Validator),
+}
+
+
+def __getattr__(name: str):
+    """Intercepte les anciens noms importés depuis ce module.
+
+    Args:
+        name (str): Nom du symbole demandé dans ce module.
+
+    Returns:
+        type: La classe correspondante.
+
+    Raises:
+        AttributeError: Si le nom n'est pas un alias connu.
+    """
+    import warnings as _warnings
+    if name in _DEPRECATED:
+        new_name, cls = _DEPRECATED[name]
+        _warnings.warn(
+            f"kadi.kidas.validator.{name} est obsolète et sera supprimé dans "
+            f"KadiPy v2.0. Utilisez {new_name} à la place.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.kidas.validator' n'a pas d'attribut '{name}'."
+    )

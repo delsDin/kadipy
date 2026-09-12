@@ -1,6 +1,6 @@
 import pytest
 from kadi.weather.location import Location
-from kadi.exceptions import LocationNotFound
+from kadi.exceptions import LocationError
 
 def test_init_valid_location():
     loc = Location(latitude=6.5, longitude=2.0, name="Cotonou")
@@ -11,7 +11,7 @@ def test_init_valid_location():
     assert loc.climate_regime == "bimodal"
 
 def test_init_invalid_location():
-    with pytest.raises(LocationNotFound):
+    with pytest.raises(LocationError):
         Location(latitude=20.0, longitude=2.0, name="Paris")
 
 def test_detect_zone():
@@ -33,22 +33,22 @@ def test_to_dict():
 
 def test_bbox_reject_north():
     """Un point au nord du Bénin (latitude > 12.5) doit être rejeté."""
-    with pytest.raises(LocationNotFound):
+    with pytest.raises(LocationError):
         Location(latitude=13.0, longitude=2.0, name="HorsBenin")
 
 def test_bbox_reject_south():
     """Un point au sud de la BBox (latitude < 2.5) doit être rejeté."""
-    with pytest.raises(LocationNotFound):
+    with pytest.raises(LocationError):
         Location(latitude=1.0, longitude=2.0, name="HorsBenin")
 
 def test_bbox_reject_east():
     """Un point à l'est du Bénin (longitude > 4.0) doit être rejeté."""
-    with pytest.raises(LocationNotFound):
+    with pytest.raises(LocationError):
         Location(latitude=8.0, longitude=5.0, name="HorsBenin")
 
 def test_bbox_reject_west():
     """Un point à l'ouest de la BBox (longitude < -1.5) doit être rejeté."""
-    with pytest.raises(LocationNotFound):
+    with pytest.raises(LocationError):
         Location(latitude=8.0, longitude=-2.0, name="HorsBenin")
 
 def test_bbox_frontiere_valide():

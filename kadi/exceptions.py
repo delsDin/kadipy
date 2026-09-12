@@ -1,113 +1,155 @@
 """
 Module définissant la hiérarchie des exceptions personnalisées de KadiPy.
 
-Ces exceptions permettent de distinguer les erreurs liées aux API externes,
-au cache local, à la validation des données, et à l'accès hors ligne.
-Elles couvrent également les erreurs propres au module kidas (acquisition,
-nettoyage, validation, normalisation, cache et pipeline).
+Chaque exception décrit une catégorie d'erreur précise : source de données,
+cache, validation, accès hors ligne, nettoyage, pipeline.
+
+Les anciens noms sont gérés via __getattr__ : ils continuent de fonctionner
+mais émettent un DeprecationWarning pour encourager la migration vers les
+nouveaux noms. Ils seront supprimés dans KadiPy v2.0.
 """
 
-class KadiException(Exception):
+import warnings
+
+
+# Exception racine
+
+class KadiError(Exception):
     """Exception de base pour toutes les erreurs spécifiques à KadiPy."""
     pass
 
 
-class DataSourceError(KadiException):
-    """Exception levée lors de l'échec de récupération d'une API ou source."""
+# Exceptions générales
+
+class SourceError(KadiError):
+    """Erreur de récupération d'une API ou source de données externe."""
     pass
 
 
-class CacheError(KadiException):
-    """Exception levée en cas d'erreur liée à SQLite ou au cache local."""
+class CacheError(KadiError):
+    """Erreur liée au cache SQLite local."""
     pass
 
 
-class ValidationError(KadiException):
-    """Exception levée lorsque la validation des données échoue."""
+class ValidationError(KadiError):
+    """Erreur de validation des données ou d'un schéma."""
     pass
 
 
-class OfflineError(KadiException):
-    """Exception levée lorsqu'aucune donnée n'est disponible hors ligne."""
+class OfflineError(KadiError):
+    """Aucune donnée disponible en mode hors ligne."""
     pass
 
 
-class LocationNotFound(ValidationError):
-    """Exception levée lorsqu'une localisation (coordonnées ou lieu) est introuvable."""
+class LocationError(ValidationError):
+    """Localisation (coordonnées ou nom de lieu) introuvable."""
     pass
 
 
-class CropNotFound(ValidationError):
-    """Exception levée lorsque le code de la culture est inconnu."""
+class CropError(ValidationError):
+    """Code ou nom de culture inconnu."""
     pass
 
 
-class InsufficientData(ValidationError):
-    """Exception levée lorsqu'il n'y a pas assez d'historique pour une opération."""
+class DataError(ValidationError):
+    """Historique insuffisant pour l'opération demandée."""
     pass
 
 
-# =============================================================================
 # Exceptions du module kidas
-# =============================================================================
 
-class KidasReadError(KadiException):
-    """Exception levée lors de l'échec de lecture d'une source de données kidas.
+class ReadError(KadiError):
+    """Echec de lecture d'une source de données kidas.
 
-    Peut être levée par CSVDataSource, ExcelDataSource, JSONDataSource,
-    NetCDFDataSource ou APIDataSource lors d'un appel à read().
+    Peut être levée par CSVSource, ExcelSource, JSONSource,
+    NetCDFSource ou APISource lors d'un appel à read().
     """
     pass
 
 
-class KidasWriteError(KadiException):
-    """Exception levée lors de l'échec d'écriture vers une source kidas.
+class WriteError(KadiError):
+    """Echec d'écriture vers une source kidas.
 
-    Peut être levée par les méthodes write() des classes DataSource.
+    Peut être levée par les méthodes write() des classes Source.
     """
     pass
 
 
-class KidasConnectionError(KadiException):
-    """Exception levée lorsqu'une source de données kidas est inaccessible.
+class ConnectError(KadiError):
+    """Source de données kidas inaccessible.
 
     Couvre les fichiers introuvables, les endpoints API injoignables
-    ou les fichiers NetCDF corrompus.
+    et les fichiers NetCDF corrompus.
     """
     pass
 
 
-class KidasCleaningError(KadiException):
-    """Exception levée lors d'une erreur durant le nettoyage des données.
+class CleanError(KadiError):
+    """Erreur durant le nettoyage ou la normalisation des données.
 
-    Peut être levée par DataCleaner lorsqu'une stratégie de nettoyage
+    Peut être levée par Cleaner ou Normalizer lorsqu'une stratégie
     est incompatible avec les données fournies.
     """
     pass
 
 
-class KidasValidationError(KadiException):
-    """Exception levée lorsque la validation d'un schéma ou d'une valeur échoue.
+class PipelineError(KadiError):
+    """Erreur d'orchestration dans Pipeline.
 
-    Peut être levée par DataValidator lors de validate_schema(),
-    validate_ranges() ou validate_coordinates().
+    Peut être levée par run() si une étape est mal configurée
+    ou si les données intermédiaires sont invalides.
     """
     pass
 
 
-class KidasCacheError(KadiException):
-    """Exception levée en cas d'erreur sur le cache SQLite dédié à kidas.
+# Table des anciens noms -> (nouveau nom, classe cible)
+# Utilisée par __getattr__ pour intercepter les imports d'anciens noms.
+_DEPRECATED = {
+    "KadiException":      ("KadiError",       KadiError),
+    "DataSourceError":    ("SourceError",      SourceError),
+    "LocationNotFound":   ("LocationError",    LocationError),
+    "CropNotFound":       ("CropError",        CropError),
+    "InsufficientData":   ("DataError",        DataError),
+    "KidasReadError":     ("ReadError",        ReadError),
+    "KidasWriteError":    ("WriteError",       WriteError),
+    "KidasConnectionError": ("ConnectError",   ConnectError),
+    "KidasCleaningError": ("CleanError",       CleanError),
+    "KidasValidationError": ("ValidationError", ValidationError),
+    "KidasCacheError":    ("CacheError",       CacheError),
+    "KidasPipelineError": ("PipelineError",    PipelineError),
+}
 
-    Le cache kidas est stocké dans ~/.kadi/kidas_cache/ et est distinct
-    du cache global KadiPy (kadi/cache.py).
+
+def __getattr__(name: str):
+    """Intercepte l'accès aux anciens noms d'exceptions pour émettre un avertissement.
+
+    Paramètres
+    ----------
+    name : str
+        Nom de l'attribut demandé dans ce module.
+
+    Retourne
+    --------
+    type
+        La classe exception correspondant à l'ancien nom.
+
+    Lève
+    ----
+    AttributeError
+        Si le nom demandé n'est ni un symbole courant ni un ancien nom connu.
     """
-    pass
-
-
-class KidasPipelineError(KadiException):
-    """Exception levée lors d'une erreur d'orchestration dans DataPipeline.
-
-    Peut être levée par execute() si une étape du pipeline est mal
-    configurée ou si les données intermédiaires sont invalides.
-    """
-    pass
+    if name in _DEPRECATED:
+        # Récupère le nouveau nom et la classe cible
+        new_name, cls = _DEPRECATED[name]
+        warnings.warn(
+            f"kadi.exceptions.{name} est obsolète et sera supprimé dans KadiPy v2.0. "
+            f"Utilisez kadi.exceptions.{new_name} à la place.",
+            category=DeprecationWarning,
+            # stacklevel=2 pointe vers la ligne de code de l'utilisateur,
+            # pas vers cette fonction interne
+            stacklevel=2,
+        )
+        return cls
+    raise AttributeError(
+        f"Le module 'kadi.exceptions' n'a pas d'attribut '{name}'."
+    )

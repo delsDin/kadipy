@@ -10,7 +10,7 @@ import datetime
 from typing import Dict, Any, List
 
 from kadi.config import OPENMETEO_API_URL
-from kadi.exceptions import DataSourceError
+from kadi.exceptions import SourceError
 
 
 def fetch_forecast(lat: float, lon: float, days: int = 7) -> List[Dict[str, Any]]:
@@ -26,7 +26,7 @@ def fetch_forecast(lat: float, lon: float, days: int = 7) -> List[Dict[str, Any]
         List[Dict]: Une liste de dictionnaires représentant les données par jour.
         
     Raises:
-        DataSourceError: En cas d'erreur de requête HTTP.
+        SourceError: En cas d'erreur de requête HTTP.
     """
     url = f"{OPENMETEO_API_URL}/forecast"
     params = {
@@ -44,7 +44,7 @@ def fetch_forecast(lat: float, lon: float, days: int = 7) -> List[Dict[str, Any]
         
         return _parse_daily_data(data, "forecast", "open-meteo", confidence=0.95)
     except requests.RequestException as e:
-        raise DataSourceError(f"Erreur de connexion Open-Meteo (forecast): {e}")
+        raise SourceError(f"Erreur de connexion Open-Meteo (forecast): {e}")
 
 
 def fetch_historical(lat: float, lon: float, months_back: int = 12) -> List[Dict[str, Any]]:
@@ -60,7 +60,7 @@ def fetch_historical(lat: float, lon: float, months_back: int = 12) -> List[Dict
         List[Dict]: Une liste de dictionnaires représentant les données passées par jour.
         
     Raises:
-        DataSourceError: En cas d'erreur de requête HTTP.
+        SourceError: En cas d'erreur de requête HTTP.
     """
     url = "https://archive-api.open-meteo.com/v1/archive"
     
@@ -84,7 +84,7 @@ def fetch_historical(lat: float, lon: float, months_back: int = 12) -> List[Dict
         
         return _parse_daily_data(data, "historical", "open-meteo-archive", confidence=1.0)
     except requests.RequestException as e:
-        raise DataSourceError(f"Erreur de connexion Open-Meteo (historical): {e}")
+        raise SourceError(f"Erreur de connexion Open-Meteo (historical): {e}")
 
 
 def _parse_daily_data(

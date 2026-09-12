@@ -7,7 +7,7 @@ statique pour les principales villes du Bénin, afin de permettre les tests
 """
 
 from typing import Tuple
-from kadi.exceptions import LocationNotFound
+from kadi.exceptions import LocationError
 
 # Dictionnaire mocké pour la résolution des localisations (Villes du Bénin)
 BENIN_CITIES = {
@@ -33,7 +33,7 @@ def normalize_location(location: str) -> Tuple[float, float]:
         Tuple[float, float]: (latitude, longitude).
         
     Raises:
-        LocationNotFound: Si la ville n'est pas dans notre dictionnaire mocké.
+        LocationError: Si la ville n'est pas dans notre dictionnaire mocké.
     """
     # Nettoyage de la chaîne : passage en minuscules et suppression des espaces
     loc_clean = location.strip().lower()
@@ -41,6 +41,6 @@ def normalize_location(location: str) -> Tuple[float, float]:
     if loc_clean in BENIN_CITIES:
         return BENIN_CITIES[loc_clean]
     
-    raise LocationNotFound(
+    raise LocationError(
         f"La localisation '{location}' n'est pas reconnue dans la base du Bénin."
     )
