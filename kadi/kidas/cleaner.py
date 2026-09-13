@@ -150,7 +150,7 @@ class Cleaner:
             pd.DataFrame: DataFrame sans doublons.
         """
         # Comptage des doublons avant suppression
-        nb_doublons = self.df.duplicated(subset=subset).sum()
+        nb_doublons = int(self.df.duplicated(subset=subset).sum())
 
         if nb_doublons > 0:
             # Suppression des doublons
@@ -402,9 +402,12 @@ class Cleaner:
         if "infer_format" in kwargs:
             infer = kwargs.pop("infer_format")
 
-        # Valeur par défaut : toutes les colonnes objet du DataFrame
+        # Valeur par défaut : toutes les colonnes texte/objet du DataFrame
         if cols is None:
-            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+            cols = [
+                c for c in self.df.columns
+                if self.df[c].dtype == object or pd.api.types.is_string_dtype(self.df[c])
+            ]
 
         nb_dates_corrigees = 0
 
@@ -483,7 +486,10 @@ class Cleaner:
 
         # Valeur par défaut : toutes les colonnes texte
         if cols is None:
-            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+            cols = [
+                c for c in self.df.columns
+                if self.df[c].dtype == object or pd.api.types.is_string_dtype(self.df[c])
+            ]
 
         for colonne in cols:
             if colonne not in self.df.columns:
@@ -493,8 +499,8 @@ class Cleaner:
                 continue
 
             if not pd.api.types.is_string_dtype(self.df[colonne]):
-                # Conversion en string si nécessaire
-                self.df[colonne] = self.df[colonne].astype(str)
+                # Conversion en string pandas native (StringDtype)
+                self.df[colonne] = self.df[colonne].astype("string")
 
             # Suppression des espaces en début et fin de chaîne
             self.df[colonne] = self.df[colonne].str.strip()
@@ -555,7 +561,10 @@ class Cleaner:
 
         # Valeur par défaut : toutes les colonnes texte
         if cols is None:
-            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+            cols = [
+                c for c in self.df.columns
+                if self.df[c].dtype == object or pd.api.types.is_string_dtype(self.df[c])
+            ]
 
         # Construction du pattern regex : supprime tout sauf alphanum,
         # espaces et les caractères à préserver
@@ -611,7 +620,10 @@ class Cleaner:
 
         # Valeur par défaut : toutes les colonnes objet du DataFrame
         if cols is None:
-            cols = [c for c in self.df.columns if self.df[c].dtype == object]
+            cols = [
+                c for c in self.df.columns
+                if self.df[c].dtype == object or pd.api.types.is_string_dtype(self.df[c])
+            ]
 
         rapport_decimales: Dict[str, dict] = {}
 

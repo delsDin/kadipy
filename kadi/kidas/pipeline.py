@@ -113,11 +113,11 @@ class Pipeline:
         self._cache: Cache = Cache()
 
     @staticmethod
-    def _detect_kind(source: str) -> str:
+    def _detect_kind(source: Union[str, os.PathLike]) -> str:
         """Détecte le type de source de données à partir du chemin ou de l'URL.
 
         Args:
-            source (str): Chemin vers le fichier ou URL de l'API.
+            source (str | os.PathLike): Chemin vers le fichier ou URL de l'API.
 
         Returns:
             str: Type détecté parmi 'csv', 'excel', 'json', 'netcdf', 'api'.
@@ -125,12 +125,14 @@ class Pipeline:
         Raises:
             PipelineError: Si le type de source ne peut pas être déterminé.
         """
+        source_str = str(source)
+
         # Détection des APIs par préfixe HTTP/HTTPS
-        if source.startswith("http://") or source.startswith("https://"):
+        if source_str.startswith("http://") or source_str.startswith("https://"):
             return "api"
 
         # Détection par extension de fichier
-        _, extension = os.path.splitext(source.lower())
+        _, extension = os.path.splitext(source_str.lower())
 
         if extension in _EXT_CSV:
             return "csv"
@@ -151,7 +153,7 @@ class Pipeline:
 
     def add_source(
         self,
-        source: Union[str, Source],
+        source: Union[str, os.PathLike, Source],
         **kwargs: Any,
     ) -> "Pipeline":
         """Configure la source de données du pipeline.
@@ -160,7 +162,7 @@ class Pipeline:
         ou utilise directement une instance Source existante.
 
         Args:
-            source (str | Source): Chemin vers le fichier, URL de l'API,
+            source (str | os.PathLike | Source): Chemin vers le fichier, URL de l'API,
                 ou instance Source directement.
             **kwargs: Arguments optionnels transmis au constructeur de la
                 Source (ex: encoding, sheet_name, use_dask).
@@ -525,8 +527,17 @@ class Pipeline:
                 else:
                     self._df = resultat
 
-                # Mise à jour du rapport de nettoyage
-                self._reports["nettoyage"] = cleaner.report()
+                # Mise à jour cumulée du rapport de nettoyage
+                nouveau_rep = cleaner.report()
+                if self._reports["nettoyage"] is None:
+                    self._reports["nettoyage"] = nouveau_rep
+                else:
+                    rep_existant = self._reports["nettoyage"]
+                    for key in ("doublons_supprimes", "nan_traites", "outliers_detectes", "dates_corrigees"):
+                        rep_existant[key] += nouveau_rep.get(key, 0)
+                    rep_existant["operations"].extend(nouveau_rep.get("operations", []))
+                    rep_existant["lignes_finales"] = len(self._df)
+                    rep_existant["colonnes_finales"] = len(self._df.columns)
 
             elif type_etape == "validation":
                 # Validation du schéma et calcul du score qualité
@@ -542,7 +553,15 @@ class Pipeline:
                     for erreur in erreurs:
                         logger.warning("  - %s", erreur)
 
-                self._reports["validation"] = validator.report()
+                nouveau_val_rep = validator.report()
+                if self._reports["validation"] is None:
+                    self._reports["validation"] = nouveau_val_rep
+                else:
+                    rep_existant = self._reports["validation"]
+                    rep_existant["validations"].extend(nouveau_val_rep.get("validations", []))
+                    rep_existant["lignes"] = len(self._df)
+                    rep_existant["colonnes"] = len(self._df.columns)
+                    rep_existant["quality_score"] = score
                 self._reports["quality_score"] = score
 
             elif type_etape == "normalization":
@@ -552,7 +571,7 @@ class Pipeline:
                 # Méthodes disponibles directement par nom via add_step
                 _methodes_directes = {
                     "norm_cols", "convert_units", "convert_currency",
-                    "std_crops", "std_markets", "std_coords", "mappings",
+                    "std_crops", "std_markets", "std_coords",
                 }
 
                 if nom_methode in _methodes_directes:

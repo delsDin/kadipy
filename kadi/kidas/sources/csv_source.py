@@ -113,14 +113,23 @@ class CSVSource(Source):
 
             # Analyse de l'encodage via chardet
             resultat = chardet.detect(echantillon)
-            encodage = resultat.get("encoding") or "utf-8"
+            detected_encoding = resultat.get("encoding")
 
-            logger.debug(
-                "Encodage détecté pour '%s' : %s (confiance : %.0f%%).",
-                self.path,
-                encodage,
-                (resultat.get("confidence") or 0) * 100,
-            )
+            if not detected_encoding:
+                logger.warning(
+                    "Échec de la détection automatique de l'encodage pour '%s'. "
+                    "Encodage de repli 'utf-8' utilisé.",
+                    self.path,
+                )
+                encodage = "utf-8"
+            else:
+                encodage = detected_encoding
+                logger.debug(
+                    "Encodage détecté pour '%s' : %s (confiance : %.0f%%).",
+                    self.path,
+                    encodage,
+                    (resultat.get("confidence") or 0) * 100,
+                )
 
             # Mise en cache du résultat
             self._enc = encodage

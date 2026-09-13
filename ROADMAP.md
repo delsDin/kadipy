@@ -33,8 +33,8 @@ Cycle de corrections et de nouvelles intégrations :
 
 | Version | Périmètre principal | Échéance estimée |
 |---------|-------------------|-----------------|
-| v1.2.0 | Penman-Monteith, connecteur Google Sheets, Prophet, données TAMSAT | Février 2027 |
-| v1.3.0 | LSTM prix, détection d'anomalies ML, export HTML interactif, risque inondation | Avril 2027 |
+| v1.3.0 | Penman-Monteith, connecteur Google Sheets, Prophet, données TAMSAT | Février 2027 |
+| v1.4.0 | LSTM prix, détection d'anomalies ML, export HTML interactif, risque inondation | Avril 2027 |
 | v2.0.0 | API REST publique, interface web et mobile, Docker | Août 2027 |
 | v3.0.0 | couverture régionale, package R | Juillet 2028 |
 

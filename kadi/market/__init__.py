@@ -385,7 +385,14 @@ class Market:
             if "confidence_score" in df.columns
             else 0.0
         )
-        est_simule = bool(df["is_sim"].any()) if "is_sim" in df.columns else True
+        if "is_simulated" in df.columns:
+            est_simule = bool(df["is_simulated"].any())
+        elif "sim" in df.columns:
+            est_simule = bool(df["sim"].any())
+        elif "is_sim" in df.columns:
+            est_simule = bool(df["is_sim"].any())
+        else:
+            est_simule = True
 
         return {
             "crop": crop,

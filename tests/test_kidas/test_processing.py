@@ -523,3 +523,22 @@ class TestPipeline:
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
         assert rapport["cache_utilise"] is False
+
+    def test_pipeline_add_source_path_object(self, temp_csv_file, tmp_path):
+        """Vérifie que add_source() accepte un objet pathlib.Path."""
+        from pathlib import Path
+
+        path_obj = Path(temp_csv_file)
+        pipeline = Pipeline()
+        pipeline._cache = Cache(cache_dir=str(tmp_path / "cache"))
+
+        df, rapport = (
+            pipeline
+            .add_source(path_obj)
+            .add_step("drop_dupes")
+            .run(cache=False)
+        )
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) > 0
+        assert rapport["details"]["source"]["path"] == str(path_obj)
+

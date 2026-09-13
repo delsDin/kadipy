@@ -369,6 +369,23 @@ class TestMarketFacade:
         with pytest.raises(ValueError, match="vide"):
             Market(lat=9.3, lon=2.3, location="   ")
 
+    def test_price_sim_false_flag(self):
+        """Vérifie que sim=False sur des données réelles met is_sim et is_simulated à False."""
+        marche = Market(lat=9.337, lon=2.627, location="Parakou")
+        df_real = pd.DataFrame({
+            "date": ["2026-05-01"],
+            "price": [300.0],
+            "unit": "XOF/kg",
+            "is_simulated": False,
+            "sim": False,
+            "source": "wfp-vam",
+            "confidence_score": 0.9,
+        })
+        marche.pricing.fetch = lambda *a, **k: df_real
+        res = marche.price("maize", days=90, sim=False)
+        assert res["is_sim"] is False
+        assert res["is_simulated"] is False
+
 
 # ============================================================
 # Tests d'intégration du module DecisionSupport
