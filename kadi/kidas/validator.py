@@ -162,6 +162,12 @@ class Validator:
                         f"attendu '{type_attendu}', "
                         f"reçu '{self.df[nom_col].dtype}'."
                     )
+                elif type_attendu == "bool" and not pd.api.types.is_bool_dtype(self.df[nom_col]):
+                    erreurs.append(
+                        f"Type incorrect pour '{nom_col}' : "
+                        f"attendu '{type_attendu}', "
+                        f"reçu '{self.df[nom_col].dtype}'."
+                    )
 
         est_valide = len(erreurs) == 0
         logger.info(
@@ -184,7 +190,7 @@ class Validator:
 
     def check_types(
         self,
-        dtypes: Dict[str, str],
+        dtypes: Optional[Dict[str, str]] = None,
         **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie la conformité des types pandas pour chaque colonne.
@@ -200,8 +206,10 @@ class Validator:
                 - DataFrame des colonnes avec des types incorrects (vide si OK).
         """
         # Rétrocompatibilité : ancien paramètre accepté
-        if "column_dtypes" in kwargs:
+        if dtypes is None and "column_dtypes" in kwargs:
             dtypes = kwargs.pop("column_dtypes")
+        if dtypes is None:
+            dtypes = {}
 
         lignes_erreurs = []
 
@@ -219,6 +227,10 @@ class Validator:
             # Comparaison des types (flexible pour les variantes d'int/float)
             types_compatibles = False
             if dtype_attendu in dtype_reel or dtype_reel in dtype_attendu:
+                types_compatibles = True
+            elif ("str" in dtype_attendu or "object" in dtype_attendu or "string" in dtype_attendu) and (
+                pd.api.types.is_string_dtype(self.df[colonne]) or pd.api.types.is_object_dtype(self.df[colonne])
+            ):
                 types_compatibles = True
             elif "int" in dtype_attendu and pd.api.types.is_integer_dtype(self.df[colonne]):
                 types_compatibles = True
@@ -249,7 +261,7 @@ class Validator:
 
     def check_ranges(
         self,
-        bounds: Dict[str, Tuple[Any, Any]],
+        bounds: Optional[Dict[str, Tuple[Any, Any]]] = None,
         **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie que les valeurs numériques respectent des intervalles.
@@ -266,8 +278,10 @@ class Validator:
                 - DataFrame des lignes hors-intervalle (vide si OK).
         """
         # Rétrocompatibilité : ancien paramètre accepté
-        if "column_bounds" in kwargs:
+        if bounds is None and "column_bounds" in kwargs:
             bounds = kwargs.pop("column_bounds")
+        if bounds is None:
+            bounds = {}
 
         masque_erreurs = pd.Series(False, index=self.df.index)
 
@@ -307,8 +321,8 @@ class Validator:
 
     def check_coords(
         self,
-        lat: str,
-        lon: str,
+        lat: Optional[str] = None,
+        lon: Optional[str] = None,
         region: str = "benin",
         **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
@@ -335,9 +349,9 @@ class Validator:
             ValidationError: Si les colonnes lat/lon sont absentes.
         """
         # Rétrocompatibilité : anciens paramètres acceptés
-        if "lat_col" in kwargs:
+        if lat is None and "lat_col" in kwargs:
             lat = kwargs.pop("lat_col")
-        if "lon_col" in kwargs:
+        if lon is None and "lon_col" in kwargs:
             lon = kwargs.pop("lon_col")
 
         # Vérification de la présence des colonnes
@@ -390,7 +404,7 @@ class Validator:
 
     def check_unique(
         self,
-        cols: List[str],
+        cols: Optional[List[str]] = None,
         **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie l'unicité des valeurs sur les colonnes spécifiées.
@@ -406,8 +420,10 @@ class Validator:
                 - DataFrame des lignes dupliquées (vide si OK).
         """
         # Rétrocompatibilité : ancien paramètre accepté
-        if "columns" in kwargs:
+        if cols is None and "columns" in kwargs:
             cols = kwargs.pop("columns")
+        if cols is None:
+            cols = []
 
         # Détection des lignes dupliquées sur les colonnes spécifiées
         masque_doublons = self.df.duplicated(subset=cols, keep=False)
@@ -430,8 +446,8 @@ class Validator:
 
     def check_fk(
         self,
-        fk_col: str,
-        ref: Set[Any],
+        fk_col: Optional[str] = None,
+        ref: Optional[Set[Any]] = None,
         **kwargs,
     ) -> Tuple[bool, pd.DataFrame]:
         """Vérifie l'intégrité référentielle d'une clé étrangère.
@@ -451,7 +467,7 @@ class Validator:
             ValidationError: Si la colonne de clé est absente.
         """
         # Rétrocompatibilité : ancien paramètre accepté
-        if "reference_set" in kwargs:
+        if ref is None and "reference_set" in kwargs:
             ref = kwargs.pop("reference_set")
 
         if fk_col not in self.df.columns:

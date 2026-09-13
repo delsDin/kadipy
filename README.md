@@ -178,4 +178,4 @@ La documentation complète (guides d'API, exemples) est disponible sur :
 - **Licence** : MIT
 - **Dépôt GitHub** : https://github.com/delsDin/kadipy
 - **Compatibilité Python** : >= 3.9
-- **Version courante** : 1.2.0
+- **Version courante** : 1.2.1

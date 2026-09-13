@@ -373,10 +373,12 @@ class Advisor:
                     crop, market, ahead=jours_stockage
                 )
                 # La prévision est en XOF/kg ; on convertit en XOF/tonne
-                prix_futur_tonne = prevision["predicted_price"] * 1000
-                variance = (
-                    prevision.get("rmse", prevision["predicted_price"] * 0.05) * 1000
-                )
+                prix_futur_tonne = prevision["predicted_price"] * 1000.0
+                rmse_val = prevision.get("rmse")
+                if rmse_val is not None:
+                    variance = rmse_val * 1000.0
+                else:
+                    variance = prevision["predicted_price"] * 0.05 * 1000.0
                 # Propagation du flag réel retourné par predict().
                 # Par défaut True si la clé est absente (comportement offline conservé).
                 est_simule = prevision.get("is_simulated", True)

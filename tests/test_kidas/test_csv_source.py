@@ -61,6 +61,16 @@ class TestCSVSourceDetection:
         assert encodage is not None
         assert isinstance(encodage, str)
 
+    def test_sniff_encoding_echec_emet_warning(self, temp_csv_file, caplog):
+        """Vérifie qu'un log WARNING est émis quand la détection d'encodage échoue."""
+        from unittest.mock import patch
+        source = CSVSource(temp_csv_file, encoding="auto")
+        with patch("chardet.detect", return_value={"encoding": None, "confidence": 0.0}):
+            with caplog.at_level("WARNING"):
+                encodage = source._sniff_encoding()
+                assert encodage == "utf-8"
+                assert "Échec de la détection automatique de l'encodage" in caplog.text
+
     def test_sniff_sep_virgule(self, temp_csv_file):
         """Vérifie que le délimiteur virgule est correctement détecté."""
         source = CSVSource(temp_csv_file, sep="auto")

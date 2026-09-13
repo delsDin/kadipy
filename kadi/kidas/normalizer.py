@@ -60,8 +60,9 @@ _CULTURE_ALIASES: Dict[str, str] = {
     "millet": "millet",
     # Fonio
     "fonio": "fonio",
-    # Soja
+    # Soja / Soya
     "soja": "soybean",
+    "soya": "soybean",
     "soybean": "soybean",
     # Tomate
     "tomate": "tomato",
@@ -438,7 +439,15 @@ class Normalizer:
             )
 
             # Recherche dans le dictionnaire de référence
-            return _CULTURE_ALIASES.get(valeur_norm, valeur_norm)
+            if valeur_norm in _CULTURE_ALIASES:
+                return _CULTURE_ALIASES[valeur_norm]
+
+            # Clé épurée de symboles et chiffres (ex: 'mais#1' -> 'mais', 'soya*' -> 'soya')
+            cle_epuree = re.sub(r"[^a-z\s]", "", valeur_norm).strip()
+            if cle_epuree in _CULTURE_ALIASES:
+                return _CULTURE_ALIASES[cle_epuree]
+
+            return valeur_norm
 
         # Application du mapping sur toute la colonne
         avant = self.df[col].copy()
