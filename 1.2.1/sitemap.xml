@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/README.EN/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/README.EN/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/README.EN/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/plan_refactoring/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/plan_refactoring/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/plan_refactoring/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/renommage/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/renommage/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/renommage/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/suivi/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/suivi/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/suivi/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/analyse/01_croisement_documents/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/analyse/01_croisement_documents/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/analyse/01_croisement_documents/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/analyse/02_analyse_integrations/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/analyse/02_analyse_integrations/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/analyse/02_analyse_integrations/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/analyse/03_rapport_complet/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/analyse/03_rapport_complet/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/analyse/03_rapport_complet/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/analyse/analyse_1.0.0/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/analyse/analyse_1.0.0/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/analyse/analyse_1.0.0/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/dev/analyse/suivi_1.1.0/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/dev/analyse/suivi_1.1.0/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/dev/analyse/suivi_1.1.0/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/io/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/io/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/io/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/kidas/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/kidas/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/kidas/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/kidas/cleaner/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/kidas/cleaner/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/kidas/cleaner/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/kidas/normalizer/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/kidas/normalizer/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/kidas/normalizer/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/kidas/pipeline/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/kidas/pipeline/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/kidas/pipeline/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/kidas/sources/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/kidas/sources/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/kidas/sources/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/kidas/validator/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/kidas/validator/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/kidas/validator/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/market/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/market/data_ingestion/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/data_ingestion/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/data_ingestion/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/market/decision_support/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/decision_support/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/decision_support/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/market/forecasting/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/forecasting/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/forecasting/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/market/logistics/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/logistics/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/logistics/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/market/pricing/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/pricing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/pricing/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/weather/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/weather/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/weather/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/weather/hydrology/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/weather/hydrology/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/weather/hydrology/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/weather/phenology/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/weather/phenology/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/weather/phenology/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/weather/risk/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/weather/risk/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/weather/risk/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/weather/session/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/weather/session/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/weather/session/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/README.EN/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/README.EN/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1README.EN/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/plan_refactoring/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/plan_refactoring/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/plan_refactoring/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/renommage/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/renommage/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/renommage/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/suivi/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/suivi/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/suivi/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/01_croisement_documents/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/01_croisement_documents/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/analyse/01_croisement_documents/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/02_analyse_integrations/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/02_analyse_integrations/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/analyse/02_analyse_integrations/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/03_rapport_complet/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/03_rapport_complet/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/analyse/03_rapport_complet/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/analyse_1.0.0/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/analyse_1.0.0/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/analyse/analyse_1.0.0/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/suivi_1.1.0/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/dev/analyse/suivi_1.1.0/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1dev/analyse/suivi_1.1.0/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/io/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/io/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1io/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/kidas/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/kidas/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1kidas/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/kidas/cleaner/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/kidas/cleaner/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1kidas/cleaner/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/kidas/normalizer/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/kidas/normalizer/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1kidas/normalizer/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/kidas/pipeline/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/kidas/pipeline/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1kidas/pipeline/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/kidas/sources/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/kidas/sources/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1kidas/sources/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/kidas/validator/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/kidas/validator/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1kidas/validator/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/decision_support/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/decision_support/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/decision_support/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/forecasting/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/forecasting/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/forecasting/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/logistics/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/logistics/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/logistics/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/pricing/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/pricing/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/pricing/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/weather/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/weather/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1weather/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/weather/hydrology/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/weather/hydrology/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1weather/hydrology/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/weather/phenology/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/weather/phenology/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1weather/phenology/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/weather/risk/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/weather/risk/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1weather/risk/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/weather/session/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/weather/session/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1weather/session/"/>
+    </url>
+    <url>
+        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/data_ingestion/</loc>
+        <lastmod>2026-09-13</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/data_ingestion/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/data_ingestion/"/>
+    </url>
+</urlset>
