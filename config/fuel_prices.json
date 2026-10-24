@@ -1,10 +1,10 @@
 {
     "benin": {
-        "last_updated": "2026-10-17",
+        "last_updated": "2026-10-24",
         "source": "https://www.globalpetrolprices.com/Benin/",
         "currency": "XOF",
-        "essence": 725,
-        "gasoil": 750,
+        "essence": 750,
+        "gasoil": 765,
         "petrole_lampant": 1040
     }
 }
