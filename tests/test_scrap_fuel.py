@@ -14,6 +14,7 @@ import responses as responses_lib
 # Import du module à tester (chemin résolu depuis la racine du projet)
 from config.scrap_fuel import (
     URL_BENIN_FUEL,
+    _extraire_date,
     fetch_html_content,
     get_benin_fuel_prices,
     parse_fuel_prices,
@@ -211,3 +212,34 @@ def test_save_fuel_prices_carburant_non_reconnu(tmp_path):
 
     # "Aviation Fuel" ne doit pas apparaître dans le JSON
     assert "aviation_fuel" not in contenu["benin"]
+
+
+def test_extraire_date():
+    """Vérifie la normalisation des différents formats de dates."""
+    # Format DD.MM.YYYY de GlobalPetrolPrices
+    assert _extraire_date("26.10.2026") == "2026-10-26"
+    assert _extraire_date("03.11.2026") == "2026-11-03"
+
+    # Format mois année
+    assert _extraire_date("Jun 2026") == "2026-06-01"
+
+    # Format ISO déjà valide
+    assert _extraire_date("2026-10-26") == "2026-10-26"
+
+    # Chaîne vide (repli sur date du jour)
+    assert _extraire_date("") is not None
+
+
+def test_save_fuel_prices_utilise_date_releve(tmp_path):
+    """Vérifie que last_updated utilise bien la date réelle du relevé et non la date du jour."""
+    donnees_brutes = [
+        {"fuel": "Gasoline prices", "date": "26.10.2026", "price_xof": "750", "price_usd": "1.282"},
+    ]
+    chemin_sortie = tmp_path / "fuel_prices.json"
+    succes = save_fuel_prices(donnees_brutes, output_path=chemin_sortie)
+    assert succes is True
+
+    with open(chemin_sortie, encoding="utf-8") as f:
+        contenu = json.load(f)
+
+    assert contenu["benin"]["last_updated"] == "2026-10-26"
