@@ -7,8 +7,7 @@ dans le fichier de configuration config/fuel_prices.json.
 """
 
 import json
-import os
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -64,17 +63,11 @@ def fetch_html_content(
     Raises:
         requests.RequestException: En cas d'erreur de connexion ou d'erreur HTTP.
     """
-    # Utilisation des en-têtes par défaut si aucun en-tête n'est fourni
     if headers is None:
         headers = DEFAULT_HEADERS
 
-    # Envoi de la requête HTTP GET pour récupérer le contenu de la page
     response = requests.get(url, headers=headers, timeout=timeout)
-
-    # Vérification du statut HTTP de la réponse (exception si != 200)
     response.raise_for_status()
-
-    # Retourne le contenu HTML sous forme de chaîne de caractères
     return response.text
 
 
@@ -89,46 +82,41 @@ def parse_fuel_prices(html_content: str) -> List[Dict[str, str]]:
         List[Dict[str, str]]: Une liste de dictionnaires contenant pour chaque
         carburant son nom, la date du relevé, le prix en XOF et le prix en USD.
     """
-    # Analyse du code HTML avec la bibliothèque BeautifulSoup
     soup = BeautifulSoup(html_content, "html.parser")
 
     # Recherche du tableau principal contenant les prix des carburants
     table = soup.find("table")
     if not table:
-        # Si aucun tableau n'est trouvé, retourner une liste vide
         return []
 
-    # Liste pour stocker les données extraites
     results = []
-
-    # Parcours des lignes du corps du tableau
     tbody = table.find("tbody")
     rows = tbody.find_all("tr") if tbody else table.find_all("tr")
 
     for row in rows:
-        # Extraction des cellules de la ligne
         name_cell = row.find("th")
         val_cells = row.find_all("td", class_="value")
+        if not val_cells:
+            val_cells = row.find_all("td")
+
+        # Cas où le libellé du carburant est dans une balise td
+        if not name_cell and val_cells and len(val_cells) >= 4:
+            name_cell = val_cells[0]
+            val_cells = val_cells[1:]
 
         # Vérification qu'il s'agit d'une ligne de données complète
         if name_cell and len(val_cells) >= 3:
-            # Nettoyage du nom du carburant
             fuel_name = name_cell.text.strip()
-
-            # Extraction des trois valeurs (Date, Prix XOF, Prix USD)
             date_val = val_cells[0].text.strip()
             price_xof = val_cells[1].text.strip()
             price_usd = val_cells[2].text.strip()
 
-            # Structuration des informations dans un dictionnaire
             fuel_data = {
                 "fuel": fuel_name,
                 "date": date_val,
                 "price_xof": price_xof,
                 "price_usd": price_usd,
             }
-
-            # Ajout au tableau de résultats
             results.append(fuel_data)
 
     return results
@@ -147,19 +135,54 @@ def _extraire_valeur_numerique(chaine: str) -> Optional[float]:
     Returns:
         Optional[float]: La valeur numérique extraite, ou None si la conversion échoue.
     """
-    # Suppression des espaces et des caractères non numériques courants
     nettoyee = chaine.replace(",", "").replace(" ", "").strip()
-
-    # Suppression des unités monétaires textuelles si présentes
     for unite in ["XOF", "USD", "FCFA", "CFA"]:
         nettoyee = nettoyee.replace(unite, "")
 
     try:
-        # Conversion en nombre flottant
         return float(nettoyee)
     except ValueError:
-        # Retourner None si la conversion est impossible
         return None
+
+
+def _extraire_date(chaine_date: str) -> str:
+    """
+    Normalise la date du relevé extraite du site au format ISO (YYYY-MM-DD).
+
+    Prend en charge les formats fréquents de GlobalPetrolPrices :
+    - '26.10.2026' (DD.MM.YYYY)
+    - '26/10/2026' (DD/MM/YYYY)
+    - '26-10-2026' (DD-MM-YYYY)
+    - '2026-10-26' (YYYY-MM-DD)
+    - 'Jun 2026' / 'October 2026'
+
+    Args:
+        chaine_date (str): Chaîne brute représentant la date.
+
+    Returns:
+        str: Date au format YYYY-MM-DD, ou chaîne brute nettoyée si non reconnue.
+    """
+    if not chaine_date or not chaine_date.strip():
+        return date.today().isoformat()
+
+    nettoyee = chaine_date.strip()
+    formats = [
+        "%d.%m.%Y",
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%Y-%m-%d",
+        "%d-%b-%Y",
+        "%b %Y",
+        "%B %Y",
+    ]
+
+    for fmt in formats:
+        try:
+            return datetime.strptime(nettoyee, fmt).date().isoformat()
+        except ValueError:
+            continue
+
+    return nettoyee
 
 
 def save_fuel_prices(
@@ -171,7 +194,10 @@ def save_fuel_prices(
 
     La structure JSON produite est normalisée pour être compatible avec les autres
     modules de KadiPy. Les clés de carburants sont standardisées grâce au dictionnaire
-    FUEL_KEY_MAP. La clé `last_updated` est horodatée avec la date du jour.
+    FUEL_KEY_MAP.
+    La clé `last_updated` est renseignée avec la date réelle du relevé issue du site
+    (au format YYYY-MM-DD), évitant ainsi de mettre à jour artificiellement la date
+    avec la date du jour si les prix n'ont pas changé.
 
     Args:
         prices (List[Dict[str, str]]): La liste brute issue de parse_fuel_prices().
@@ -180,49 +206,73 @@ def save_fuel_prices(
     Returns:
         bool: True si la sauvegarde a réussi, False si aucun prix n'a été trouvé.
     """
-    # Vérification que la liste de prix n'est pas vide
     if not prices:
         print("Aucun prix à sauvegarder.")
         return False
 
-    # Construction de la structure JSON normalisée pour le Bénin
+    # Recherche de la date réelle du relevé parmi les carburants extraits
+    date_releve = None
+    for item in prices:
+        raw_date = item.get("date")
+        if raw_date:
+            date_releve = _extraire_date(raw_date)
+            break
+
+    # Si aucune date n'a pu être extraite, on utilise la date du jour en repli
+    date_maj = date_releve if date_releve else date.today().isoformat()
+
+    # Chargement préalable du fichier existant si présent pour conserver
+    # d'éventuelles métadonnées ou carburants non présents dans ce relevé
+    donnees_existantes = {}
+    if output_path.exists():
+        try:
+            with open(output_path, "r", encoding="utf-8") as fichier:
+                donnees_existantes = json.load(fichier).get("benin", {})
+        except Exception:
+            donnees_existantes = {}
+
     benin_data: Dict[str, object] = {
-        "last_updated": date.today().isoformat(),
+        "last_updated": date_maj,
         "source": URL_BENIN_FUEL,
         "currency": "XOF",
     }
 
+    # Conservation des clés existantes par défaut
+    for cle_existante, val_existante in donnees_existantes.items():
+        if cle_existante not in benin_data:
+            benin_data[cle_existante] = val_existante
+
+    carburants_trouves = 0
+
     # Parcours de chaque carburant extrait pour le normaliser
     for item in prices:
-        # Normalisation du nom du carburant en minuscules pour la correspondance
         fuel_name_lower = item.get("fuel", "").lower()
 
-        # Recherche de la clé JSON correspondante dans le dictionnaire de correspondance
         cle_json = None
         for nom_source, cle in FUEL_KEY_MAP.items():
             if nom_source in fuel_name_lower:
                 cle_json = cle
                 break
 
-        # Si le carburant n'est pas reconnu, on l'ignore
         if cle_json is None:
             continue
 
-        # Extraction et conversion du prix en XOF en valeur numérique entière
         valeur = _extraire_valeur_numerique(item.get("price_xof", ""))
 
         if valeur is not None:
-            # Stockage du prix arrondi à l'entier (les prix XOF sont toujours entiers)
             benin_data[cle_json] = int(round(valeur))
+            carburants_trouves += 1
 
-    # Assemblage de la structure finale avec le pays comme clé racine
+    if carburants_trouves == 0:
+        print("Aucun prix valide n'a pu être extrait des données fournies.")
+        return False
+
     donnees_finales = {"benin": benin_data}
 
-    # Écriture du fichier JSON avec indentation lisible
     with open(output_path, "w", encoding="utf-8") as fichier:
         json.dump(donnees_finales, fichier, indent=4, ensure_ascii=False)
 
-    print(f"Fichier mis à jour : {output_path}")
+    print(f"Fichier mis à jour : {output_path} (date du relevé : {date_maj})")
     return True
 
 
@@ -238,12 +288,8 @@ def get_benin_fuel_prices(url: str = URL_BENIN_FUEL) -> List[Dict[str, str]]:
     Returns:
         List[Dict[str, str]]: La liste des carburants avec leurs prix.
     """
-    # Étape 1 : Téléchargement du contenu de la page HTML
     html = fetch_html_content(url)
-
-    # Étape 2 : Extraction et structuration des prix des carburants
     prices = parse_fuel_prices(html)
-
     return prices
 
 
@@ -254,28 +300,22 @@ def main():
     Scrape les prix des carburants depuis GlobalPetrolPrices, puis sauvegarde
     le résultat dans config/fuel_prices.json.
     """
-    # Information sur l'avancement de l'opération
     print("Récupération des prix des carburants au Bénin en cours...")
 
     try:
-        # Lancement de la procédure de scraping
         data = get_benin_fuel_prices()
 
-        # Affichage structuré du résultat dans la console (utile pour le débogage CI)
         print("\nRésultats bruts obtenus :")
         print(json.dumps(data, indent=4, ensure_ascii=False))
 
-        # Sauvegarde des données dans le fichier de configuration JSON
         succes = save_fuel_prices(data)
 
-        # Code de sortie non-zero si l'enregistrement a échoué (utile pour la CI)
         if not succes:
             raise RuntimeError(
                 "Aucun prix valide n'a pu être extrait ou enregistré."
             )
 
     except Exception as err:
-        # Gestion claire des erreurs potentielles lors de l'exécution
         print(f"Une erreur s'est produite lors du scraping : {err}")
         raise
 
