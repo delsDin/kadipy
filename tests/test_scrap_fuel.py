@@ -172,8 +172,45 @@ def test_save_fuel_prices_ecrit_json(tmp_path):
 
     # Vérification des métadonnées
     assert "last_updated" in benin
+    assert "last_checked" in benin
     assert benin["currency"] == "XOF"
     assert "source" in benin
+
+
+def test_save_fuel_prices_deux_dates(tmp_path):
+    """Vérifie que la date du site et la date de vérification sont distinctes."""
+    from datetime import date
+
+    donnees_brutes = [
+        {"fuel": "Gasoline prices", "date": "26.10.2026", "price_xof": "750", "price_usd": "1.282"},
+        {"fuel": "Diesel prices", "date": "26.10.2026", "price_xof": "765", "price_usd": "1.308"},
+    ]
+    chemin_sortie = tmp_path / "fuel_prices.json"
+
+    save_fuel_prices(donnees_brutes, output_path=chemin_sortie)
+
+    with open(chemin_sortie, encoding="utf-8") as f:
+        benin = json.load(f)["benin"]
+
+    # La date du site est convertie au format ISO
+    assert benin["last_updated"] == "2026-10-26"
+    # La date de vérification correspond au jour de l'exécution
+    assert benin["last_checked"] == date.today().isoformat()
+
+
+def test_save_fuel_prices_date_source_non_standard(tmp_path):
+    """Vérifie qu'une date au format inattendu est conservée telle quelle."""
+    donnees_brutes = [
+        {"fuel": "Gasoline", "date": "Jun 2026", "price_xof": "725 XOF", "price_usd": "1.24"},
+    ]
+    chemin_sortie = tmp_path / "fuel_prices.json"
+
+    save_fuel_prices(donnees_brutes, output_path=chemin_sortie)
+
+    with open(chemin_sortie, encoding="utf-8") as f:
+        benin = json.load(f)["benin"]
+
+    assert benin["last_updated"] == "Jun 2026"
 
 
 def test_save_fuel_prices_liste_vide(tmp_path):

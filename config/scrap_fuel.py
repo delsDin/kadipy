@@ -8,7 +8,7 @@ dans le fichier de configuration config/fuel_prices.json.
 
 import json
 import os
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -162,6 +162,26 @@ def _extraire_valeur_numerique(chaine: str) -> Optional[float]:
         return None
 
 
+def _convertir_date_source(chaine: str) -> str:
+    """
+    Convertit la date du relevé affichée par le site au format ISO.
+
+    Le site affiche les dates au format "JJ.MM.AAAA" (exemple : "26.10.2026").
+
+    Args:
+        chaine (str): La date telle qu'elle apparaît sur le site.
+
+    Returns:
+        str: La date au format ISO "AAAA-MM-JJ", ou la chaîne d'origine
+        si elle ne correspond pas au format attendu.
+    """
+    try:
+        return datetime.strptime(chaine.strip(), "%d.%m.%Y").date().isoformat()
+    except ValueError:
+        # On conserve la valeur brute plutôt que de perdre l'information
+        return chaine.strip()
+
+
 def save_fuel_prices(
     prices: List[Dict[str, str]],
     output_path: Path = DEFAULT_OUTPUT_PATH,
@@ -171,7 +191,11 @@ def save_fuel_prices(
 
     La structure JSON produite est normalisée pour être compatible avec les autres
     modules de KadiPy. Les clés de carburants sont standardisées grâce au dictionnaire
-    FUEL_KEY_MAP. La clé `last_updated` est horodatée avec la date du jour.
+    FUEL_KEY_MAP. Deux dates sont enregistrées :
+
+    - `last_updated` : date du relevé publiée par le site, qui indique
+      l'âge réel des prix ;
+    - `last_checked` : date du jour, qui indique la dernière vérification.
 
     Args:
         prices (List[Dict[str, str]]): La liste brute issue de parse_fuel_prices().
@@ -186,8 +210,11 @@ def save_fuel_prices(
         return False
 
     # Construction de la structure JSON normalisée pour le Bénin
+    # La date du site est la même pour tous les carburants d'un relevé,
+    # on prend donc celle de la première ligne
     benin_data: Dict[str, object] = {
-        "last_updated": date.today().isoformat(),
+        "last_updated": _convertir_date_source(prices[0].get("date", "")),
+        "last_checked": date.today().isoformat(),
         "source": URL_BENIN_FUEL,
         "currency": "XOF",
     }
