@@ -478,7 +478,7 @@ class TestWeatherMarketIntegration:
         """
         from unittest.mock import MagicMock
 
-        ws = MagicMock()
+        ws = MagicMock(spec=["rain_probability", "drought_index"])
         # Probabilité de pluie élevée demain (saison des pluies)
         ws.rain_probability.return_value = {
             "tomorrow": 0.9,
@@ -746,7 +746,29 @@ class TestWeatherMarketIntegration:
         resultat = marche.assess_climate_risk(days_ahead=1)
 
         assert resultat["weather_available"] == True
-        assert resultat["prob_pluie_j1"] > 0.0
+        assert resultat["prob_pluie_j1"] == 0.9
+        mock_weather_session_pluie_elevee.rain_probability.assert_called_once_with(
+            days_ahead=1, min_rainfall_mm=1.0
+        )
         assert isinstance(resultat["recommendation"], str)
         assert len(resultat["recommendation"]) > 0
 
+
+
+    def test_climate_risk_avec_api_meteo_actuelle(self):
+        """Vérifie la signature météo actuelle et les valeurs retournées."""
+        from unittest.mock import create_autospec
+
+        from kadi.weather import Weather
+
+        weather = create_autospec(Weather, instance=True)
+        weather.rain_prob.return_value = {"tomorrow": 0.9}
+        weather.drought.return_value = {"drought_severity": "severe"}
+        marche = Market(lat=9.337, lon=2.627, location="Parakou", weather=weather)
+
+        resultat = marche.climate_risk(ahead=4)
+
+        weather.rain_prob.assert_called_once_with(days=4, min_mm=1.0)
+        weather.drought.assert_called_once_with(method="spi", window=3)
+        assert resultat["prob_pluie_j1"] == 0.9
+        assert resultat["drought_severity"] == "severe"
