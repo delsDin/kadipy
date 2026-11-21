@@ -58,7 +58,7 @@ Adds a processing step to the pipeline queue. Step type (cleaning, validation, o
 pipeline.add_step("drop_dupes")
 pipeline.add_step("fill_missing", strategy="median")
 pipeline.add_step("check_schema", {"culture": "str", "rendement_kg": "float"})
-pipeline.add_step("norm_cols", {"crops": "culture"})
+pipeline.add_step("std_crops", col="culture")
 ```
 
 #### Available Cleaning Steps
@@ -87,7 +87,7 @@ pipeline.add_step("norm_cols", {"crops": "culture"})
 
 | Name | Description |
 |------|-------------|
-| `'norm_cols'` | Renames columns according to a mapping dictionary |
+| `'norm_cols'` | Standardizes column names to `snake_case` |
 | `'convert_units'` | Converts units (kg/tonne, ha/m2, etc.) |
 | `'convert_currency'` | Converts currencies via `ExchangeRateClient` |
 | `'std_crops'` | Normalizes crop names to KadiPy reference |
@@ -98,7 +98,7 @@ pipeline.add_step("norm_cols", {"crops": "culture"})
 
 - `clean(step, **params)`: alias for cleaning steps
 - `validate(schema, **params)`: alias for `add_step('check_schema', schema)`
-- `normalize(mappings, **params)`: alias for `add_step('norm_cols', mappings)`
+- `normalize(step, **params)`: alias for `add_step(step, **params)`
 
 ---
 
@@ -235,7 +235,7 @@ df, report = (
     .clean("drop_dupes")
     .clean("fill_missing", strategy="median")
     .validate({"culture": "str", "prix_xof_kg": "float"})
-    .normalize({"crops": "culture"})
+    .normalize("std_crops", col="culture")
     .run(cache=True)
 )
 ```
@@ -302,7 +302,7 @@ Legacy method names emit a `DeprecationWarning` and continue to function until K
 | `load_data(source)` | `add_source(source)` or `load(source)` |
 | `add_cleaning_step(step)` | `add_step(step)` or `clean(step)` |
 | `add_validation_step(schema)` | `add_step('check_schema', schema)` or `validate(schema)` |
-| `add_normalization_step(mappings)` | `add_step('norm_cols', mappings)` or `normalize(mappings)` |
+| `add_normalization_step(mappings)` | `add_step(step, **params)` or `normalize(mappings)` |
 | `execute(cache)` | `run(cache)` |
 | `get_pipeline_config()` | `config()` |
 | `export_report(filepath)` | `export(filepath)` |
