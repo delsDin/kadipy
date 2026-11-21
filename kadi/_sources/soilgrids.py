@@ -255,30 +255,28 @@ def _call_api(lat: float, lon: float) -> Optional[str]:
             reponse.raise_for_status()
             donnees = reponse.json()
 
-            # Extraction de la classe WRB la plus probable depuis la réponse
-            # Format attendu : {"properties": {"most_probable_wrb_class": "Lixisol", ...}}
-            proprietes = donnees.get("properties", {})
-            wrb_class = proprietes.get("most_probable_wrb_class", "")
+            # SoilGrids v2.0 expose la classification à la racine du JSON.
+            wrb_class = donnees.get("wrb_class_name")
+            if not wrb_class:
+                probabilites = donnees.get("wrb_class_probability") or []
+                if probabilites and probabilites[0]:
+                    wrb_class = probabilites[0][0]
 
-            if wrb_class:
+            # Accepter aussi les réponses au format imbriqué historique.
+            if not wrb_class:
+                proprietes = donnees.get("properties") or {}
+                wrb_class = proprietes.get("most_probable_wrb_class")
+                if not wrb_class:
+                    probabilites = proprietes.get("probabilities") or []
+                    if probabilites:
+                        wrb_class = probabilites[0].get("wrb_class")
+
+            if isinstance(wrb_class, str) and wrb_class:
                 logger.info(
                     "SoilGrids : classe WRB '%s' obtenue pour (lat=%.4f, lon=%.4f).",
                     wrb_class, lat, lon,
                 )
                 return wrb_class
-
-            # Si la clé est absente, tenter dans la liste des probabilités
-            probabilites = proprietes.get("probabilities", [])
-            if probabilites:
-                # La première entrée est la plus probable (liste triée par pourcentage)
-                premiere = probabilites[0]
-                wrb_class = premiere.get("wrb_class", "")
-                if wrb_class:
-                    logger.info(
-                        "SoilGrids (fallback probabilités) : classe '%s' pour (%.4f, %.4f).",
-                        wrb_class, lat, lon,
-                    )
-                    return wrb_class
 
             logger.warning(
                 "SoilGrids : réponse valide mais classe WRB absente "
