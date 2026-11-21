@@ -227,7 +227,8 @@ class Advisor:
             m_from (str): Le marché d'achat (ex: 'Parakou').
             to (str): Le marché de vente (ex: 'Cotonou').
             qty (float): La quantité à transporter en tonnes métriques.
-            **kwargs: Anciens nom de paramètres (market_from, market_to, qty_tons).
+            **kwargs: Anciens noms : origine, destination, market_from,
+                market_to et qty_tons.
 
         Returns:
             dict: Dictionnaire contenant :
@@ -241,12 +242,21 @@ class Advisor:
                 - 'confidence_score'     : score de confiance de la recommandation (0-1)
                 - 'prob_pluie'           : probabilité de pluie utilisée (0 si sans météo)
         """
+        if "origine" in kwargs:
+            m_from = kwargs.pop("origine")
+        if "destination" in kwargs:
+            to = kwargs.pop("destination")
         if "market_from" in kwargs:
             m_from = kwargs.pop("market_from")
         if "market_to" in kwargs:
             to = kwargs.pop("market_to")
         if "qty_tons" in kwargs:
             qty = kwargs.pop("qty_tons")
+        if kwargs:
+            unknown = ", ".join(sorted(kwargs))
+            raise TypeError(
+                f"Advisor.arbitrage() a reçu des arguments inattendus : {unknown}"
+            )
         
         # Récupération des prix réels (ou simulés) pour les deux marchés
         prix_origine_kg, simule_origine, conf_origine = self._get_price(
