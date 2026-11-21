@@ -14,8 +14,8 @@ Usage typique :
     >>> from kadi.market.backtesting import Backtester
     >>> from kadi.market.forecasting import Forecasting
     >>> backtester = Backtester(Forecasting())
-    >>> resultats = backtester.run("maize", "cotonou", window=90,
-    ...                           horizon=7, n=5)
+    >>> resultats = backtester.run("maize", "cotonou", hist=df,
+    ...                           window=90, horizon=7, n=5)
     >>> rapport = backtester.summary()
     >>> print(rapport["mae_moyen"])
 """
@@ -217,8 +217,9 @@ class Backtester:
         Args:
             crop (str): Code de la culture à évaluer (ex: 'maize', 'rice').
             market (str): Nom du marché (ex: 'cotonou', 'parakou').
-            hist (pd.DataFrame): DataFrame avec colonnes 'date' (datetime)
-                et 'price' (float en XOF/kg), trié par ordre chronologique.
+            hist (pd.DataFrame, optional): Historique avec colonnes 'date'
+                et 'price' (XOF/kg). Sans historique exploitable, la méthode
+                retourne une liste vide.
             window (int, optional): Taille de la fenêtre d'entraînement
                 en jours. Défaut : 90.
             horizon (int, optional): Horizon de prévision en jours.
@@ -249,6 +250,13 @@ class Backtester:
 
         # Réinitialisation des résultats pour une nouvelle exécution
         self._results = []
+
+        if not isinstance(hist, pd.DataFrame) or hist.empty:
+            logger.warning(
+                "Backtesting : l'historique doit être un DataFrame non vide. "
+                "Aucun résultat produit."
+            )
+            return self._results
 
         # Vérification des colonnes obligatoires
         if "date" not in hist.columns or "price" not in hist.columns:
