@@ -4,6 +4,7 @@ des données de marché, et de la détection d'anomalies de prix.
 """
 
 import warnings
+from typing import Callable, Any
 
 import pandas as pd
 import numpy as np
@@ -54,7 +55,7 @@ class Pricing:
             sim (bool, optional): Si True, force le mode simulation pour
                 toutes les opérations de tarification. Défaut : False.
             sim (bool, optional): Si True, force le mode simulation.
-            **kwargs: Arguments obsolètes acceptés pour rétrocompatibilité.
+            **kwargs (Any): Arguments obsolètes acceptés pour rétrocompatibilité.
         """
         # Prise en charge des anciens noms d'arguments
         if "wfp_client" in kwargs:
@@ -89,7 +90,7 @@ class Pricing:
     # Rétrocompatibilité : méthodes publiques renommées
     # ------------------------------------------------------------------
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les accès aux anciens noms de méthodes publiques.
 
         Délègue vers le nouveau nom et émet un DeprecationWarning.
@@ -98,7 +99,7 @@ class Pricing:
             name (str): Nom de l'attribut ou méthode demandé.
 
         Returns:
-            callable: La méthode correspondante sous son nouveau nom.
+            Callable: La méthode correspondante sous son nouveau nom.
 
         Raises:
             AttributeError: Si le nom n'est ni nouveau ni ancien.

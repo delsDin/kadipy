@@ -12,7 +12,7 @@ import logging
 import re
 import unicodedata
 import warnings
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 import pandas as pd
 
@@ -611,14 +611,14 @@ class Normalizer:
         """
         return self._mappings.copy()
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
 
         Args:
             name (str): Nom de la méthode demandée.
 
         Returns:
-            callable: La méthode correspondant au nouveau nom.
+            Callable: La méthode correspondant au nouveau nom.
 
         Raises:
             AttributeError: Si le nom n'est pas un alias connu.

@@ -518,6 +518,6 @@ et continuent de fonctionner jusqu'à KadiPy v2.0.
 - [Hydrologie](hydrology.md) : bilan hydrique, ET0
 - [Risques climatiques](risk.md) : SPI, Markov, probabilité de pluie
 
-::: kadi.weather.session.Weather
+- [Weather](session.md#kadi.weather.session.Weather)
 ::: kadi.weather.location.Location
 ::: kadi.weather.data.WeatherLoader

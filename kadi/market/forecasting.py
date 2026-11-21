@@ -10,6 +10,7 @@ Implémentation basée sur des données réelles (Phase 3) :
 """
 
 import logging
+from typing import Callable, Any
 import warnings
 
 import numpy as np
@@ -60,7 +61,7 @@ class Forecasting:
     # ------------------------------------------------------------------
     
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les accès aux anciens noms de méthodes publiques.
 
         Délègue vers le nouveau nom et émet un DeprecationWarning.
@@ -69,7 +70,7 @@ class Forecasting:
             name (str): Nom de l'attribut ou méthode demandé.
 
         Returns:
-            callable: La méthode correspondante sous son nouveau nom.
+            Callable: La méthode correspondante sous son nouveau nom.
 
         Raises:
             AttributeError: Si le nom n'est ni nouveau ni ancien.
@@ -292,7 +293,7 @@ class Forecasting:
                 'date' (datetime) et 'price' (float en XOF/kg). Typiquement
                 fourni par Pricing.fetch(). Si None ou insuffisant, le
                 fallback simulé est activé.
-            **kwargs: Anciens arguments (days_ahead, historique) pour rétrocompatibilité.
+            **kwargs (Any): Anciens arguments (days_ahead, historique) pour rétrocompatibilité.
 
         Returns:
             dict: Dictionnaire contenant :

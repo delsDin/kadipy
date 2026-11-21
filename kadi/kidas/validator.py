@@ -10,7 +10,7 @@ de qualité multicritère pour chaque jeu de données.
 
 import logging
 import warnings
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Callable, Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -566,14 +566,14 @@ class Validator:
         return self._report.copy()
 
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
 
         Args:
             name (str): Nom de la méthode demandée.
 
         Returns:
-            callable: La méthode correspondant au nouveau nom.
+            Callable: La méthode correspondant au nouveau nom.
 
         Raises:
             AttributeError: Si le nom n'est pas un alias connu.

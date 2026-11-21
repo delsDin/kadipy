@@ -17,7 +17,7 @@ import logging
 import math
 import warnings
 import requests
-from typing import Tuple, Optional
+from typing import Callable, Tuple, Optional
 
 # Import de la configuration centralisée pour les coefficients logistiques
 from kadi.config import CONFIG
@@ -228,7 +228,7 @@ class Logistics:
     # Rétrocompatibilité : méthodes publiques renommées
     # ------------------------------------------------------------------
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les accès aux anciens noms de méthodes publiques.
 
         Délègue vers le nouveau nom et émet un DeprecationWarning.
@@ -237,7 +237,7 @@ class Logistics:
             name (str): Nom de l'attribut ou méthode demandé.
 
         Returns:
-            callable: La méthode correspondante sous son nouveau nom.
+            Callable: La méthode correspondante sous son nouveau nom.
 
         Raises:
             AttributeError: Si le nom n'est ni nouveau ni ancien.
