@@ -84,13 +84,10 @@ import kadi as kd
 df = kd.read_csv("enquete_prix_2024.csv")
 cleaner = kd.Cleaner(df)
 
-df_clean, df_outliers = (
-    cleaner
-    .norm_text()
-    .drop_dupes()
-    .fill_missing(strategy="median", cols=["prix_xof_kg"])
-    .drop_outliers(method="iqr", cols=["prix_xof_kg"])
-)
+cleaner.norm_text()
+cleaner.drop_dupes()
+cleaner.fill_missing(strategy="median", cols=["prix_xof_kg"])
+df_clean, df_outliers = cleaner.drop_outliers(method="iqr", cols=["prix_xof_kg"])
 ```
 
 ### Weather Analysis

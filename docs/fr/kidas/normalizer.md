@@ -294,14 +294,11 @@ from kadi.kidas import Normalizer
 df = kd.read_csv("recoltes_2024.csv")
 normalizer = Normalizer(df)
 
-df_norm = (
-    normalizer
-    .norm_cols()
-    .std_crops(col="culture")
-    .convert_units({"rendement_kg": "sac_100kg", "production": "tonne"})
-    .std_markets(col="marche")
-    .std_coords(lat="latitude", lon="longitude")
-)
+normalizer.norm_cols()
+normalizer.std_crops(col="culture")
+normalizer.convert_units({"rendement_kg": "sac_100kg", "production": "tonne"})
+normalizer.std_markets(col="marche")
+df_norm = normalizer.std_coords(lat="latitude", lon="longitude")
 
 hist = normalizer.mappings()
 print(f"Colonnes renommées : {len(hist['colonnes'])}")
