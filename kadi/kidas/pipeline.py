@@ -522,9 +522,12 @@ class Pipeline:
                 resultat = getattr(cleaner, nom_methode)(**params)
 
                 # Certaines méthodes retournent un tuple (df, outliers_df)
-                if isinstance(resultat, tuple):
+                if (
+                    isinstance(resultat, tuple) and resultat
+                    and isinstance(resultat[0], pd.DataFrame)
+                ):
                     self._df = resultat[0]
-                else:
+                elif isinstance(resultat, pd.DataFrame):
                     self._df = resultat
 
                 # Mise à jour cumulée du rapport de nettoyage
@@ -538,6 +541,14 @@ class Pipeline:
                     rep_existant["operations"].extend(nouveau_rep.get("operations", []))
                     rep_existant["lignes_finales"] = len(self._df)
                     rep_existant["colonnes_finales"] = len(self._df.columns)
+
+                if nom_methode in (
+                    "check_decimals", "detect_inconsistent_decimals"
+                ) and isinstance(resultat, dict):
+                    diagnostics = self._reports["nettoyage"].setdefault(
+                        "diagnostics_decimales", []
+                    )
+                    diagnostics.append(resultat)
 
             elif type_etape == "validation":
                 # Validation du schéma et calcul du score qualité
