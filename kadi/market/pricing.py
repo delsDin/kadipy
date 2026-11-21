@@ -226,6 +226,7 @@ class Pricing:
             "unit": "XOF/kg",
             # Marqueurs explicites d'origine simulée
             "sim": True,
+            "is_simulated": True,
             "source": "simulated",
             "fetched_at": maintenant,
             "confidence_score": 0.1,
