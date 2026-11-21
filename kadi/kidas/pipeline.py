@@ -243,12 +243,17 @@ class Pipeline:
             "fix_dates", "standardize_text", "remove_special_chars",
             "detect_inconsistent_decimals", "get_cleaning_report",
         }
-        _validation = {
-            "check_schema", "check_types", "check_ranges",
-            "check_coords", "check_unique", "check_fk",
-            "quality_score", "validate_schema", "validate_types",
-            "validate_ranges", "validate_coordinates", "validate_uniqueness",
+        validation_params = {
+            "check_schema": "schema",
+            "check_types": "dtypes",
+            "check_ranges": "bounds",
+            "check_coords": "lat",
+            "check_unique": "cols",
+            "check_fk": "fk_col",
         }
+        validation_method = Validator._METHODES_DEPRECATED.get(
+            step_name, step_name
+        )
         _normalisation = {
             "norm_cols", "convert_units", "convert_currency",
             "std_crops", "std_markets", "std_coords", "mappings",
@@ -259,7 +264,10 @@ class Pipeline:
 
         if step_name in _cleaning:
             type_etape = "cleaning"
-        elif step_name in _validation:
+        elif (
+            validation_method in validation_params
+            or validation_method == "quality_score"
+        ):
             type_etape = "validation"
         elif step_name in _normalisation:
             type_etape = "normalization"
@@ -269,7 +277,12 @@ class Pipeline:
         # Gestion du premier argument positionnel
         if schema_or_mappings is not None:
             if type_etape == "validation":
-                params["schema"] = schema_or_mappings
+                param_name = validation_params.get(validation_method)
+                if param_name is None:
+                    raise TypeError(
+                        f"L'étape '{step_name}' ne prend aucun argument."
+                    )
+                params.setdefault(param_name, schema_or_mappings)
             elif type_etape == "normalization":
                 params["mappings"] = schema_or_mappings
 
@@ -540,18 +553,24 @@ class Pipeline:
                     rep_existant["colonnes_finales"] = len(self._df.columns)
 
             elif type_etape == "validation":
-                # Validation du schéma et calcul du score qualité
                 validator = Validator(self._df)
-                est_valide, erreurs = validator.check_schema(params.get("schema", {}))
-                score = validator.quality_score()
-
-                # Journalisation du résultat de validation
-                if not est_valide:
-                    logger.warning(
-                        "Validation du schéma : %d erreur(s) détectée(s).", len(erreurs)
+                if nom_methode == "quality_score":
+                    score = validator.quality_score(**params)
+                else:
+                    if nom_methode in ("check_schema", "validate_schema"):
+                        params = {"schema": {}, **params}
+                    est_valide, erreurs = getattr(validator, nom_methode)(
+                        **params
                     )
-                    for erreur in erreurs:
-                        logger.warning("  - %s", erreur)
+                    if not est_valide:
+                        logger.warning(
+                            "Validation (%s) : %d anomalie(s) détectée(s).",
+                            nom_methode, len(erreurs),
+                        )
+                        if isinstance(erreurs, list):
+                            for erreur in erreurs:
+                                logger.warning("  - %s", erreur)
+                    score = validator.quality_score()
 
                 nouveau_val_rep = validator.report()
                 if self._reports["validation"] is None:
