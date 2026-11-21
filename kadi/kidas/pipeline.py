@@ -23,15 +23,8 @@ from kadi.kidas.sources import (
     JSONSource,
     APISource,
     Source,
+    NetCDFSource,
 )
-
-# Import conditionnel : xarray est requis pour NetCDF
-try:
-    from kadi.kidas.sources import NetCDFSource
-    _NETCDF_DISPONIBLE = True
-except ImportError:
-    NetCDFSource = None  # type: ignore[assignment]
-    _NETCDF_DISPONIBLE = False
 
 # Import des classes de traitement (Phase 3 : nouveaux noms)
 from kadi.kidas.cleaner import Cleaner
@@ -188,6 +181,11 @@ class Pipeline:
             elif type_source == "json":
                 self._source = JSONSource(source, **kwargs)
             elif type_source == "netcdf":
+                if NetCDFSource is None:
+                    raise ImportError(
+                        "Le support NetCDF nécessite xarray et un moteur "
+                        "NetCDF compatible, par exemple netCDF4."
+                    )
                 self._source = NetCDFSource(source, **kwargs)
             elif type_source == "api":
                 self._source = APISource(source, **kwargs)
