@@ -282,7 +282,7 @@ print(wb.tail(7)[[
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `crop` | `str` | `'maize'` | Reference crop |
-| `soil_type` | `str` | `'ferrugineux'` | Beninese soil type |
+| `soil_type` | `str or None` | `None` | Uses the detected soil by default |
 
 **Supported Soil Types:** `'ferrugineux'`, `'ferrallitique'`, `'sableux'`, `'limoneux'`.
 

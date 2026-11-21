@@ -292,7 +292,7 @@ print(bilan.tail(7)[[
 | Nom | Type | Défaut | Description |
 |-----|------|--------|-------------|
 | `crop` | `str` | `'maize'` | Culture de référence |
-| `soil_type` | `str` | `'ferrugineux'` | Type de sol béninois |
+| `soil_type` | `str ou None` | `None` | Sol détecté automatiquement par défaut |
 
 **Types de sols supportés :** `'ferrugineux'`, `'ferrallitique'`, `'sableux'`, `'limoneux'`.
 
