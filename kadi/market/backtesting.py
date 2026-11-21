@@ -20,9 +20,9 @@ Usage typique :
     >>> print(rapport["mae_moyen"])
 """
 
-from typing_extensions import Optional
 import logging
 import warnings
+from typing import Optional
 
 import numpy as np
 import pandas as pd
