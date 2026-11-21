@@ -107,7 +107,7 @@ print(f"Simulé      : {resume['is_sim']}")
 
 **Retour :** `dict` avec les clés `crop`, `market`, `prix_median`,
 `prix_min`, `prix_max`, `prix_moyen`, `nb_observations`, `nb_anomalies`,
-`is_sim`, `confidence_score`, `source`, `donnees` (DataFrame complet).
+`is_simulated`, `confidence_score`, `source`, `donnees` (DataFrame complet).
 
 ---
 
@@ -126,8 +126,8 @@ print(f"Points d'historique  : {prev['nb_history_pts']}")
 ```
 
 **Retour :** `dict` avec `predicted_price`, `low_90`, `high_90`,
-`confidence`, `model_used`, `rmse`, `is_sim`, `confidence_score`,
-`nb_history_pts`, `ahead`, `crop`, `market`.
+`confidence`, `model_used`, `rmse`, `is_simulated`, `confidence_score`,
+`nb_history_pts`, `days_ahead`, `crop`, `market`.
 
 ---
 
@@ -238,7 +238,7 @@ print(risque["recommendation"])
 
 ## Modes de données et boucle de fallback
 
-| Niveau | Source | `is_sim` | `confidence_score` |
+| Niveau | Source | `is_simulated` | `confidence_score` |
 |--------|--------|----------|--------------------|
 | 1 | Cache SQLite local | `False` | Variable (score d'origine) |
 | 2 | API HAPI HumData (PAM/OCHA) | `False` | `0.9` |
