@@ -337,6 +337,8 @@ class Pipeline:
         """
         if isinstance(mappings, str):
             return self.add_step(mappings, **params)
+        if isinstance(mappings, dict):
+            return self.add_step("mappings", mappings, **params)
         return self.add_step("norm_cols", mappings, **params)
 
     def run(
@@ -574,19 +576,20 @@ class Pipeline:
                     "std_crops", "std_markets", "std_coords",
                 }
 
-                if nom_methode in _methodes_directes:
-                    # Dispatch direct : appel de la méthode par son nom
-                    if not hasattr(normalizer, nom_methode):
-                        raise PipelineError(
-                            f"Méthode de normalisation '{nom_methode}' inconnue."
-                        )
+                legacy_mappings = (
+                    nom_methode in ("norm_cols", "normalize")
+                    and isinstance(params.get("mappings"), dict)
+                )
+                method = Normalizer._METHODES_DEPRECATED.get(
+                    nom_methode, nom_methode
+                )
+                if method in _methodes_directes and not legacy_mappings:
                     resultat = getattr(normalizer, nom_methode)(**params)
-                    # mappings() retourne un dict, les autres retournent un DataFrame
                     if isinstance(resultat, pd.DataFrame):
                         self._df = resultat
 
                 else:
-                    # Ancien mécanisme via le dict 'mappings' (rétrocompatibilité)
+                    # Les correspondances déclaratives configurent plusieurs opérations.
                     mappings = params.get("mappings", {})
 
                     # Normalisation des noms de colonnes si demandé
