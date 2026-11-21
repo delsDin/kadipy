@@ -372,7 +372,7 @@ class Pricing:
         Identifie la source des données d'une série de prix.
 
         Si le DataFrame contient la colonne ``sim``, la méthode
-        retourne 'simulated' ou 'wfp-vam' selon le cas.
+        utilise le dernier identifiant de source disponible ou 'wfp-vam'.
 
         Args:
             series (pd.DataFrame): DataFrame retourné par fetch().
@@ -380,12 +380,15 @@ class Pricing:
         Returns:
             str: La source identifiée ('wfp-vam', 'ratin', 'scrape-local', 'simulated').
         """
-        # Vérification de la colonne sim
-        if "sim" in series.columns:
-            if series["sim"].any():
+        for col in ("is_simulated", "sim", "is_sim"):
+            if col in series.columns and bool(series[col].any()):
                 return "simulated"
 
-        # Par défaut, on suppose WFP VAM (source primaire du V1)
+        if "source" in series.columns:
+            sources = series["source"].dropna()
+            if not sources.empty:
+                return str(sources.iloc[-1])
+
         return "wfp-vam"
 
     def seasonality(
