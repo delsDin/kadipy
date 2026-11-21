@@ -237,7 +237,9 @@ class Backtester:
                 - 'mae'             (float) : MAE en XOF/kg.
                 - 'rmse'            (float) : RMSE en XOF/kg.
                 - 'mape'            (float) : MAPE en pourcentage.
-                - 'precision_dir'   (float) : Précision directionnelle (%).
+                - 'precision_dir' (float) : 100 si le prix prédit et le prix
+                  réel moyen évoluent dans le même sens par rapport au dernier
+                  prix d'entraînement, 0 sinon (NaN si indisponible).
                 - 'is_simulated'    (bool)  : True si la prévision est simulée.
         """
 
@@ -329,7 +331,17 @@ class Backtester:
             mae = self._mae(y_true, y_pred)
             rmse = self._rmse(y_true, y_pred)
             mape = self._mape(y_true, y_pred)
-            precision_dir = self._dir_acc(y_true, y_pred)
+            # La prévision scalaire décrit une direction par fenêtre.
+            prix_reel_moyen = float(np.mean(y_true))
+            dernier_prix_train = float(df_train["price"].iloc[-1])
+            precision_dir = float("nan")
+            prix_comparables = [prix_predit, prix_reel_moyen, dernier_prix_train]
+            if np.isfinite(prix_comparables).all():
+                direction_reelle = np.sign(prix_reel_moyen - dernier_prix_train)
+                direction_predite = np.sign(prix_predit - dernier_prix_train)
+                precision_dir = (
+                    100.0 if direction_reelle == direction_predite else 0.0
+                )
 
             # Date de coupure (fin de la fenêtre d'entraînement)
             date_fin_train = str(df_train["date"].iloc[-1].date())
@@ -340,7 +352,7 @@ class Backtester:
                 "date_fin_train": date_fin_train,
                 "nb_train_pts": len(df_train),
                 "prix_predit": round(prix_predit, 1),
-                "prix_reel_moyen": round(float(np.mean(y_true)), 1),
+                "prix_reel_moyen": round(prix_reel_moyen, 1),
                 "mae": round(mae, 2),
                 "rmse": round(rmse, 2),
                 "mape": round(mape, 2),
