@@ -453,10 +453,10 @@ class Market:
                 - 'confidence'       : niveau de confiance (0.9 ou 0.95)
                 - 'model_used'       : identifiant du modèle
                 - 'rmse'             : RMSE réel en XOF/kg (None si simulé)
-                - 'is_sim'     : True si les données source sont simulées
+                - 'is_simulated': True si les données source sont simulées
                 - 'confidence_score' : score de fiabilité 0.0 à 1.0
                 - 'nb_history_pts'   : nombre de points d'historique utilisés
-                - 'ahead'       : horizon de prévision utilisé
+                - 'days_ahead' : horizon de prévision utilisé
         """
         if "days_ahead" in kwargs:
             ahead = kwargs.pop("days_ahead")

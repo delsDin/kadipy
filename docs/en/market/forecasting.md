@@ -73,7 +73,7 @@ Via the `Market` facade (full pipeline in a single call):
 prediction = market.predict("maize", ahead=30, confidence_interval=0.9, days=365)
 
 print(f"Predicted price in 30d : {prediction['predicted_price']} XOF/kg")
-print(f"Horizon used           : {prediction['ahead']} days")
+print(f"Horizon used           : {prediction['days_ahead']} days")
 ```
 
 **Parameters:**
