@@ -2369,7 +2369,7 @@ En l'absence de la session weather, le comportement est identique à la V1.</p>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-232"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-232" name="kadi.market.logistics.Logistics--source--__codelineno-0-232"></a>    <span class="c1"># Rétrocompatibilité : méthodes publiques renommées</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-233"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-233" name="kadi.market.logistics.Logistics--source--__codelineno-0-233"></a>    <span class="c1"># ------------------------------------------------------------------</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-234"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-234" name="kadi.market.logistics.Logistics--source--__codelineno-0-234"></a>
-</span><span id="kadi.market.logistics.Logistics--source--__span-0-235"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-235" name="kadi.market.logistics.Logistics--source--__codelineno-0-235"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="kadi.market.logistics.Logistics--source--__span-0-235"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-235" name="kadi.market.logistics.Logistics--source--__codelineno-0-235"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-236"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-236" name="kadi.market.logistics.Logistics--source--__codelineno-0-236"></a><span class="w">        </span><span class="sd">"""Intercepte les accès aux anciens noms de méthodes publiques.</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-237"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-237" name="kadi.market.logistics.Logistics--source--__codelineno-0-237"></a>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-238"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-238" name="kadi.market.logistics.Logistics--source--__codelineno-0-238"></a><span class="sd">        Délègue vers le nouveau nom et émet un DeprecationWarning.</span>
@@ -2378,7 +2378,7 @@ En l'absence de la session weather, le comportement est identique à la V1.</p>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-241"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-241" name="kadi.market.logistics.Logistics--source--__codelineno-0-241"></a><span class="sd">            name (str): Nom de l'attribut ou méthode demandé.</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-242"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-242" name="kadi.market.logistics.Logistics--source--__codelineno-0-242"></a>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-243"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-243" name="kadi.market.logistics.Logistics--source--__codelineno-0-243"></a><span class="sd">        Returns:</span>
-</span><span id="kadi.market.logistics.Logistics--source--__span-0-244"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-244" name="kadi.market.logistics.Logistics--source--__codelineno-0-244"></a><span class="sd">            callable: La méthode correspondante sous son nouveau nom.</span>
+</span><span id="kadi.market.logistics.Logistics--source--__span-0-244"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-244" name="kadi.market.logistics.Logistics--source--__codelineno-0-244"></a><span class="sd">            Callable: La méthode correspondante sous son nouveau nom.</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-245"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-245" name="kadi.market.logistics.Logistics--source--__codelineno-0-245"></a>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-246"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-246" name="kadi.market.logistics.Logistics--source--__codelineno-0-246"></a><span class="sd">        Raises:</span>
 </span><span id="kadi.market.logistics.Logistics--source--__span-0-247"><a id="kadi.market.logistics.Logistics--source--__codelineno-0-247" name="kadi.market.logistics.Logistics--source--__codelineno-0-247"></a><span class="sd">            AttributeError: Si le nom n'est ni nouveau ni ancien.</span>
@@ -2824,7 +2824,7 @@ Si None, utilise <code>~/.kadi/osrm_cache.json</code>.</p>
                 <code>weather</code>
             </td>
             <td>
-                  <code><a class="autorefs autorefs-internal" title="Weather (kadi.weather.session.Weather)" href="../../weather/#kadi.weather.session.Weather">Weather</a></code>
+                  <code><a class="autorefs autorefs-internal" title="Weather (kadi.weather.session.Weather)" href="../../weather/session/#kadi.weather.session.Weather">Weather</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2940,7 +2940,7 @@ la météo prévue. Si None, pas d'ajustement climatique.</p>
 
 
 <a href="#kadi.market.logistics.Logistics.__getattr__" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2990,7 +2990,8 @@ la météo prévue. Si None, pas d'ajustement climatique.</p>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-<td><code>callable</code></td>            <td>
+<td><code>Callable</code></td>            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3051,7 +3052,7 @@ la météo prévue. Si None, pas d'ajustement climatique.</p>
 <span class="normal"><a href="#kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-256">256</a></span>
 <span class="normal"><a href="#kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-257">257</a></span>
 <span class="normal"><a href="#kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-258">258</a></span>
-<span class="normal"><a href="#kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-259">259</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-235"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-235" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-235"></a><span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="normal"><a href="#kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-259">259</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-235"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-235" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-235"></a><span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-236"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-236" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-236"></a><span class="w">    </span><span class="sd">"""Intercepte les accès aux anciens noms de méthodes publiques.</span>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-237"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-237" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-237"></a>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-238"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-238" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-238"></a><span class="sd">    Délègue vers le nouveau nom et émet un DeprecationWarning.</span>
@@ -3060,7 +3061,7 @@ la météo prévue. Si None, pas d'ajustement climatique.</p>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-241"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-241" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-241"></a><span class="sd">        name (str): Nom de l'attribut ou méthode demandé.</span>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-242"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-242" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-242"></a>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-243"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-243" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-243"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-244"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-244" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-244"></a><span class="sd">        callable: La méthode correspondante sous son nouveau nom.</span>
+</span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-244"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-244" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-244"></a><span class="sd">        Callable: La méthode correspondante sous son nouveau nom.</span>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-245"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-245" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-245"></a>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-246"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-246" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-246"></a><span class="sd">    Raises:</span>
 </span><span id="kadi.market.logistics.Logistics.__getattr__--source--__span-0-247"><a id="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-247" name="kadi.market.logistics.Logistics.__getattr__--source--__codelineno-0-247"></a><span class="sd">        AttributeError: Si le nom n'est ni nouveau ni ancien.</span>

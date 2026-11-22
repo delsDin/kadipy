@@ -3211,7 +3211,7 @@ last_read (datetime | None): Horodatage de la dernière lecture
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-74"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-74" name="kadi.kidas.sources.base.Source--source--__codelineno-0-74"></a><span class="sd">        selon le format de fichier concerné.</span>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-75"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-75" name="kadi.kidas.sources.base.Source--source--__codelineno-0-75"></a>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-76"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-76" name="kadi.kidas.sources.base.Source--source--__codelineno-0-76"></a><span class="sd">        Args:</span>
-</span><span id="kadi.kidas.sources.base.Source--source--__span-0-77"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-77" name="kadi.kidas.sources.base.Source--source--__codelineno-0-77"></a><span class="sd">            **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.kidas.sources.base.Source--source--__span-0-77"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-77" name="kadi.kidas.sources.base.Source--source--__codelineno-0-77"></a><span class="sd">            **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-78"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-78" name="kadi.kidas.sources.base.Source--source--__codelineno-0-78"></a><span class="sd">                (ex: n, sheet, lat_bounds...).</span>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-79"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-79" name="kadi.kidas.sources.base.Source--source--__codelineno-0-79"></a>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-80"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-80" name="kadi.kidas.sources.base.Source--source--__codelineno-0-80"></a><span class="sd">        Returns:</span>
@@ -3232,7 +3232,7 @@ last_read (datetime | None): Horodatage de la dernière lecture
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-95"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-95" name="kadi.kidas.sources.base.Source--source--__codelineno-0-95"></a>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-96"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-96" name="kadi.kidas.sources.base.Source--source--__codelineno-0-96"></a><span class="sd">        Args:</span>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-97"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-97" name="kadi.kidas.sources.base.Source--source--__codelineno-0-97"></a><span class="sd">            data (pd.DataFrame): Les données à écrire vers la source.</span>
-</span><span id="kadi.kidas.sources.base.Source--source--__span-0-98"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-98" name="kadi.kidas.sources.base.Source--source--__codelineno-0-98"></a><span class="sd">            **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.kidas.sources.base.Source--source--__span-0-98"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-98" name="kadi.kidas.sources.base.Source--source--__codelineno-0-98"></a><span class="sd">            **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-99"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-99" name="kadi.kidas.sources.base.Source--source--__codelineno-0-99"></a><span class="sd">                (ex: index, sheet, orient...).</span>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-100"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-100" name="kadi.kidas.sources.base.Source--source--__codelineno-0-100"></a>
 </span><span id="kadi.kidas.sources.base.Source--source--__span-0-101"><a id="kadi.kidas.sources.base.Source--source--__codelineno-0-101" name="kadi.kidas.sources.base.Source--source--__codelineno-0-101"></a><span class="sd">        Returns:</span>
@@ -3483,6 +3483,7 @@ selon le format de fichier concerné.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3584,7 +3585,7 @@ format invalide, etc.).</p>
 </span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-74"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-74" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-74"></a><span class="sd">    selon le format de fichier concerné.</span>
 </span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-75"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-75" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-75"></a>
 </span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-76"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-76" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-76"></a><span class="sd">    Args:</span>
-</span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-77"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-77" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-77"></a><span class="sd">        **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-77"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-77" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-77"></a><span class="sd">        **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-78"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-78" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-78"></a><span class="sd">            (ex: n, sheet, lat_bounds...).</span>
 </span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-79"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-79" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-79"></a>
 </span><span id="kadi.kidas.sources.base.Source.read--source--__span-0-80"><a id="kadi.kidas.sources.base.Source.read--source--__codelineno-0-80" name="kadi.kidas.sources.base.Source.read--source--__codelineno-0-80"></a><span class="sd">    Returns:</span>
@@ -3655,6 +3656,7 @@ format invalide, etc.).</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3743,7 +3745,7 @@ format invalide, etc.).</p>
 </span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-95"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-95" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-95"></a>
 </span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-96"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-96" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-96"></a><span class="sd">    Args:</span>
 </span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-97"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-97" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-97"></a><span class="sd">        data (pd.DataFrame): Les données à écrire vers la source.</span>
-</span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-98"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-98" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-98"></a><span class="sd">        **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-98"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-98" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-98"></a><span class="sd">        **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-99"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-99" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-99"></a><span class="sd">            (ex: index, sheet, orient...).</span>
 </span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-100"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-100" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-100"></a>
 </span><span id="kadi.kidas.sources.base.Source.write--source--__span-0-101"><a id="kadi.kidas.sources.base.Source.write--source--__codelineno-0-101" name="kadi.kidas.sources.base.Source.write--source--__codelineno-0-101"></a><span class="sd">    Returns:</span>
@@ -4001,7 +4003,7 @@ lisible. Pour les APIs, vérifie que l'endpoint répond correctement.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="../../../kidas/sources/#kadi.kidas.sources.base.Source">Source</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="#kadi.kidas.sources.base.Source">Source</a></code></p>
 
 
 
@@ -5870,7 +5872,7 @@ statistiques sans charger toutes les données en mémoire.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="../../../kidas/sources/#kadi.kidas.sources.base.Source">Source</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="#kadi.kidas.sources.base.Source">Source</a></code></p>
 
 
 
@@ -7741,7 +7743,7 @@ Par défaut 'Sheet1'.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="../../../kidas/sources/#kadi.kidas.sources.base.Source">Source</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="#kadi.kidas.sources.base.Source">Source</a></code></p>
 
 
 
@@ -9359,7 +9361,7 @@ Pour une source dict, retourne toujours True.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="../../../kidas/sources/#kadi.kidas.sources.base.Source">Source</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="#kadi.kidas.sources.base.Source">Source</a></code></p>
 
 
 
@@ -11125,7 +11127,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="../../../kidas/sources/#kadi.kidas.sources.base.Source">Source</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Source (kadi.kidas.sources.base.Source)" href="#kadi.kidas.sources.base.Source">Source</a></code></p>
 
 
 

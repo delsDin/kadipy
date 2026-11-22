@@ -2765,7 +2765,7 @@ last_read (datetime | None): Horodatage de la dernière lecture
 </span><span id="kadi.io.Source--source--__span-0-74"><a id="kadi.io.Source--source--__codelineno-0-74" name="kadi.io.Source--source--__codelineno-0-74"></a><span class="sd">        selon le format de fichier concerné.</span>
 </span><span id="kadi.io.Source--source--__span-0-75"><a id="kadi.io.Source--source--__codelineno-0-75" name="kadi.io.Source--source--__codelineno-0-75"></a>
 </span><span id="kadi.io.Source--source--__span-0-76"><a id="kadi.io.Source--source--__codelineno-0-76" name="kadi.io.Source--source--__codelineno-0-76"></a><span class="sd">        Args:</span>
-</span><span id="kadi.io.Source--source--__span-0-77"><a id="kadi.io.Source--source--__codelineno-0-77" name="kadi.io.Source--source--__codelineno-0-77"></a><span class="sd">            **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.io.Source--source--__span-0-77"><a id="kadi.io.Source--source--__codelineno-0-77" name="kadi.io.Source--source--__codelineno-0-77"></a><span class="sd">            **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.io.Source--source--__span-0-78"><a id="kadi.io.Source--source--__codelineno-0-78" name="kadi.io.Source--source--__codelineno-0-78"></a><span class="sd">                (ex: n, sheet, lat_bounds...).</span>
 </span><span id="kadi.io.Source--source--__span-0-79"><a id="kadi.io.Source--source--__codelineno-0-79" name="kadi.io.Source--source--__codelineno-0-79"></a>
 </span><span id="kadi.io.Source--source--__span-0-80"><a id="kadi.io.Source--source--__codelineno-0-80" name="kadi.io.Source--source--__codelineno-0-80"></a><span class="sd">        Returns:</span>
@@ -2786,7 +2786,7 @@ last_read (datetime | None): Horodatage de la dernière lecture
 </span><span id="kadi.io.Source--source--__span-0-95"><a id="kadi.io.Source--source--__codelineno-0-95" name="kadi.io.Source--source--__codelineno-0-95"></a>
 </span><span id="kadi.io.Source--source--__span-0-96"><a id="kadi.io.Source--source--__codelineno-0-96" name="kadi.io.Source--source--__codelineno-0-96"></a><span class="sd">        Args:</span>
 </span><span id="kadi.io.Source--source--__span-0-97"><a id="kadi.io.Source--source--__codelineno-0-97" name="kadi.io.Source--source--__codelineno-0-97"></a><span class="sd">            data (pd.DataFrame): Les données à écrire vers la source.</span>
-</span><span id="kadi.io.Source--source--__span-0-98"><a id="kadi.io.Source--source--__codelineno-0-98" name="kadi.io.Source--source--__codelineno-0-98"></a><span class="sd">            **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.io.Source--source--__span-0-98"><a id="kadi.io.Source--source--__codelineno-0-98" name="kadi.io.Source--source--__codelineno-0-98"></a><span class="sd">            **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.io.Source--source--__span-0-99"><a id="kadi.io.Source--source--__codelineno-0-99" name="kadi.io.Source--source--__codelineno-0-99"></a><span class="sd">                (ex: index, sheet, orient...).</span>
 </span><span id="kadi.io.Source--source--__span-0-100"><a id="kadi.io.Source--source--__codelineno-0-100" name="kadi.io.Source--source--__codelineno-0-100"></a>
 </span><span id="kadi.io.Source--source--__span-0-101"><a id="kadi.io.Source--source--__codelineno-0-101" name="kadi.io.Source--source--__codelineno-0-101"></a><span class="sd">        Returns:</span>
@@ -3037,6 +3037,7 @@ selon le format de fichier concerné.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3138,7 +3139,7 @@ format invalide, etc.).</p>
 </span><span id="kadi.io.Source.read--source--__span-0-74"><a id="kadi.io.Source.read--source--__codelineno-0-74" name="kadi.io.Source.read--source--__codelineno-0-74"></a><span class="sd">    selon le format de fichier concerné.</span>
 </span><span id="kadi.io.Source.read--source--__span-0-75"><a id="kadi.io.Source.read--source--__codelineno-0-75" name="kadi.io.Source.read--source--__codelineno-0-75"></a>
 </span><span id="kadi.io.Source.read--source--__span-0-76"><a id="kadi.io.Source.read--source--__codelineno-0-76" name="kadi.io.Source.read--source--__codelineno-0-76"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.Source.read--source--__span-0-77"><a id="kadi.io.Source.read--source--__codelineno-0-77" name="kadi.io.Source.read--source--__codelineno-0-77"></a><span class="sd">        **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.io.Source.read--source--__span-0-77"><a id="kadi.io.Source.read--source--__codelineno-0-77" name="kadi.io.Source.read--source--__codelineno-0-77"></a><span class="sd">        **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.io.Source.read--source--__span-0-78"><a id="kadi.io.Source.read--source--__codelineno-0-78" name="kadi.io.Source.read--source--__codelineno-0-78"></a><span class="sd">            (ex: n, sheet, lat_bounds...).</span>
 </span><span id="kadi.io.Source.read--source--__span-0-79"><a id="kadi.io.Source.read--source--__codelineno-0-79" name="kadi.io.Source.read--source--__codelineno-0-79"></a>
 </span><span id="kadi.io.Source.read--source--__span-0-80"><a id="kadi.io.Source.read--source--__codelineno-0-80" name="kadi.io.Source.read--source--__codelineno-0-80"></a><span class="sd">    Returns:</span>
@@ -3209,6 +3210,7 @@ format invalide, etc.).</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3297,7 +3299,7 @@ format invalide, etc.).</p>
 </span><span id="kadi.io.Source.write--source--__span-0-95"><a id="kadi.io.Source.write--source--__codelineno-0-95" name="kadi.io.Source.write--source--__codelineno-0-95"></a>
 </span><span id="kadi.io.Source.write--source--__span-0-96"><a id="kadi.io.Source.write--source--__codelineno-0-96" name="kadi.io.Source.write--source--__codelineno-0-96"></a><span class="sd">    Args:</span>
 </span><span id="kadi.io.Source.write--source--__span-0-97"><a id="kadi.io.Source.write--source--__codelineno-0-97" name="kadi.io.Source.write--source--__codelineno-0-97"></a><span class="sd">        data (pd.DataFrame): Les données à écrire vers la source.</span>
-</span><span id="kadi.io.Source.write--source--__span-0-98"><a id="kadi.io.Source.write--source--__codelineno-0-98" name="kadi.io.Source.write--source--__codelineno-0-98"></a><span class="sd">        **kwargs: Arguments optionnels spécifiques à chaque format</span>
+</span><span id="kadi.io.Source.write--source--__span-0-98"><a id="kadi.io.Source.write--source--__codelineno-0-98" name="kadi.io.Source.write--source--__codelineno-0-98"></a><span class="sd">        **kwargs (Any): Arguments optionnels spécifiques à chaque format</span>
 </span><span id="kadi.io.Source.write--source--__span-0-99"><a id="kadi.io.Source.write--source--__codelineno-0-99" name="kadi.io.Source.write--source--__codelineno-0-99"></a><span class="sd">            (ex: index, sheet, orient...).</span>
 </span><span id="kadi.io.Source.write--source--__span-0-100"><a id="kadi.io.Source.write--source--__codelineno-0-100" name="kadi.io.Source.write--source--__codelineno-0-100"></a>
 </span><span id="kadi.io.Source.write--source--__span-0-101"><a id="kadi.io.Source.write--source--__codelineno-0-101" name="kadi.io.Source.write--source--__codelineno-0-101"></a><span class="sd">    Returns:</span>
@@ -12625,7 +12627,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
 
 <a href="#kadi.io.read_csv" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -12665,6 +12667,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -12690,6 +12693,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -12703,10 +12707,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-50">50</a></span>
-<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-51">51</a></span>
-<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-52">52</a></span>
-<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-53">53</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-53">53</a></span>
 <span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-54">54</a></span>
 <span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-55">55</a></span>
 <span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-56">56</a></span>
@@ -12715,19 +12716,22 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-59">59</a></span>
 <span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-60">60</a></span>
 <span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-62">62</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_csv--source--__span-0-50"><a id="kadi.io.read_csv--source--__codelineno-0-50" name="kadi.io.read_csv--source--__codelineno-0-50"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="kadi.io.read_csv--source--__span-0-51"><a id="kadi.io.read_csv--source--__codelineno-0-51" name="kadi.io.read_csv--source--__codelineno-0-51"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.read_csv--source--__span-0-52"><a id="kadi.io.read_csv--source--__codelineno-0-52" name="kadi.io.read_csv--source--__codelineno-0-52"></a><span class="sd">    Lit un fichier CSV via CSVSource.</span>
-</span><span id="kadi.io.read_csv--source--__span-0-53"><a id="kadi.io.read_csv--source--__codelineno-0-53" name="kadi.io.read_csv--source--__codelineno-0-53"></a>
-</span><span id="kadi.io.read_csv--source--__span-0-54"><a id="kadi.io.read_csv--source--__codelineno-0-54" name="kadi.io.read_csv--source--__codelineno-0-54"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.read_csv--source--__span-0-55"><a id="kadi.io.read_csv--source--__codelineno-0-55" name="kadi.io.read_csv--source--__codelineno-0-55"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier CSV.</span>
-</span><span id="kadi.io.read_csv--source--__span-0-56"><a id="kadi.io.read_csv--source--__codelineno-0-56" name="kadi.io.read_csv--source--__codelineno-0-56"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à CSVSource.</span>
-</span><span id="kadi.io.read_csv--source--__span-0-57"><a id="kadi.io.read_csv--source--__codelineno-0-57" name="kadi.io.read_csv--source--__codelineno-0-57"></a>
-</span><span id="kadi.io.read_csv--source--__span-0-58"><a id="kadi.io.read_csv--source--__codelineno-0-58" name="kadi.io.read_csv--source--__codelineno-0-58"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.read_csv--source--__span-0-59"><a id="kadi.io.read_csv--source--__codelineno-0-59" name="kadi.io.read_csv--source--__codelineno-0-59"></a><span class="sd">        pandas.DataFrame: Contenu du fichier CSV sous forme de DataFrame.</span>
-</span><span id="kadi.io.read_csv--source--__span-0-60"><a id="kadi.io.read_csv--source--__codelineno-0-60" name="kadi.io.read_csv--source--__codelineno-0-60"></a><span class="sd">    """</span>
-</span><span id="kadi.io.read_csv--source--__span-0-61"><a id="kadi.io.read_csv--source--__codelineno-0-61" name="kadi.io.read_csv--source--__codelineno-0-61"></a>    <span class="c1"># Instanciation de la source CSV et lecture des données</span>
-</span><span id="kadi.io.read_csv--source--__span-0-62"><a id="kadi.io.read_csv--source--__codelineno-0-62" name="kadi.io.read_csv--source--__codelineno-0-62"></a>    <span class="k">return</span> <span class="n">CSVSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#kadi.io.read_csv--source--__codelineno-0-65">65</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_csv--source--__span-0-53"><a id="kadi.io.read_csv--source--__codelineno-0-53" name="kadi.io.read_csv--source--__codelineno-0-53"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+</span><span id="kadi.io.read_csv--source--__span-0-54"><a id="kadi.io.read_csv--source--__codelineno-0-54" name="kadi.io.read_csv--source--__codelineno-0-54"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.read_csv--source--__span-0-55"><a id="kadi.io.read_csv--source--__codelineno-0-55" name="kadi.io.read_csv--source--__codelineno-0-55"></a><span class="sd">    Lit un fichier CSV via CSVSource.</span>
+</span><span id="kadi.io.read_csv--source--__span-0-56"><a id="kadi.io.read_csv--source--__codelineno-0-56" name="kadi.io.read_csv--source--__codelineno-0-56"></a>
+</span><span id="kadi.io.read_csv--source--__span-0-57"><a id="kadi.io.read_csv--source--__codelineno-0-57" name="kadi.io.read_csv--source--__codelineno-0-57"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.read_csv--source--__span-0-58"><a id="kadi.io.read_csv--source--__codelineno-0-58" name="kadi.io.read_csv--source--__codelineno-0-58"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier CSV.</span>
+</span><span id="kadi.io.read_csv--source--__span-0-59"><a id="kadi.io.read_csv--source--__codelineno-0-59" name="kadi.io.read_csv--source--__codelineno-0-59"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à CSVSource.</span>
+</span><span id="kadi.io.read_csv--source--__span-0-60"><a id="kadi.io.read_csv--source--__codelineno-0-60" name="kadi.io.read_csv--source--__codelineno-0-60"></a>
+</span><span id="kadi.io.read_csv--source--__span-0-61"><a id="kadi.io.read_csv--source--__codelineno-0-61" name="kadi.io.read_csv--source--__codelineno-0-61"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.read_csv--source--__span-0-62"><a id="kadi.io.read_csv--source--__codelineno-0-62" name="kadi.io.read_csv--source--__codelineno-0-62"></a><span class="sd">        pandas.DataFrame: Contenu du fichier CSV sous forme de DataFrame.</span>
+</span><span id="kadi.io.read_csv--source--__span-0-63"><a id="kadi.io.read_csv--source--__codelineno-0-63" name="kadi.io.read_csv--source--__codelineno-0-63"></a><span class="sd">    """</span>
+</span><span id="kadi.io.read_csv--source--__span-0-64"><a id="kadi.io.read_csv--source--__codelineno-0-64" name="kadi.io.read_csv--source--__codelineno-0-64"></a>    <span class="c1"># Instanciation de la source CSV et lecture des données</span>
+</span><span id="kadi.io.read_csv--source--__span-0-65"><a id="kadi.io.read_csv--source--__codelineno-0-65" name="kadi.io.read_csv--source--__codelineno-0-65"></a>    <span class="k">return</span> <span class="n">CSVSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -12742,7 +12746,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
 
 <a href="#kadi.io.read_excel" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_excel</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_excel</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -12782,6 +12786,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -12807,6 +12812,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -12820,10 +12826,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-68">68</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-68">68</a></span>
 <span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-69">69</a></span>
 <span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-70">70</a></span>
 <span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-71">71</a></span>
@@ -12832,19 +12835,22 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-74">74</a></span>
 <span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-75">75</a></span>
 <span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-76">76</a></span>
-<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-77">77</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_excel--source--__span-0-65"><a id="kadi.io.read_excel--source--__codelineno-0-65" name="kadi.io.read_excel--source--__codelineno-0-65"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_excel</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="kadi.io.read_excel--source--__span-0-66"><a id="kadi.io.read_excel--source--__codelineno-0-66" name="kadi.io.read_excel--source--__codelineno-0-66"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.read_excel--source--__span-0-67"><a id="kadi.io.read_excel--source--__codelineno-0-67" name="kadi.io.read_excel--source--__codelineno-0-67"></a><span class="sd">    Lit un fichier Excel via ExcelSource.</span>
-</span><span id="kadi.io.read_excel--source--__span-0-68"><a id="kadi.io.read_excel--source--__codelineno-0-68" name="kadi.io.read_excel--source--__codelineno-0-68"></a>
-</span><span id="kadi.io.read_excel--source--__span-0-69"><a id="kadi.io.read_excel--source--__codelineno-0-69" name="kadi.io.read_excel--source--__codelineno-0-69"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.read_excel--source--__span-0-70"><a id="kadi.io.read_excel--source--__codelineno-0-70" name="kadi.io.read_excel--source--__codelineno-0-70"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier Excel.</span>
-</span><span id="kadi.io.read_excel--source--__span-0-71"><a id="kadi.io.read_excel--source--__codelineno-0-71" name="kadi.io.read_excel--source--__codelineno-0-71"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à ExcelSource.</span>
-</span><span id="kadi.io.read_excel--source--__span-0-72"><a id="kadi.io.read_excel--source--__codelineno-0-72" name="kadi.io.read_excel--source--__codelineno-0-72"></a>
-</span><span id="kadi.io.read_excel--source--__span-0-73"><a id="kadi.io.read_excel--source--__codelineno-0-73" name="kadi.io.read_excel--source--__codelineno-0-73"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.read_excel--source--__span-0-74"><a id="kadi.io.read_excel--source--__codelineno-0-74" name="kadi.io.read_excel--source--__codelineno-0-74"></a><span class="sd">        pandas.DataFrame: Contenu du fichier Excel sous forme de DataFrame.</span>
-</span><span id="kadi.io.read_excel--source--__span-0-75"><a id="kadi.io.read_excel--source--__codelineno-0-75" name="kadi.io.read_excel--source--__codelineno-0-75"></a><span class="sd">    """</span>
-</span><span id="kadi.io.read_excel--source--__span-0-76"><a id="kadi.io.read_excel--source--__codelineno-0-76" name="kadi.io.read_excel--source--__codelineno-0-76"></a>    <span class="c1"># Instanciation de la source Excel et lecture des données</span>
-</span><span id="kadi.io.read_excel--source--__span-0-77"><a id="kadi.io.read_excel--source--__codelineno-0-77" name="kadi.io.read_excel--source--__codelineno-0-77"></a>    <span class="k">return</span> <span class="n">ExcelSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-77">77</a></span>
+<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-78">78</a></span>
+<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-79">79</a></span>
+<span class="normal"><a href="#kadi.io.read_excel--source--__codelineno-0-80">80</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_excel--source--__span-0-68"><a id="kadi.io.read_excel--source--__codelineno-0-68" name="kadi.io.read_excel--source--__codelineno-0-68"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_excel</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+</span><span id="kadi.io.read_excel--source--__span-0-69"><a id="kadi.io.read_excel--source--__codelineno-0-69" name="kadi.io.read_excel--source--__codelineno-0-69"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.read_excel--source--__span-0-70"><a id="kadi.io.read_excel--source--__codelineno-0-70" name="kadi.io.read_excel--source--__codelineno-0-70"></a><span class="sd">    Lit un fichier Excel via ExcelSource.</span>
+</span><span id="kadi.io.read_excel--source--__span-0-71"><a id="kadi.io.read_excel--source--__codelineno-0-71" name="kadi.io.read_excel--source--__codelineno-0-71"></a>
+</span><span id="kadi.io.read_excel--source--__span-0-72"><a id="kadi.io.read_excel--source--__codelineno-0-72" name="kadi.io.read_excel--source--__codelineno-0-72"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.read_excel--source--__span-0-73"><a id="kadi.io.read_excel--source--__codelineno-0-73" name="kadi.io.read_excel--source--__codelineno-0-73"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier Excel.</span>
+</span><span id="kadi.io.read_excel--source--__span-0-74"><a id="kadi.io.read_excel--source--__codelineno-0-74" name="kadi.io.read_excel--source--__codelineno-0-74"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à ExcelSource.</span>
+</span><span id="kadi.io.read_excel--source--__span-0-75"><a id="kadi.io.read_excel--source--__codelineno-0-75" name="kadi.io.read_excel--source--__codelineno-0-75"></a>
+</span><span id="kadi.io.read_excel--source--__span-0-76"><a id="kadi.io.read_excel--source--__codelineno-0-76" name="kadi.io.read_excel--source--__codelineno-0-76"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.read_excel--source--__span-0-77"><a id="kadi.io.read_excel--source--__codelineno-0-77" name="kadi.io.read_excel--source--__codelineno-0-77"></a><span class="sd">        pandas.DataFrame: Contenu du fichier Excel sous forme de DataFrame.</span>
+</span><span id="kadi.io.read_excel--source--__span-0-78"><a id="kadi.io.read_excel--source--__codelineno-0-78" name="kadi.io.read_excel--source--__codelineno-0-78"></a><span class="sd">    """</span>
+</span><span id="kadi.io.read_excel--source--__span-0-79"><a id="kadi.io.read_excel--source--__codelineno-0-79" name="kadi.io.read_excel--source--__codelineno-0-79"></a>    <span class="c1"># Instanciation de la source Excel et lecture des données</span>
+</span><span id="kadi.io.read_excel--source--__span-0-80"><a id="kadi.io.read_excel--source--__codelineno-0-80" name="kadi.io.read_excel--source--__codelineno-0-80"></a>    <span class="k">return</span> <span class="n">ExcelSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -12859,7 +12865,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
 
 <a href="#kadi.io.read_json" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -12899,6 +12905,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -12924,6 +12931,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -12937,10 +12945,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-81">81</a></span>
-<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-82">82</a></span>
-<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-83">83</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-83">83</a></span>
 <span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-84">84</a></span>
 <span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-85">85</a></span>
 <span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-86">86</a></span>
@@ -12949,19 +12954,22 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-89">89</a></span>
 <span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-90">90</a></span>
 <span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-91">91</a></span>
-<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-92">92</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_json--source--__span-0-80"><a id="kadi.io.read_json--source--__codelineno-0-80" name="kadi.io.read_json--source--__codelineno-0-80"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="kadi.io.read_json--source--__span-0-81"><a id="kadi.io.read_json--source--__codelineno-0-81" name="kadi.io.read_json--source--__codelineno-0-81"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.read_json--source--__span-0-82"><a id="kadi.io.read_json--source--__codelineno-0-82" name="kadi.io.read_json--source--__codelineno-0-82"></a><span class="sd">    Lit un fichier JSON via JSONSource.</span>
-</span><span id="kadi.io.read_json--source--__span-0-83"><a id="kadi.io.read_json--source--__codelineno-0-83" name="kadi.io.read_json--source--__codelineno-0-83"></a>
-</span><span id="kadi.io.read_json--source--__span-0-84"><a id="kadi.io.read_json--source--__codelineno-0-84" name="kadi.io.read_json--source--__codelineno-0-84"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.read_json--source--__span-0-85"><a id="kadi.io.read_json--source--__codelineno-0-85" name="kadi.io.read_json--source--__codelineno-0-85"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier JSON.</span>
-</span><span id="kadi.io.read_json--source--__span-0-86"><a id="kadi.io.read_json--source--__codelineno-0-86" name="kadi.io.read_json--source--__codelineno-0-86"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à JSONSource.</span>
-</span><span id="kadi.io.read_json--source--__span-0-87"><a id="kadi.io.read_json--source--__codelineno-0-87" name="kadi.io.read_json--source--__codelineno-0-87"></a>
-</span><span id="kadi.io.read_json--source--__span-0-88"><a id="kadi.io.read_json--source--__codelineno-0-88" name="kadi.io.read_json--source--__codelineno-0-88"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.read_json--source--__span-0-89"><a id="kadi.io.read_json--source--__codelineno-0-89" name="kadi.io.read_json--source--__codelineno-0-89"></a><span class="sd">        pandas.DataFrame: Contenu du fichier JSON sous forme de DataFrame.</span>
-</span><span id="kadi.io.read_json--source--__span-0-90"><a id="kadi.io.read_json--source--__codelineno-0-90" name="kadi.io.read_json--source--__codelineno-0-90"></a><span class="sd">    """</span>
-</span><span id="kadi.io.read_json--source--__span-0-91"><a id="kadi.io.read_json--source--__codelineno-0-91" name="kadi.io.read_json--source--__codelineno-0-91"></a>    <span class="c1"># Instanciation de la source JSON et lecture des données</span>
-</span><span id="kadi.io.read_json--source--__span-0-92"><a id="kadi.io.read_json--source--__codelineno-0-92" name="kadi.io.read_json--source--__codelineno-0-92"></a>    <span class="k">return</span> <span class="n">JSONSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-92">92</a></span>
+<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-93">93</a></span>
+<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-94">94</a></span>
+<span class="normal"><a href="#kadi.io.read_json--source--__codelineno-0-95">95</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_json--source--__span-0-83"><a id="kadi.io.read_json--source--__codelineno-0-83" name="kadi.io.read_json--source--__codelineno-0-83"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+</span><span id="kadi.io.read_json--source--__span-0-84"><a id="kadi.io.read_json--source--__codelineno-0-84" name="kadi.io.read_json--source--__codelineno-0-84"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.read_json--source--__span-0-85"><a id="kadi.io.read_json--source--__codelineno-0-85" name="kadi.io.read_json--source--__codelineno-0-85"></a><span class="sd">    Lit un fichier JSON via JSONSource.</span>
+</span><span id="kadi.io.read_json--source--__span-0-86"><a id="kadi.io.read_json--source--__codelineno-0-86" name="kadi.io.read_json--source--__codelineno-0-86"></a>
+</span><span id="kadi.io.read_json--source--__span-0-87"><a id="kadi.io.read_json--source--__codelineno-0-87" name="kadi.io.read_json--source--__codelineno-0-87"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.read_json--source--__span-0-88"><a id="kadi.io.read_json--source--__codelineno-0-88" name="kadi.io.read_json--source--__codelineno-0-88"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier JSON.</span>
+</span><span id="kadi.io.read_json--source--__span-0-89"><a id="kadi.io.read_json--source--__codelineno-0-89" name="kadi.io.read_json--source--__codelineno-0-89"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à JSONSource.</span>
+</span><span id="kadi.io.read_json--source--__span-0-90"><a id="kadi.io.read_json--source--__codelineno-0-90" name="kadi.io.read_json--source--__codelineno-0-90"></a>
+</span><span id="kadi.io.read_json--source--__span-0-91"><a id="kadi.io.read_json--source--__codelineno-0-91" name="kadi.io.read_json--source--__codelineno-0-91"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.read_json--source--__span-0-92"><a id="kadi.io.read_json--source--__codelineno-0-92" name="kadi.io.read_json--source--__codelineno-0-92"></a><span class="sd">        pandas.DataFrame: Contenu du fichier JSON sous forme de DataFrame.</span>
+</span><span id="kadi.io.read_json--source--__span-0-93"><a id="kadi.io.read_json--source--__codelineno-0-93" name="kadi.io.read_json--source--__codelineno-0-93"></a><span class="sd">    """</span>
+</span><span id="kadi.io.read_json--source--__span-0-94"><a id="kadi.io.read_json--source--__codelineno-0-94" name="kadi.io.read_json--source--__codelineno-0-94"></a>    <span class="c1"># Instanciation de la source JSON et lecture des données</span>
+</span><span id="kadi.io.read_json--source--__span-0-95"><a id="kadi.io.read_json--source--__codelineno-0-95" name="kadi.io.read_json--source--__codelineno-0-95"></a>    <span class="k">return</span> <span class="n">JSONSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -12976,7 +12984,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
 
 <a href="#kadi.io.read_netcdf" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_netcdf</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_netcdf</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13016,6 +13024,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13041,10 +13050,11 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>xarray.Dataset | pandas.DataFrame: Contenu du fichier NetCDF.</p>
+                <p>xarray.DataArray: Données extraites du fichier NetCDF.</p>
               </div>
             </td>
           </tr>
@@ -13077,10 +13087,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-95"> 95</a></span>
-<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-96"> 96</a></span>
-<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-97"> 97</a></span>
-<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-98"> 98</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-98"> 98</a></span>
 <span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-99"> 99</a></span>
 <span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-100">100</a></span>
 <span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-101">101</a></span>
@@ -13097,27 +13104,30 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-112">112</a></span>
 <span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-113">113</a></span>
 <span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-114">114</a></span>
-<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-115">115</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_netcdf--source--__span-0-95"><a id="kadi.io.read_netcdf--source--__codelineno-0-95" name="kadi.io.read_netcdf--source--__codelineno-0-95"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_netcdf</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-96"><a id="kadi.io.read_netcdf--source--__codelineno-0-96" name="kadi.io.read_netcdf--source--__codelineno-0-96"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-97"><a id="kadi.io.read_netcdf--source--__codelineno-0-97" name="kadi.io.read_netcdf--source--__codelineno-0-97"></a><span class="sd">    Lit un fichier NetCDF via NetCDFSource.</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-98"><a id="kadi.io.read_netcdf--source--__codelineno-0-98" name="kadi.io.read_netcdf--source--__codelineno-0-98"></a>
-</span><span id="kadi.io.read_netcdf--source--__span-0-99"><a id="kadi.io.read_netcdf--source--__codelineno-0-99" name="kadi.io.read_netcdf--source--__codelineno-0-99"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-100"><a id="kadi.io.read_netcdf--source--__codelineno-0-100" name="kadi.io.read_netcdf--source--__codelineno-0-100"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier NetCDF.</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-101"><a id="kadi.io.read_netcdf--source--__codelineno-0-101" name="kadi.io.read_netcdf--source--__codelineno-0-101"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à NetCDFSource.</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-102"><a id="kadi.io.read_netcdf--source--__codelineno-0-102" name="kadi.io.read_netcdf--source--__codelineno-0-102"></a>
-</span><span id="kadi.io.read_netcdf--source--__span-0-103"><a id="kadi.io.read_netcdf--source--__codelineno-0-103" name="kadi.io.read_netcdf--source--__codelineno-0-103"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-104"><a id="kadi.io.read_netcdf--source--__codelineno-0-104" name="kadi.io.read_netcdf--source--__codelineno-0-104"></a><span class="sd">        xarray.Dataset | pandas.DataFrame: Contenu du fichier NetCDF.</span>
+<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#kadi.io.read_netcdf--source--__codelineno-0-118">118</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_netcdf--source--__span-0-98"><a id="kadi.io.read_netcdf--source--__codelineno-0-98" name="kadi.io.read_netcdf--source--__codelineno-0-98"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_netcdf</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-99"><a id="kadi.io.read_netcdf--source--__codelineno-0-99" name="kadi.io.read_netcdf--source--__codelineno-0-99"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-100"><a id="kadi.io.read_netcdf--source--__codelineno-0-100" name="kadi.io.read_netcdf--source--__codelineno-0-100"></a><span class="sd">    Lit un fichier NetCDF via NetCDFSource.</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-101"><a id="kadi.io.read_netcdf--source--__codelineno-0-101" name="kadi.io.read_netcdf--source--__codelineno-0-101"></a>
+</span><span id="kadi.io.read_netcdf--source--__span-0-102"><a id="kadi.io.read_netcdf--source--__codelineno-0-102" name="kadi.io.read_netcdf--source--__codelineno-0-102"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-103"><a id="kadi.io.read_netcdf--source--__codelineno-0-103" name="kadi.io.read_netcdf--source--__codelineno-0-103"></a><span class="sd">        filepath (str | Path): Chemin vers le fichier NetCDF.</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-104"><a id="kadi.io.read_netcdf--source--__codelineno-0-104" name="kadi.io.read_netcdf--source--__codelineno-0-104"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.</span>
 </span><span id="kadi.io.read_netcdf--source--__span-0-105"><a id="kadi.io.read_netcdf--source--__codelineno-0-105" name="kadi.io.read_netcdf--source--__codelineno-0-105"></a>
-</span><span id="kadi.io.read_netcdf--source--__span-0-106"><a id="kadi.io.read_netcdf--source--__codelineno-0-106" name="kadi.io.read_netcdf--source--__codelineno-0-106"></a><span class="sd">    Raises:</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-107"><a id="kadi.io.read_netcdf--source--__codelineno-0-107" name="kadi.io.read_netcdf--source--__codelineno-0-107"></a><span class="sd">        ImportError: Si xarray ou netCDF4 n'est pas disponible.</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-108"><a id="kadi.io.read_netcdf--source--__codelineno-0-108" name="kadi.io.read_netcdf--source--__codelineno-0-108"></a><span class="sd">    """</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-109"><a id="kadi.io.read_netcdf--source--__codelineno-0-109" name="kadi.io.read_netcdf--source--__codelineno-0-109"></a>    <span class="c1"># Vérification de la présence du module NetCDFSource</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-110"><a id="kadi.io.read_netcdf--source--__codelineno-0-110" name="kadi.io.read_netcdf--source--__codelineno-0-110"></a>    <span class="k">if</span> <span class="n">NetCDFSource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-111"><a id="kadi.io.read_netcdf--source--__codelineno-0-111" name="kadi.io.read_netcdf--source--__codelineno-0-111"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-112"><a id="kadi.io.read_netcdf--source--__codelineno-0-112" name="kadi.io.read_netcdf--source--__codelineno-0-112"></a>            <span class="s2">"Le support NetCDF nécessite l'installation des dépendances xarray et netCDF4."</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-113"><a id="kadi.io.read_netcdf--source--__codelineno-0-113" name="kadi.io.read_netcdf--source--__codelineno-0-113"></a>        <span class="p">)</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-114"><a id="kadi.io.read_netcdf--source--__codelineno-0-114" name="kadi.io.read_netcdf--source--__codelineno-0-114"></a>    <span class="c1"># Instanciation de la source NetCDF et lecture des données</span>
-</span><span id="kadi.io.read_netcdf--source--__span-0-115"><a id="kadi.io.read_netcdf--source--__codelineno-0-115" name="kadi.io.read_netcdf--source--__codelineno-0-115"></a>    <span class="k">return</span> <span class="n">NetCDFSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-106"><a id="kadi.io.read_netcdf--source--__codelineno-0-106" name="kadi.io.read_netcdf--source--__codelineno-0-106"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-107"><a id="kadi.io.read_netcdf--source--__codelineno-0-107" name="kadi.io.read_netcdf--source--__codelineno-0-107"></a><span class="sd">        xarray.DataArray: Données extraites du fichier NetCDF.</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-108"><a id="kadi.io.read_netcdf--source--__codelineno-0-108" name="kadi.io.read_netcdf--source--__codelineno-0-108"></a>
+</span><span id="kadi.io.read_netcdf--source--__span-0-109"><a id="kadi.io.read_netcdf--source--__codelineno-0-109" name="kadi.io.read_netcdf--source--__codelineno-0-109"></a><span class="sd">    Raises:</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-110"><a id="kadi.io.read_netcdf--source--__codelineno-0-110" name="kadi.io.read_netcdf--source--__codelineno-0-110"></a><span class="sd">        ImportError: Si xarray ou netCDF4 n'est pas disponible.</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-111"><a id="kadi.io.read_netcdf--source--__codelineno-0-111" name="kadi.io.read_netcdf--source--__codelineno-0-111"></a><span class="sd">    """</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-112"><a id="kadi.io.read_netcdf--source--__codelineno-0-112" name="kadi.io.read_netcdf--source--__codelineno-0-112"></a>    <span class="c1"># Vérification de la présence du module NetCDFSource</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-113"><a id="kadi.io.read_netcdf--source--__codelineno-0-113" name="kadi.io.read_netcdf--source--__codelineno-0-113"></a>    <span class="k">if</span> <span class="n">NetCDFSource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-114"><a id="kadi.io.read_netcdf--source--__codelineno-0-114" name="kadi.io.read_netcdf--source--__codelineno-0-114"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-115"><a id="kadi.io.read_netcdf--source--__codelineno-0-115" name="kadi.io.read_netcdf--source--__codelineno-0-115"></a>            <span class="s2">"Le support NetCDF nécessite l'installation des dépendances xarray et netCDF4."</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-116"><a id="kadi.io.read_netcdf--source--__codelineno-0-116" name="kadi.io.read_netcdf--source--__codelineno-0-116"></a>        <span class="p">)</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-117"><a id="kadi.io.read_netcdf--source--__codelineno-0-117" name="kadi.io.read_netcdf--source--__codelineno-0-117"></a>    <span class="c1"># Instanciation de la source NetCDF et lecture des données</span>
+</span><span id="kadi.io.read_netcdf--source--__span-0-118"><a id="kadi.io.read_netcdf--source--__codelineno-0-118" name="kadi.io.read_netcdf--source--__codelineno-0-118"></a>    <span class="k">return</span> <span class="n">NetCDFSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -13132,7 +13142,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
 
 <a href="#kadi.io.read_api" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_api</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read_api</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -13189,6 +13199,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13214,6 +13225,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13227,10 +13239,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-118">118</a></span>
-<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-119">119</a></span>
-<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-120">120</a></span>
-<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-121">121</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-121">121</a></span>
 <span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-122">122</a></span>
 <span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-123">123</a></span>
 <span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-124">124</a></span>
@@ -13243,23 +13252,26 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-131">131</a></span>
 <span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-132">132</a></span>
 <span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-133">133</a></span>
-<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-134">134</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_api--source--__span-0-118"><a id="kadi.io.read_api--source--__codelineno-0-118" name="kadi.io.read_api--source--__codelineno-0-118"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_api</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="kadi.io.read_api--source--__span-0-119"><a id="kadi.io.read_api--source--__codelineno-0-119" name="kadi.io.read_api--source--__codelineno-0-119"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.read_api--source--__span-0-120"><a id="kadi.io.read_api--source--__codelineno-0-120" name="kadi.io.read_api--source--__codelineno-0-120"></a><span class="sd">    Lit des données depuis une API REST via APISource.</span>
-</span><span id="kadi.io.read_api--source--__span-0-121"><a id="kadi.io.read_api--source--__codelineno-0-121" name="kadi.io.read_api--source--__codelineno-0-121"></a>
-</span><span id="kadi.io.read_api--source--__span-0-122"><a id="kadi.io.read_api--source--__codelineno-0-122" name="kadi.io.read_api--source--__codelineno-0-122"></a><span class="sd">    Raccourci de haut niveau pour exécuter une requête GET vers une API.</span>
-</span><span id="kadi.io.read_api--source--__span-0-123"><a id="kadi.io.read_api--source--__codelineno-0-123" name="kadi.io.read_api--source--__codelineno-0-123"></a>
-</span><span id="kadi.io.read_api--source--__span-0-124"><a id="kadi.io.read_api--source--__codelineno-0-124" name="kadi.io.read_api--source--__codelineno-0-124"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.read_api--source--__span-0-125"><a id="kadi.io.read_api--source--__codelineno-0-125" name="kadi.io.read_api--source--__codelineno-0-125"></a><span class="sd">        url (str): URL de l'API.</span>
-</span><span id="kadi.io.read_api--source--__span-0-126"><a id="kadi.io.read_api--source--__codelineno-0-126" name="kadi.io.read_api--source--__codelineno-0-126"></a><span class="sd">        params (dict, optional): Paramètres de requête HTTP.</span>
-</span><span id="kadi.io.read_api--source--__span-0-127"><a id="kadi.io.read_api--source--__codelineno-0-127" name="kadi.io.read_api--source--__codelineno-0-127"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à APISource.</span>
-</span><span id="kadi.io.read_api--source--__span-0-128"><a id="kadi.io.read_api--source--__codelineno-0-128" name="kadi.io.read_api--source--__codelineno-0-128"></a>
-</span><span id="kadi.io.read_api--source--__span-0-129"><a id="kadi.io.read_api--source--__codelineno-0-129" name="kadi.io.read_api--source--__codelineno-0-129"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.read_api--source--__span-0-130"><a id="kadi.io.read_api--source--__codelineno-0-130" name="kadi.io.read_api--source--__codelineno-0-130"></a><span class="sd">        pandas.DataFrame: Données renvoyées par l'API sous forme de DataFrame.</span>
-</span><span id="kadi.io.read_api--source--__span-0-131"><a id="kadi.io.read_api--source--__codelineno-0-131" name="kadi.io.read_api--source--__codelineno-0-131"></a><span class="sd">    """</span>
-</span><span id="kadi.io.read_api--source--__span-0-132"><a id="kadi.io.read_api--source--__codelineno-0-132" name="kadi.io.read_api--source--__codelineno-0-132"></a>    <span class="c1"># Instanciation de la source API et lecture des données</span>
-</span><span id="kadi.io.read_api--source--__span-0-133"><a id="kadi.io.read_api--source--__codelineno-0-133" name="kadi.io.read_api--source--__codelineno-0-133"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">APISource</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="kadi.io.read_api--source--__span-0-134"><a id="kadi.io.read_api--source--__codelineno-0-134" name="kadi.io.read_api--source--__codelineno-0-134"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">params</span> <span class="ow">or</span> <span class="p">{})</span>
+<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-134">134</a></span>
+<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-135">135</a></span>
+<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-136">136</a></span>
+<span class="normal"><a href="#kadi.io.read_api--source--__codelineno-0-137">137</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.read_api--source--__span-0-121"><a id="kadi.io.read_api--source--__codelineno-0-121" name="kadi.io.read_api--source--__codelineno-0-121"></a><span class="k">def</span><span class="w"> </span><span class="nf">read_api</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+</span><span id="kadi.io.read_api--source--__span-0-122"><a id="kadi.io.read_api--source--__codelineno-0-122" name="kadi.io.read_api--source--__codelineno-0-122"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.read_api--source--__span-0-123"><a id="kadi.io.read_api--source--__codelineno-0-123" name="kadi.io.read_api--source--__codelineno-0-123"></a><span class="sd">    Lit des données depuis une API REST via APISource.</span>
+</span><span id="kadi.io.read_api--source--__span-0-124"><a id="kadi.io.read_api--source--__codelineno-0-124" name="kadi.io.read_api--source--__codelineno-0-124"></a>
+</span><span id="kadi.io.read_api--source--__span-0-125"><a id="kadi.io.read_api--source--__codelineno-0-125" name="kadi.io.read_api--source--__codelineno-0-125"></a><span class="sd">    Raccourci de haut niveau pour exécuter une requête GET vers une API.</span>
+</span><span id="kadi.io.read_api--source--__span-0-126"><a id="kadi.io.read_api--source--__codelineno-0-126" name="kadi.io.read_api--source--__codelineno-0-126"></a>
+</span><span id="kadi.io.read_api--source--__span-0-127"><a id="kadi.io.read_api--source--__codelineno-0-127" name="kadi.io.read_api--source--__codelineno-0-127"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.read_api--source--__span-0-128"><a id="kadi.io.read_api--source--__codelineno-0-128" name="kadi.io.read_api--source--__codelineno-0-128"></a><span class="sd">        url (str): URL de l'API.</span>
+</span><span id="kadi.io.read_api--source--__span-0-129"><a id="kadi.io.read_api--source--__codelineno-0-129" name="kadi.io.read_api--source--__codelineno-0-129"></a><span class="sd">        params (dict, optional): Paramètres de requête HTTP.</span>
+</span><span id="kadi.io.read_api--source--__span-0-130"><a id="kadi.io.read_api--source--__codelineno-0-130" name="kadi.io.read_api--source--__codelineno-0-130"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à APISource.</span>
+</span><span id="kadi.io.read_api--source--__span-0-131"><a id="kadi.io.read_api--source--__codelineno-0-131" name="kadi.io.read_api--source--__codelineno-0-131"></a>
+</span><span id="kadi.io.read_api--source--__span-0-132"><a id="kadi.io.read_api--source--__codelineno-0-132" name="kadi.io.read_api--source--__codelineno-0-132"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.read_api--source--__span-0-133"><a id="kadi.io.read_api--source--__codelineno-0-133" name="kadi.io.read_api--source--__codelineno-0-133"></a><span class="sd">        pandas.DataFrame: Données renvoyées par l'API sous forme de DataFrame.</span>
+</span><span id="kadi.io.read_api--source--__span-0-134"><a id="kadi.io.read_api--source--__codelineno-0-134" name="kadi.io.read_api--source--__codelineno-0-134"></a><span class="sd">    """</span>
+</span><span id="kadi.io.read_api--source--__span-0-135"><a id="kadi.io.read_api--source--__codelineno-0-135" name="kadi.io.read_api--source--__codelineno-0-135"></a>    <span class="c1"># Instanciation de la source API et lecture des données</span>
+</span><span id="kadi.io.read_api--source--__span-0-136"><a id="kadi.io.read_api--source--__codelineno-0-136" name="kadi.io.read_api--source--__codelineno-0-136"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">APISource</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="kadi.io.read_api--source--__span-0-137"><a id="kadi.io.read_api--source--__codelineno-0-137" name="kadi.io.read_api--source--__codelineno-0-137"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">params</span> <span class="ow">or</span> <span class="p">{})</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -13330,6 +13342,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13369,10 +13382,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-141">141</a></span>
-<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-142">142</a></span>
-<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-143">143</a></span>
-<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-144">144</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-144">144</a></span>
 <span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-145">145</a></span>
 <span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-146">146</a></span>
 <span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-147">147</a></span>
@@ -13382,20 +13392,23 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-151">151</a></span>
 <span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-152">152</a></span>
 <span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-153">153</a></span>
-<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-154">154</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_csv--source--__span-0-141"><a id="kadi.io.write_csv--source--__codelineno-0-141" name="kadi.io.write_csv--source--__codelineno-0-141"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.write_csv--source--__span-0-142"><a id="kadi.io.write_csv--source--__codelineno-0-142" name="kadi.io.write_csv--source--__codelineno-0-142"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.write_csv--source--__span-0-143"><a id="kadi.io.write_csv--source--__codelineno-0-143" name="kadi.io.write_csv--source--__codelineno-0-143"></a><span class="sd">    Écrit un DataFrame dans un fichier CSV via CSVSource.</span>
-</span><span id="kadi.io.write_csv--source--__span-0-144"><a id="kadi.io.write_csv--source--__codelineno-0-144" name="kadi.io.write_csv--source--__codelineno-0-144"></a>
-</span><span id="kadi.io.write_csv--source--__span-0-145"><a id="kadi.io.write_csv--source--__codelineno-0-145" name="kadi.io.write_csv--source--__codelineno-0-145"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.write_csv--source--__span-0-146"><a id="kadi.io.write_csv--source--__codelineno-0-146" name="kadi.io.write_csv--source--__codelineno-0-146"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
-</span><span id="kadi.io.write_csv--source--__span-0-147"><a id="kadi.io.write_csv--source--__codelineno-0-147" name="kadi.io.write_csv--source--__codelineno-0-147"></a><span class="sd">        filepath (str): Chemin du fichier CSV de destination.</span>
-</span><span id="kadi.io.write_csv--source--__span-0-148"><a id="kadi.io.write_csv--source--__codelineno-0-148" name="kadi.io.write_csv--source--__codelineno-0-148"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à CSVSource.write().</span>
-</span><span id="kadi.io.write_csv--source--__span-0-149"><a id="kadi.io.write_csv--source--__codelineno-0-149" name="kadi.io.write_csv--source--__codelineno-0-149"></a>
-</span><span id="kadi.io.write_csv--source--__span-0-150"><a id="kadi.io.write_csv--source--__codelineno-0-150" name="kadi.io.write_csv--source--__codelineno-0-150"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.write_csv--source--__span-0-151"><a id="kadi.io.write_csv--source--__codelineno-0-151" name="kadi.io.write_csv--source--__codelineno-0-151"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
-</span><span id="kadi.io.write_csv--source--__span-0-152"><a id="kadi.io.write_csv--source--__codelineno-0-152" name="kadi.io.write_csv--source--__codelineno-0-152"></a><span class="sd">    """</span>
-</span><span id="kadi.io.write_csv--source--__span-0-153"><a id="kadi.io.write_csv--source--__codelineno-0-153" name="kadi.io.write_csv--source--__codelineno-0-153"></a>    <span class="c1"># Instanciation de la source CSV et écriture des données</span>
-</span><span id="kadi.io.write_csv--source--__span-0-154"><a id="kadi.io.write_csv--source--__codelineno-0-154" name="kadi.io.write_csv--source--__codelineno-0-154"></a>    <span class="k">return</span> <span class="n">CSVSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-154">154</a></span>
+<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-155">155</a></span>
+<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-156">156</a></span>
+<span class="normal"><a href="#kadi.io.write_csv--source--__codelineno-0-157">157</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_csv--source--__span-0-144"><a id="kadi.io.write_csv--source--__codelineno-0-144" name="kadi.io.write_csv--source--__codelineno-0-144"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.write_csv--source--__span-0-145"><a id="kadi.io.write_csv--source--__codelineno-0-145" name="kadi.io.write_csv--source--__codelineno-0-145"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.write_csv--source--__span-0-146"><a id="kadi.io.write_csv--source--__codelineno-0-146" name="kadi.io.write_csv--source--__codelineno-0-146"></a><span class="sd">    Écrit un DataFrame dans un fichier CSV via CSVSource.</span>
+</span><span id="kadi.io.write_csv--source--__span-0-147"><a id="kadi.io.write_csv--source--__codelineno-0-147" name="kadi.io.write_csv--source--__codelineno-0-147"></a>
+</span><span id="kadi.io.write_csv--source--__span-0-148"><a id="kadi.io.write_csv--source--__codelineno-0-148" name="kadi.io.write_csv--source--__codelineno-0-148"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.write_csv--source--__span-0-149"><a id="kadi.io.write_csv--source--__codelineno-0-149" name="kadi.io.write_csv--source--__codelineno-0-149"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
+</span><span id="kadi.io.write_csv--source--__span-0-150"><a id="kadi.io.write_csv--source--__codelineno-0-150" name="kadi.io.write_csv--source--__codelineno-0-150"></a><span class="sd">        filepath (str): Chemin du fichier CSV de destination.</span>
+</span><span id="kadi.io.write_csv--source--__span-0-151"><a id="kadi.io.write_csv--source--__codelineno-0-151" name="kadi.io.write_csv--source--__codelineno-0-151"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à CSVSource.write().</span>
+</span><span id="kadi.io.write_csv--source--__span-0-152"><a id="kadi.io.write_csv--source--__codelineno-0-152" name="kadi.io.write_csv--source--__codelineno-0-152"></a>
+</span><span id="kadi.io.write_csv--source--__span-0-153"><a id="kadi.io.write_csv--source--__codelineno-0-153" name="kadi.io.write_csv--source--__codelineno-0-153"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.write_csv--source--__span-0-154"><a id="kadi.io.write_csv--source--__codelineno-0-154" name="kadi.io.write_csv--source--__codelineno-0-154"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
+</span><span id="kadi.io.write_csv--source--__span-0-155"><a id="kadi.io.write_csv--source--__codelineno-0-155" name="kadi.io.write_csv--source--__codelineno-0-155"></a><span class="sd">    """</span>
+</span><span id="kadi.io.write_csv--source--__span-0-156"><a id="kadi.io.write_csv--source--__codelineno-0-156" name="kadi.io.write_csv--source--__codelineno-0-156"></a>    <span class="c1"># Instanciation de la source CSV et écriture des données</span>
+</span><span id="kadi.io.write_csv--source--__span-0-157"><a id="kadi.io.write_csv--source--__codelineno-0-157" name="kadi.io.write_csv--source--__codelineno-0-157"></a>    <span class="k">return</span> <span class="n">CSVSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -13466,6 +13479,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13505,10 +13519,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-157">157</a></span>
-<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-158">158</a></span>
-<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-159">159</a></span>
-<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-160">160</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-160">160</a></span>
 <span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-161">161</a></span>
 <span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-162">162</a></span>
 <span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-163">163</a></span>
@@ -13518,20 +13529,23 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-167">167</a></span>
 <span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-168">168</a></span>
 <span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-169">169</a></span>
-<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-170">170</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_excel--source--__span-0-157"><a id="kadi.io.write_excel--source--__codelineno-0-157" name="kadi.io.write_excel--source--__codelineno-0-157"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_excel</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.write_excel--source--__span-0-158"><a id="kadi.io.write_excel--source--__codelineno-0-158" name="kadi.io.write_excel--source--__codelineno-0-158"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.write_excel--source--__span-0-159"><a id="kadi.io.write_excel--source--__codelineno-0-159" name="kadi.io.write_excel--source--__codelineno-0-159"></a><span class="sd">    Écrit un DataFrame dans un fichier Excel via ExcelSource.</span>
-</span><span id="kadi.io.write_excel--source--__span-0-160"><a id="kadi.io.write_excel--source--__codelineno-0-160" name="kadi.io.write_excel--source--__codelineno-0-160"></a>
-</span><span id="kadi.io.write_excel--source--__span-0-161"><a id="kadi.io.write_excel--source--__codelineno-0-161" name="kadi.io.write_excel--source--__codelineno-0-161"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.write_excel--source--__span-0-162"><a id="kadi.io.write_excel--source--__codelineno-0-162" name="kadi.io.write_excel--source--__codelineno-0-162"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
-</span><span id="kadi.io.write_excel--source--__span-0-163"><a id="kadi.io.write_excel--source--__codelineno-0-163" name="kadi.io.write_excel--source--__codelineno-0-163"></a><span class="sd">        filepath (str): Chemin du fichier Excel de destination.</span>
-</span><span id="kadi.io.write_excel--source--__span-0-164"><a id="kadi.io.write_excel--source--__codelineno-0-164" name="kadi.io.write_excel--source--__codelineno-0-164"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à ExcelSource.write().</span>
-</span><span id="kadi.io.write_excel--source--__span-0-165"><a id="kadi.io.write_excel--source--__codelineno-0-165" name="kadi.io.write_excel--source--__codelineno-0-165"></a>
-</span><span id="kadi.io.write_excel--source--__span-0-166"><a id="kadi.io.write_excel--source--__codelineno-0-166" name="kadi.io.write_excel--source--__codelineno-0-166"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.write_excel--source--__span-0-167"><a id="kadi.io.write_excel--source--__codelineno-0-167" name="kadi.io.write_excel--source--__codelineno-0-167"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
-</span><span id="kadi.io.write_excel--source--__span-0-168"><a id="kadi.io.write_excel--source--__codelineno-0-168" name="kadi.io.write_excel--source--__codelineno-0-168"></a><span class="sd">    """</span>
-</span><span id="kadi.io.write_excel--source--__span-0-169"><a id="kadi.io.write_excel--source--__codelineno-0-169" name="kadi.io.write_excel--source--__codelineno-0-169"></a>    <span class="c1"># Instanciation de la source Excel et écriture des données</span>
-</span><span id="kadi.io.write_excel--source--__span-0-170"><a id="kadi.io.write_excel--source--__codelineno-0-170" name="kadi.io.write_excel--source--__codelineno-0-170"></a>    <span class="k">return</span> <span class="n">ExcelSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-170">170</a></span>
+<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-171">171</a></span>
+<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-172">172</a></span>
+<span class="normal"><a href="#kadi.io.write_excel--source--__codelineno-0-173">173</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_excel--source--__span-0-160"><a id="kadi.io.write_excel--source--__codelineno-0-160" name="kadi.io.write_excel--source--__codelineno-0-160"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_excel</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.write_excel--source--__span-0-161"><a id="kadi.io.write_excel--source--__codelineno-0-161" name="kadi.io.write_excel--source--__codelineno-0-161"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.write_excel--source--__span-0-162"><a id="kadi.io.write_excel--source--__codelineno-0-162" name="kadi.io.write_excel--source--__codelineno-0-162"></a><span class="sd">    Écrit un DataFrame dans un fichier Excel via ExcelSource.</span>
+</span><span id="kadi.io.write_excel--source--__span-0-163"><a id="kadi.io.write_excel--source--__codelineno-0-163" name="kadi.io.write_excel--source--__codelineno-0-163"></a>
+</span><span id="kadi.io.write_excel--source--__span-0-164"><a id="kadi.io.write_excel--source--__codelineno-0-164" name="kadi.io.write_excel--source--__codelineno-0-164"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.write_excel--source--__span-0-165"><a id="kadi.io.write_excel--source--__codelineno-0-165" name="kadi.io.write_excel--source--__codelineno-0-165"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
+</span><span id="kadi.io.write_excel--source--__span-0-166"><a id="kadi.io.write_excel--source--__codelineno-0-166" name="kadi.io.write_excel--source--__codelineno-0-166"></a><span class="sd">        filepath (str): Chemin du fichier Excel de destination.</span>
+</span><span id="kadi.io.write_excel--source--__span-0-167"><a id="kadi.io.write_excel--source--__codelineno-0-167" name="kadi.io.write_excel--source--__codelineno-0-167"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à ExcelSource.write().</span>
+</span><span id="kadi.io.write_excel--source--__span-0-168"><a id="kadi.io.write_excel--source--__codelineno-0-168" name="kadi.io.write_excel--source--__codelineno-0-168"></a>
+</span><span id="kadi.io.write_excel--source--__span-0-169"><a id="kadi.io.write_excel--source--__codelineno-0-169" name="kadi.io.write_excel--source--__codelineno-0-169"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.write_excel--source--__span-0-170"><a id="kadi.io.write_excel--source--__codelineno-0-170" name="kadi.io.write_excel--source--__codelineno-0-170"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
+</span><span id="kadi.io.write_excel--source--__span-0-171"><a id="kadi.io.write_excel--source--__codelineno-0-171" name="kadi.io.write_excel--source--__codelineno-0-171"></a><span class="sd">    """</span>
+</span><span id="kadi.io.write_excel--source--__span-0-172"><a id="kadi.io.write_excel--source--__codelineno-0-172" name="kadi.io.write_excel--source--__codelineno-0-172"></a>    <span class="c1"># Instanciation de la source Excel et écriture des données</span>
+</span><span id="kadi.io.write_excel--source--__span-0-173"><a id="kadi.io.write_excel--source--__codelineno-0-173" name="kadi.io.write_excel--source--__codelineno-0-173"></a>    <span class="k">return</span> <span class="n">ExcelSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -13602,6 +13616,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13641,10 +13656,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-173">173</a></span>
-<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-174">174</a></span>
-<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-175">175</a></span>
-<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-176">176</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-176">176</a></span>
 <span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-177">177</a></span>
 <span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-178">178</a></span>
 <span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-179">179</a></span>
@@ -13654,20 +13666,23 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-183">183</a></span>
 <span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-184">184</a></span>
 <span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-185">185</a></span>
-<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-186">186</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_json--source--__span-0-173"><a id="kadi.io.write_json--source--__codelineno-0-173" name="kadi.io.write_json--source--__codelineno-0-173"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_json</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.write_json--source--__span-0-174"><a id="kadi.io.write_json--source--__codelineno-0-174" name="kadi.io.write_json--source--__codelineno-0-174"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.write_json--source--__span-0-175"><a id="kadi.io.write_json--source--__codelineno-0-175" name="kadi.io.write_json--source--__codelineno-0-175"></a><span class="sd">    Écrit un DataFrame dans un fichier JSON via JSONSource.</span>
-</span><span id="kadi.io.write_json--source--__span-0-176"><a id="kadi.io.write_json--source--__codelineno-0-176" name="kadi.io.write_json--source--__codelineno-0-176"></a>
-</span><span id="kadi.io.write_json--source--__span-0-177"><a id="kadi.io.write_json--source--__codelineno-0-177" name="kadi.io.write_json--source--__codelineno-0-177"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.write_json--source--__span-0-178"><a id="kadi.io.write_json--source--__codelineno-0-178" name="kadi.io.write_json--source--__codelineno-0-178"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
-</span><span id="kadi.io.write_json--source--__span-0-179"><a id="kadi.io.write_json--source--__codelineno-0-179" name="kadi.io.write_json--source--__codelineno-0-179"></a><span class="sd">        filepath (str): Chemin du fichier JSON de destination.</span>
-</span><span id="kadi.io.write_json--source--__span-0-180"><a id="kadi.io.write_json--source--__codelineno-0-180" name="kadi.io.write_json--source--__codelineno-0-180"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à JSONSource.write().</span>
-</span><span id="kadi.io.write_json--source--__span-0-181"><a id="kadi.io.write_json--source--__codelineno-0-181" name="kadi.io.write_json--source--__codelineno-0-181"></a>
-</span><span id="kadi.io.write_json--source--__span-0-182"><a id="kadi.io.write_json--source--__codelineno-0-182" name="kadi.io.write_json--source--__codelineno-0-182"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.write_json--source--__span-0-183"><a id="kadi.io.write_json--source--__codelineno-0-183" name="kadi.io.write_json--source--__codelineno-0-183"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
-</span><span id="kadi.io.write_json--source--__span-0-184"><a id="kadi.io.write_json--source--__codelineno-0-184" name="kadi.io.write_json--source--__codelineno-0-184"></a><span class="sd">    """</span>
-</span><span id="kadi.io.write_json--source--__span-0-185"><a id="kadi.io.write_json--source--__codelineno-0-185" name="kadi.io.write_json--source--__codelineno-0-185"></a>    <span class="c1"># Instanciation de la source JSON et écriture des données</span>
-</span><span id="kadi.io.write_json--source--__span-0-186"><a id="kadi.io.write_json--source--__codelineno-0-186" name="kadi.io.write_json--source--__codelineno-0-186"></a>    <span class="k">return</span> <span class="n">JSONSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-186">186</a></span>
+<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-187">187</a></span>
+<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-188">188</a></span>
+<span class="normal"><a href="#kadi.io.write_json--source--__codelineno-0-189">189</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_json--source--__span-0-176"><a id="kadi.io.write_json--source--__codelineno-0-176" name="kadi.io.write_json--source--__codelineno-0-176"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_json</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.write_json--source--__span-0-177"><a id="kadi.io.write_json--source--__codelineno-0-177" name="kadi.io.write_json--source--__codelineno-0-177"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.write_json--source--__span-0-178"><a id="kadi.io.write_json--source--__codelineno-0-178" name="kadi.io.write_json--source--__codelineno-0-178"></a><span class="sd">    Écrit un DataFrame dans un fichier JSON via JSONSource.</span>
+</span><span id="kadi.io.write_json--source--__span-0-179"><a id="kadi.io.write_json--source--__codelineno-0-179" name="kadi.io.write_json--source--__codelineno-0-179"></a>
+</span><span id="kadi.io.write_json--source--__span-0-180"><a id="kadi.io.write_json--source--__codelineno-0-180" name="kadi.io.write_json--source--__codelineno-0-180"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.write_json--source--__span-0-181"><a id="kadi.io.write_json--source--__codelineno-0-181" name="kadi.io.write_json--source--__codelineno-0-181"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
+</span><span id="kadi.io.write_json--source--__span-0-182"><a id="kadi.io.write_json--source--__codelineno-0-182" name="kadi.io.write_json--source--__codelineno-0-182"></a><span class="sd">        filepath (str): Chemin du fichier JSON de destination.</span>
+</span><span id="kadi.io.write_json--source--__span-0-183"><a id="kadi.io.write_json--source--__codelineno-0-183" name="kadi.io.write_json--source--__codelineno-0-183"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à JSONSource.write().</span>
+</span><span id="kadi.io.write_json--source--__span-0-184"><a id="kadi.io.write_json--source--__codelineno-0-184" name="kadi.io.write_json--source--__codelineno-0-184"></a>
+</span><span id="kadi.io.write_json--source--__span-0-185"><a id="kadi.io.write_json--source--__codelineno-0-185" name="kadi.io.write_json--source--__codelineno-0-185"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.write_json--source--__span-0-186"><a id="kadi.io.write_json--source--__codelineno-0-186" name="kadi.io.write_json--source--__codelineno-0-186"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
+</span><span id="kadi.io.write_json--source--__span-0-187"><a id="kadi.io.write_json--source--__codelineno-0-187" name="kadi.io.write_json--source--__codelineno-0-187"></a><span class="sd">    """</span>
+</span><span id="kadi.io.write_json--source--__span-0-188"><a id="kadi.io.write_json--source--__codelineno-0-188" name="kadi.io.write_json--source--__codelineno-0-188"></a>    <span class="c1"># Instanciation de la source JSON et écriture des données</span>
+</span><span id="kadi.io.write_json--source--__span-0-189"><a id="kadi.io.write_json--source--__codelineno-0-189" name="kadi.io.write_json--source--__codelineno-0-189"></a>    <span class="k">return</span> <span class="n">JSONSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -13738,6 +13753,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13800,10 +13816,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-189">189</a></span>
-<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-190">190</a></span>
-<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-191">191</a></span>
-<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-192">192</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-192">192</a></span>
 <span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-193">193</a></span>
 <span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-194">194</a></span>
 <span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-195">195</a></span>
@@ -13821,28 +13834,31 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-207">207</a></span>
 <span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-208">208</a></span>
 <span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-209">209</a></span>
-<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-210">210</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_netcdf--source--__span-0-189"><a id="kadi.io.write_netcdf--source--__codelineno-0-189" name="kadi.io.write_netcdf--source--__codelineno-0-189"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_netcdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-190"><a id="kadi.io.write_netcdf--source--__codelineno-0-190" name="kadi.io.write_netcdf--source--__codelineno-0-190"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-191"><a id="kadi.io.write_netcdf--source--__codelineno-0-191" name="kadi.io.write_netcdf--source--__codelineno-0-191"></a><span class="sd">    Écrit des données dans un fichier NetCDF via NetCDFSource.</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-192"><a id="kadi.io.write_netcdf--source--__codelineno-0-192" name="kadi.io.write_netcdf--source--__codelineno-0-192"></a>
-</span><span id="kadi.io.write_netcdf--source--__span-0-193"><a id="kadi.io.write_netcdf--source--__codelineno-0-193" name="kadi.io.write_netcdf--source--__codelineno-0-193"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-194"><a id="kadi.io.write_netcdf--source--__codelineno-0-194" name="kadi.io.write_netcdf--source--__codelineno-0-194"></a><span class="sd">        data (pandas.DataFrame | xarray.Dataset): Les données à exporter.</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-195"><a id="kadi.io.write_netcdf--source--__codelineno-0-195" name="kadi.io.write_netcdf--source--__codelineno-0-195"></a><span class="sd">        filepath (str): Chemin du fichier NetCDF de destination.</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-196"><a id="kadi.io.write_netcdf--source--__codelineno-0-196" name="kadi.io.write_netcdf--source--__codelineno-0-196"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à NetCDFSource.write().</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-197"><a id="kadi.io.write_netcdf--source--__codelineno-0-197" name="kadi.io.write_netcdf--source--__codelineno-0-197"></a>
-</span><span id="kadi.io.write_netcdf--source--__span-0-198"><a id="kadi.io.write_netcdf--source--__codelineno-0-198" name="kadi.io.write_netcdf--source--__codelineno-0-198"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-199"><a id="kadi.io.write_netcdf--source--__codelineno-0-199" name="kadi.io.write_netcdf--source--__codelineno-0-199"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
+<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-210">210</a></span>
+<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-211">211</a></span>
+<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-212">212</a></span>
+<span class="normal"><a href="#kadi.io.write_netcdf--source--__codelineno-0-213">213</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_netcdf--source--__span-0-192"><a id="kadi.io.write_netcdf--source--__codelineno-0-192" name="kadi.io.write_netcdf--source--__codelineno-0-192"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_netcdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-193"><a id="kadi.io.write_netcdf--source--__codelineno-0-193" name="kadi.io.write_netcdf--source--__codelineno-0-193"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-194"><a id="kadi.io.write_netcdf--source--__codelineno-0-194" name="kadi.io.write_netcdf--source--__codelineno-0-194"></a><span class="sd">    Écrit des données dans un fichier NetCDF via NetCDFSource.</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-195"><a id="kadi.io.write_netcdf--source--__codelineno-0-195" name="kadi.io.write_netcdf--source--__codelineno-0-195"></a>
+</span><span id="kadi.io.write_netcdf--source--__span-0-196"><a id="kadi.io.write_netcdf--source--__codelineno-0-196" name="kadi.io.write_netcdf--source--__codelineno-0-196"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-197"><a id="kadi.io.write_netcdf--source--__codelineno-0-197" name="kadi.io.write_netcdf--source--__codelineno-0-197"></a><span class="sd">        data (pandas.DataFrame | xarray.Dataset): Les données à exporter.</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-198"><a id="kadi.io.write_netcdf--source--__codelineno-0-198" name="kadi.io.write_netcdf--source--__codelineno-0-198"></a><span class="sd">        filepath (str): Chemin du fichier NetCDF de destination.</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-199"><a id="kadi.io.write_netcdf--source--__codelineno-0-199" name="kadi.io.write_netcdf--source--__codelineno-0-199"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.write().</span>
 </span><span id="kadi.io.write_netcdf--source--__span-0-200"><a id="kadi.io.write_netcdf--source--__codelineno-0-200" name="kadi.io.write_netcdf--source--__codelineno-0-200"></a>
-</span><span id="kadi.io.write_netcdf--source--__span-0-201"><a id="kadi.io.write_netcdf--source--__codelineno-0-201" name="kadi.io.write_netcdf--source--__codelineno-0-201"></a><span class="sd">    Raises:</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-202"><a id="kadi.io.write_netcdf--source--__codelineno-0-202" name="kadi.io.write_netcdf--source--__codelineno-0-202"></a><span class="sd">        ImportError: Si xarray ou netCDF4 n'est pas disponible.</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-203"><a id="kadi.io.write_netcdf--source--__codelineno-0-203" name="kadi.io.write_netcdf--source--__codelineno-0-203"></a><span class="sd">    """</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-204"><a id="kadi.io.write_netcdf--source--__codelineno-0-204" name="kadi.io.write_netcdf--source--__codelineno-0-204"></a>    <span class="c1"># Vérification du module NetCDFSource</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-205"><a id="kadi.io.write_netcdf--source--__codelineno-0-205" name="kadi.io.write_netcdf--source--__codelineno-0-205"></a>    <span class="k">if</span> <span class="n">NetCDFSource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-206"><a id="kadi.io.write_netcdf--source--__codelineno-0-206" name="kadi.io.write_netcdf--source--__codelineno-0-206"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-207"><a id="kadi.io.write_netcdf--source--__codelineno-0-207" name="kadi.io.write_netcdf--source--__codelineno-0-207"></a>            <span class="s2">"Le support NetCDF nécessite l'installation des dépendances xarray et netCDF4."</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-208"><a id="kadi.io.write_netcdf--source--__codelineno-0-208" name="kadi.io.write_netcdf--source--__codelineno-0-208"></a>        <span class="p">)</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-209"><a id="kadi.io.write_netcdf--source--__codelineno-0-209" name="kadi.io.write_netcdf--source--__codelineno-0-209"></a>    <span class="c1"># Instanciation de la source NetCDF et écriture des données</span>
-</span><span id="kadi.io.write_netcdf--source--__span-0-210"><a id="kadi.io.write_netcdf--source--__codelineno-0-210" name="kadi.io.write_netcdf--source--__codelineno-0-210"></a>    <span class="k">return</span> <span class="n">NetCDFSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-201"><a id="kadi.io.write_netcdf--source--__codelineno-0-201" name="kadi.io.write_netcdf--source--__codelineno-0-201"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-202"><a id="kadi.io.write_netcdf--source--__codelineno-0-202" name="kadi.io.write_netcdf--source--__codelineno-0-202"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-203"><a id="kadi.io.write_netcdf--source--__codelineno-0-203" name="kadi.io.write_netcdf--source--__codelineno-0-203"></a>
+</span><span id="kadi.io.write_netcdf--source--__span-0-204"><a id="kadi.io.write_netcdf--source--__codelineno-0-204" name="kadi.io.write_netcdf--source--__codelineno-0-204"></a><span class="sd">    Raises:</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-205"><a id="kadi.io.write_netcdf--source--__codelineno-0-205" name="kadi.io.write_netcdf--source--__codelineno-0-205"></a><span class="sd">        ImportError: Si xarray ou netCDF4 n'est pas disponible.</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-206"><a id="kadi.io.write_netcdf--source--__codelineno-0-206" name="kadi.io.write_netcdf--source--__codelineno-0-206"></a><span class="sd">    """</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-207"><a id="kadi.io.write_netcdf--source--__codelineno-0-207" name="kadi.io.write_netcdf--source--__codelineno-0-207"></a>    <span class="c1"># Vérification du module NetCDFSource</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-208"><a id="kadi.io.write_netcdf--source--__codelineno-0-208" name="kadi.io.write_netcdf--source--__codelineno-0-208"></a>    <span class="k">if</span> <span class="n">NetCDFSource</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-209"><a id="kadi.io.write_netcdf--source--__codelineno-0-209" name="kadi.io.write_netcdf--source--__codelineno-0-209"></a>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-210"><a id="kadi.io.write_netcdf--source--__codelineno-0-210" name="kadi.io.write_netcdf--source--__codelineno-0-210"></a>            <span class="s2">"Le support NetCDF nécessite l'installation des dépendances xarray et netCDF4."</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-211"><a id="kadi.io.write_netcdf--source--__codelineno-0-211" name="kadi.io.write_netcdf--source--__codelineno-0-211"></a>        <span class="p">)</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-212"><a id="kadi.io.write_netcdf--source--__codelineno-0-212" name="kadi.io.write_netcdf--source--__codelineno-0-212"></a>    <span class="c1"># Instanciation de la source NetCDF et écriture des données</span>
+</span><span id="kadi.io.write_netcdf--source--__span-0-213"><a id="kadi.io.write_netcdf--source--__codelineno-0-213" name="kadi.io.write_netcdf--source--__codelineno-0-213"></a>    <span class="k">return</span> <span class="n">NetCDFSource</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -13913,6 +13929,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -13952,10 +13969,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-213">213</a></span>
-<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-214">214</a></span>
-<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-215">215</a></span>
-<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-216">216</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-216">216</a></span>
 <span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-217">217</a></span>
 <span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-218">218</a></span>
 <span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-219">219</a></span>
@@ -13965,20 +13979,23 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-223">223</a></span>
 <span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-224">224</a></span>
 <span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-225">225</a></span>
-<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-226">226</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_api--source--__span-0-213"><a id="kadi.io.write_api--source--__codelineno-0-213" name="kadi.io.write_api--source--__codelineno-0-213"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_api</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.write_api--source--__span-0-214"><a id="kadi.io.write_api--source--__codelineno-0-214" name="kadi.io.write_api--source--__codelineno-0-214"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.write_api--source--__span-0-215"><a id="kadi.io.write_api--source--__codelineno-0-215" name="kadi.io.write_api--source--__codelineno-0-215"></a><span class="sd">    Écrit des données vers une API REST via APISource.</span>
-</span><span id="kadi.io.write_api--source--__span-0-216"><a id="kadi.io.write_api--source--__codelineno-0-216" name="kadi.io.write_api--source--__codelineno-0-216"></a>
-</span><span id="kadi.io.write_api--source--__span-0-217"><a id="kadi.io.write_api--source--__codelineno-0-217" name="kadi.io.write_api--source--__codelineno-0-217"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.write_api--source--__span-0-218"><a id="kadi.io.write_api--source--__codelineno-0-218" name="kadi.io.write_api--source--__codelineno-0-218"></a><span class="sd">        data (pandas.DataFrame): Les données à envoyer.</span>
-</span><span id="kadi.io.write_api--source--__span-0-219"><a id="kadi.io.write_api--source--__codelineno-0-219" name="kadi.io.write_api--source--__codelineno-0-219"></a><span class="sd">        url (str): URL de l'endpoint API.</span>
-</span><span id="kadi.io.write_api--source--__span-0-220"><a id="kadi.io.write_api--source--__codelineno-0-220" name="kadi.io.write_api--source--__codelineno-0-220"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à APISource.write().</span>
-</span><span id="kadi.io.write_api--source--__span-0-221"><a id="kadi.io.write_api--source--__codelineno-0-221" name="kadi.io.write_api--source--__codelineno-0-221"></a>
-</span><span id="kadi.io.write_api--source--__span-0-222"><a id="kadi.io.write_api--source--__codelineno-0-222" name="kadi.io.write_api--source--__codelineno-0-222"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.write_api--source--__span-0-223"><a id="kadi.io.write_api--source--__codelineno-0-223" name="kadi.io.write_api--source--__codelineno-0-223"></a><span class="sd">        bool: True si l'envoi s'est déroulé avec succès.</span>
-</span><span id="kadi.io.write_api--source--__span-0-224"><a id="kadi.io.write_api--source--__codelineno-0-224" name="kadi.io.write_api--source--__codelineno-0-224"></a><span class="sd">    """</span>
-</span><span id="kadi.io.write_api--source--__span-0-225"><a id="kadi.io.write_api--source--__codelineno-0-225" name="kadi.io.write_api--source--__codelineno-0-225"></a>    <span class="c1"># Instanciation de la source API et envoi des données</span>
-</span><span id="kadi.io.write_api--source--__span-0-226"><a id="kadi.io.write_api--source--__codelineno-0-226" name="kadi.io.write_api--source--__codelineno-0-226"></a>    <span class="k">return</span> <span class="n">APISource</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-226">226</a></span>
+<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-227">227</a></span>
+<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-228">228</a></span>
+<span class="normal"><a href="#kadi.io.write_api--source--__codelineno-0-229">229</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write_api--source--__span-0-216"><a id="kadi.io.write_api--source--__codelineno-0-216" name="kadi.io.write_api--source--__codelineno-0-216"></a><span class="k">def</span><span class="w"> </span><span class="nf">write_api</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.write_api--source--__span-0-217"><a id="kadi.io.write_api--source--__codelineno-0-217" name="kadi.io.write_api--source--__codelineno-0-217"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.write_api--source--__span-0-218"><a id="kadi.io.write_api--source--__codelineno-0-218" name="kadi.io.write_api--source--__codelineno-0-218"></a><span class="sd">    Écrit des données vers une API REST via APISource.</span>
+</span><span id="kadi.io.write_api--source--__span-0-219"><a id="kadi.io.write_api--source--__codelineno-0-219" name="kadi.io.write_api--source--__codelineno-0-219"></a>
+</span><span id="kadi.io.write_api--source--__span-0-220"><a id="kadi.io.write_api--source--__codelineno-0-220" name="kadi.io.write_api--source--__codelineno-0-220"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.write_api--source--__span-0-221"><a id="kadi.io.write_api--source--__codelineno-0-221" name="kadi.io.write_api--source--__codelineno-0-221"></a><span class="sd">        data (pandas.DataFrame): Les données à envoyer.</span>
+</span><span id="kadi.io.write_api--source--__span-0-222"><a id="kadi.io.write_api--source--__codelineno-0-222" name="kadi.io.write_api--source--__codelineno-0-222"></a><span class="sd">        url (str): URL de l'endpoint API.</span>
+</span><span id="kadi.io.write_api--source--__span-0-223"><a id="kadi.io.write_api--source--__codelineno-0-223" name="kadi.io.write_api--source--__codelineno-0-223"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à APISource.write().</span>
+</span><span id="kadi.io.write_api--source--__span-0-224"><a id="kadi.io.write_api--source--__codelineno-0-224" name="kadi.io.write_api--source--__codelineno-0-224"></a>
+</span><span id="kadi.io.write_api--source--__span-0-225"><a id="kadi.io.write_api--source--__codelineno-0-225" name="kadi.io.write_api--source--__codelineno-0-225"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.write_api--source--__span-0-226"><a id="kadi.io.write_api--source--__codelineno-0-226" name="kadi.io.write_api--source--__codelineno-0-226"></a><span class="sd">        bool: True si l'envoi s'est déroulé avec succès.</span>
+</span><span id="kadi.io.write_api--source--__span-0-227"><a id="kadi.io.write_api--source--__codelineno-0-227" name="kadi.io.write_api--source--__codelineno-0-227"></a><span class="sd">    """</span>
+</span><span id="kadi.io.write_api--source--__span-0-228"><a id="kadi.io.write_api--source--__codelineno-0-228" name="kadi.io.write_api--source--__codelineno-0-228"></a>    <span class="c1"># Instanciation de la source API et envoi des données</span>
+</span><span id="kadi.io.write_api--source--__span-0-229"><a id="kadi.io.write_api--source--__codelineno-0-229" name="kadi.io.write_api--source--__codelineno-0-229"></a>    <span class="k">return</span> <span class="n">APISource</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -14049,6 +14066,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -14088,10 +14106,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write--source--__codelineno-0-276">276</a></span>
-<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-277">277</a></span>
-<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-278">278</a></span>
-<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-279">279</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.write--source--__codelineno-0-279">279</a></span>
 <span class="normal"><a href="#kadi.io.write--source--__codelineno-0-280">280</a></span>
 <span class="normal"><a href="#kadi.io.write--source--__codelineno-0-281">281</a></span>
 <span class="normal"><a href="#kadi.io.write--source--__codelineno-0-282">282</a></span>
@@ -14102,21 +14117,24 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.write--source--__codelineno-0-287">287</a></span>
 <span class="normal"><a href="#kadi.io.write--source--__codelineno-0-288">288</a></span>
 <span class="normal"><a href="#kadi.io.write--source--__codelineno-0-289">289</a></span>
-<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-290">290</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write--source--__span-0-276"><a id="kadi.io.write--source--__codelineno-0-276" name="kadi.io.write--source--__codelineno-0-276"></a><span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.write--source--__span-0-277"><a id="kadi.io.write--source--__codelineno-0-277" name="kadi.io.write--source--__codelineno-0-277"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.write--source--__span-0-278"><a id="kadi.io.write--source--__codelineno-0-278" name="kadi.io.write--source--__codelineno-0-278"></a><span class="sd">    Écrit des données dans une source en détectant automatiquement son format.</span>
-</span><span id="kadi.io.write--source--__span-0-279"><a id="kadi.io.write--source--__codelineno-0-279" name="kadi.io.write--source--__codelineno-0-279"></a>
-</span><span id="kadi.io.write--source--__span-0-280"><a id="kadi.io.write--source--__codelineno-0-280" name="kadi.io.write--source--__codelineno-0-280"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.write--source--__span-0-281"><a id="kadi.io.write--source--__codelineno-0-281" name="kadi.io.write--source--__codelineno-0-281"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
-</span><span id="kadi.io.write--source--__span-0-282"><a id="kadi.io.write--source--__codelineno-0-282" name="kadi.io.write--source--__codelineno-0-282"></a><span class="sd">        filepath_or_url (str): Chemin du fichier ou URL de l'API REST.</span>
-</span><span id="kadi.io.write--source--__span-0-283"><a id="kadi.io.write--source--__codelineno-0-283" name="kadi.io.write--source--__codelineno-0-283"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à la source.</span>
-</span><span id="kadi.io.write--source--__span-0-284"><a id="kadi.io.write--source--__codelineno-0-284" name="kadi.io.write--source--__codelineno-0-284"></a>
-</span><span id="kadi.io.write--source--__span-0-285"><a id="kadi.io.write--source--__codelineno-0-285" name="kadi.io.write--source--__codelineno-0-285"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.write--source--__span-0-286"><a id="kadi.io.write--source--__codelineno-0-286" name="kadi.io.write--source--__codelineno-0-286"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
-</span><span id="kadi.io.write--source--__span-0-287"><a id="kadi.io.write--source--__codelineno-0-287" name="kadi.io.write--source--__codelineno-0-287"></a><span class="sd">    """</span>
-</span><span id="kadi.io.write--source--__span-0-288"><a id="kadi.io.write--source--__codelineno-0-288" name="kadi.io.write--source--__codelineno-0-288"></a>    <span class="c1"># Détection automatique de la source et exécution de l'écriture</span>
-</span><span id="kadi.io.write--source--__span-0-289"><a id="kadi.io.write--source--__codelineno-0-289" name="kadi.io.write--source--__codelineno-0-289"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">_detect_source</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="kadi.io.write--source--__span-0-290"><a id="kadi.io.write--source--__codelineno-0-290" name="kadi.io.write--source--__codelineno-0-290"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-290">290</a></span>
+<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-291">291</a></span>
+<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-292">292</a></span>
+<span class="normal"><a href="#kadi.io.write--source--__codelineno-0-293">293</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.write--source--__span-0-279"><a id="kadi.io.write--source--__codelineno-0-279" name="kadi.io.write--source--__codelineno-0-279"></a><span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">filepath_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.write--source--__span-0-280"><a id="kadi.io.write--source--__codelineno-0-280" name="kadi.io.write--source--__codelineno-0-280"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.write--source--__span-0-281"><a id="kadi.io.write--source--__codelineno-0-281" name="kadi.io.write--source--__codelineno-0-281"></a><span class="sd">    Écrit des données dans une source en détectant automatiquement son format.</span>
+</span><span id="kadi.io.write--source--__span-0-282"><a id="kadi.io.write--source--__codelineno-0-282" name="kadi.io.write--source--__codelineno-0-282"></a>
+</span><span id="kadi.io.write--source--__span-0-283"><a id="kadi.io.write--source--__codelineno-0-283" name="kadi.io.write--source--__codelineno-0-283"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.write--source--__span-0-284"><a id="kadi.io.write--source--__codelineno-0-284" name="kadi.io.write--source--__codelineno-0-284"></a><span class="sd">        data (pandas.DataFrame): Les données à exporter.</span>
+</span><span id="kadi.io.write--source--__span-0-285"><a id="kadi.io.write--source--__codelineno-0-285" name="kadi.io.write--source--__codelineno-0-285"></a><span class="sd">        filepath_or_url (str): Chemin du fichier ou URL de l'API REST.</span>
+</span><span id="kadi.io.write--source--__span-0-286"><a id="kadi.io.write--source--__codelineno-0-286" name="kadi.io.write--source--__codelineno-0-286"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à la source.</span>
+</span><span id="kadi.io.write--source--__span-0-287"><a id="kadi.io.write--source--__codelineno-0-287" name="kadi.io.write--source--__codelineno-0-287"></a>
+</span><span id="kadi.io.write--source--__span-0-288"><a id="kadi.io.write--source--__codelineno-0-288" name="kadi.io.write--source--__codelineno-0-288"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.write--source--__span-0-289"><a id="kadi.io.write--source--__codelineno-0-289" name="kadi.io.write--source--__codelineno-0-289"></a><span class="sd">        bool: True si l'écriture est réussie.</span>
+</span><span id="kadi.io.write--source--__span-0-290"><a id="kadi.io.write--source--__codelineno-0-290" name="kadi.io.write--source--__codelineno-0-290"></a><span class="sd">    """</span>
+</span><span id="kadi.io.write--source--__span-0-291"><a id="kadi.io.write--source--__codelineno-0-291" name="kadi.io.write--source--__codelineno-0-291"></a>    <span class="c1"># Détection automatique de la source et exécution de l'écriture</span>
+</span><span id="kadi.io.write--source--__span-0-292"><a id="kadi.io.write--source--__codelineno-0-292" name="kadi.io.write--source--__codelineno-0-292"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">_detect_source</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="kadi.io.write--source--__span-0-293"><a id="kadi.io.write--source--__codelineno-0-293" name="kadi.io.write--source--__codelineno-0-293"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -14171,6 +14189,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -14210,10 +14229,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.info--source--__codelineno-0-293">293</a></span>
-<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-294">294</a></span>
-<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-295">295</a></span>
-<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-296">296</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.info--source--__codelineno-0-296">296</a></span>
 <span class="normal"><a href="#kadi.io.info--source--__codelineno-0-297">297</a></span>
 <span class="normal"><a href="#kadi.io.info--source--__codelineno-0-298">298</a></span>
 <span class="normal"><a href="#kadi.io.info--source--__codelineno-0-299">299</a></span>
@@ -14223,20 +14239,23 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.info--source--__codelineno-0-303">303</a></span>
 <span class="normal"><a href="#kadi.io.info--source--__codelineno-0-304">304</a></span>
 <span class="normal"><a href="#kadi.io.info--source--__codelineno-0-305">305</a></span>
-<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-306">306</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.info--source--__span-0-293"><a id="kadi.io.info--source--__codelineno-0-293" name="kadi.io.info--source--__codelineno-0-293"></a><span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span id="kadi.io.info--source--__span-0-294"><a id="kadi.io.info--source--__codelineno-0-294" name="kadi.io.info--source--__codelineno-0-294"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.info--source--__span-0-295"><a id="kadi.io.info--source--__codelineno-0-295" name="kadi.io.info--source--__codelineno-0-295"></a><span class="sd">    Obtient les métadonnées d'une source en détectant automatiquement son format.</span>
-</span><span id="kadi.io.info--source--__span-0-296"><a id="kadi.io.info--source--__codelineno-0-296" name="kadi.io.info--source--__codelineno-0-296"></a>
-</span><span id="kadi.io.info--source--__span-0-297"><a id="kadi.io.info--source--__codelineno-0-297" name="kadi.io.info--source--__codelineno-0-297"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.info--source--__span-0-298"><a id="kadi.io.info--source--__codelineno-0-298" name="kadi.io.info--source--__codelineno-0-298"></a><span class="sd">        filepath_or_url (str): Chemin du fichier ou URL de l'API REST.</span>
-</span><span id="kadi.io.info--source--__span-0-299"><a id="kadi.io.info--source--__codelineno-0-299" name="kadi.io.info--source--__codelineno-0-299"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à la source.</span>
-</span><span id="kadi.io.info--source--__span-0-300"><a id="kadi.io.info--source--__codelineno-0-300" name="kadi.io.info--source--__codelineno-0-300"></a>
-</span><span id="kadi.io.info--source--__span-0-301"><a id="kadi.io.info--source--__codelineno-0-301" name="kadi.io.info--source--__codelineno-0-301"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.info--source--__span-0-302"><a id="kadi.io.info--source--__codelineno-0-302" name="kadi.io.info--source--__codelineno-0-302"></a><span class="sd">        dict: Dictionnaire de métadonnées décrivant la source.</span>
-</span><span id="kadi.io.info--source--__span-0-303"><a id="kadi.io.info--source--__codelineno-0-303" name="kadi.io.info--source--__codelineno-0-303"></a><span class="sd">    """</span>
-</span><span id="kadi.io.info--source--__span-0-304"><a id="kadi.io.info--source--__codelineno-0-304" name="kadi.io.info--source--__codelineno-0-304"></a>    <span class="c1"># Détection automatique de la source et récupération des métadonnées</span>
-</span><span id="kadi.io.info--source--__span-0-305"><a id="kadi.io.info--source--__codelineno-0-305" name="kadi.io.info--source--__codelineno-0-305"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">_detect_source</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="kadi.io.info--source--__span-0-306"><a id="kadi.io.info--source--__codelineno-0-306" name="kadi.io.info--source--__codelineno-0-306"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-306">306</a></span>
+<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-307">307</a></span>
+<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-308">308</a></span>
+<span class="normal"><a href="#kadi.io.info--source--__codelineno-0-309">309</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.info--source--__span-0-296"><a id="kadi.io.info--source--__codelineno-0-296" name="kadi.io.info--source--__codelineno-0-296"></a><span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="kadi.io.info--source--__span-0-297"><a id="kadi.io.info--source--__codelineno-0-297" name="kadi.io.info--source--__codelineno-0-297"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.info--source--__span-0-298"><a id="kadi.io.info--source--__codelineno-0-298" name="kadi.io.info--source--__codelineno-0-298"></a><span class="sd">    Obtient les métadonnées d'une source en détectant automatiquement son format.</span>
+</span><span id="kadi.io.info--source--__span-0-299"><a id="kadi.io.info--source--__codelineno-0-299" name="kadi.io.info--source--__codelineno-0-299"></a>
+</span><span id="kadi.io.info--source--__span-0-300"><a id="kadi.io.info--source--__codelineno-0-300" name="kadi.io.info--source--__codelineno-0-300"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.info--source--__span-0-301"><a id="kadi.io.info--source--__codelineno-0-301" name="kadi.io.info--source--__codelineno-0-301"></a><span class="sd">        filepath_or_url (str): Chemin du fichier ou URL de l'API REST.</span>
+</span><span id="kadi.io.info--source--__span-0-302"><a id="kadi.io.info--source--__codelineno-0-302" name="kadi.io.info--source--__codelineno-0-302"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à la source.</span>
+</span><span id="kadi.io.info--source--__span-0-303"><a id="kadi.io.info--source--__codelineno-0-303" name="kadi.io.info--source--__codelineno-0-303"></a>
+</span><span id="kadi.io.info--source--__span-0-304"><a id="kadi.io.info--source--__codelineno-0-304" name="kadi.io.info--source--__codelineno-0-304"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.info--source--__span-0-305"><a id="kadi.io.info--source--__codelineno-0-305" name="kadi.io.info--source--__codelineno-0-305"></a><span class="sd">        dict: Dictionnaire de métadonnées décrivant la source.</span>
+</span><span id="kadi.io.info--source--__span-0-306"><a id="kadi.io.info--source--__codelineno-0-306" name="kadi.io.info--source--__codelineno-0-306"></a><span class="sd">    """</span>
+</span><span id="kadi.io.info--source--__span-0-307"><a id="kadi.io.info--source--__codelineno-0-307" name="kadi.io.info--source--__codelineno-0-307"></a>    <span class="c1"># Détection automatique de la source et récupération des métadonnées</span>
+</span><span id="kadi.io.info--source--__span-0-308"><a id="kadi.io.info--source--__codelineno-0-308" name="kadi.io.info--source--__codelineno-0-308"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">_detect_source</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="kadi.io.info--source--__span-0-309"><a id="kadi.io.info--source--__codelineno-0-309" name="kadi.io.info--source--__codelineno-0-309"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -14291,6 +14310,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
                 <code>**kwargs</code>
             </td>
             <td>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -14330,10 +14350,7 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>kadi/io/__init__.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-309">309</a></span>
-<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-310">310</a></span>
-<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-311">311</a></span>
-<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-312">312</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-312">312</a></span>
 <span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-313">313</a></span>
 <span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-314">314</a></span>
 <span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-315">315</a></span>
@@ -14343,20 +14360,23 @@ effectue une conversion basique du DataFrame en Dataset xarray.</p>
 <span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-319">319</a></span>
 <span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-320">320</a></span>
 <span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-321">321</a></span>
-<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-322">322</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.ping--source--__span-0-309"><a id="kadi.io.ping--source--__codelineno-0-309" name="kadi.io.ping--source--__codelineno-0-309"></a><span class="k">def</span><span class="w"> </span><span class="nf">ping</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="kadi.io.ping--source--__span-0-310"><a id="kadi.io.ping--source--__codelineno-0-310" name="kadi.io.ping--source--__codelineno-0-310"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="kadi.io.ping--source--__span-0-311"><a id="kadi.io.ping--source--__codelineno-0-311" name="kadi.io.ping--source--__codelineno-0-311"></a><span class="sd">    Vérifie l'accessibilité d'une source de données en détectant son format.</span>
-</span><span id="kadi.io.ping--source--__span-0-312"><a id="kadi.io.ping--source--__codelineno-0-312" name="kadi.io.ping--source--__codelineno-0-312"></a>
-</span><span id="kadi.io.ping--source--__span-0-313"><a id="kadi.io.ping--source--__codelineno-0-313" name="kadi.io.ping--source--__codelineno-0-313"></a><span class="sd">    Args:</span>
-</span><span id="kadi.io.ping--source--__span-0-314"><a id="kadi.io.ping--source--__codelineno-0-314" name="kadi.io.ping--source--__codelineno-0-314"></a><span class="sd">        filepath_or_url (str): Chemin du fichier local ou URL de l'API REST.</span>
-</span><span id="kadi.io.ping--source--__span-0-315"><a id="kadi.io.ping--source--__codelineno-0-315" name="kadi.io.ping--source--__codelineno-0-315"></a><span class="sd">        **kwargs: Paramètres additionnels transmis à la source.</span>
-</span><span id="kadi.io.ping--source--__span-0-316"><a id="kadi.io.ping--source--__codelineno-0-316" name="kadi.io.ping--source--__codelineno-0-316"></a>
-</span><span id="kadi.io.ping--source--__span-0-317"><a id="kadi.io.ping--source--__codelineno-0-317" name="kadi.io.ping--source--__codelineno-0-317"></a><span class="sd">    Returns:</span>
-</span><span id="kadi.io.ping--source--__span-0-318"><a id="kadi.io.ping--source--__codelineno-0-318" name="kadi.io.ping--source--__codelineno-0-318"></a><span class="sd">        bool: True si la source est accessible et fonctionnelle.</span>
-</span><span id="kadi.io.ping--source--__span-0-319"><a id="kadi.io.ping--source--__codelineno-0-319" name="kadi.io.ping--source--__codelineno-0-319"></a><span class="sd">    """</span>
-</span><span id="kadi.io.ping--source--__span-0-320"><a id="kadi.io.ping--source--__codelineno-0-320" name="kadi.io.ping--source--__codelineno-0-320"></a>    <span class="c1"># Détection automatique de la source et contrôle d'accès</span>
-</span><span id="kadi.io.ping--source--__span-0-321"><a id="kadi.io.ping--source--__codelineno-0-321" name="kadi.io.ping--source--__codelineno-0-321"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">_detect_source</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="kadi.io.ping--source--__span-0-322"><a id="kadi.io.ping--source--__codelineno-0-322" name="kadi.io.ping--source--__codelineno-0-322"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
+<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-322">322</a></span>
+<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-323">323</a></span>
+<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-324">324</a></span>
+<span class="normal"><a href="#kadi.io.ping--source--__codelineno-0-325">325</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="kadi.io.ping--source--__span-0-312"><a id="kadi.io.ping--source--__codelineno-0-312" name="kadi.io.ping--source--__codelineno-0-312"></a><span class="k">def</span><span class="w"> </span><span class="nf">ping</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="kadi.io.ping--source--__span-0-313"><a id="kadi.io.ping--source--__codelineno-0-313" name="kadi.io.ping--source--__codelineno-0-313"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="kadi.io.ping--source--__span-0-314"><a id="kadi.io.ping--source--__codelineno-0-314" name="kadi.io.ping--source--__codelineno-0-314"></a><span class="sd">    Vérifie l'accessibilité d'une source de données en détectant son format.</span>
+</span><span id="kadi.io.ping--source--__span-0-315"><a id="kadi.io.ping--source--__codelineno-0-315" name="kadi.io.ping--source--__codelineno-0-315"></a>
+</span><span id="kadi.io.ping--source--__span-0-316"><a id="kadi.io.ping--source--__codelineno-0-316" name="kadi.io.ping--source--__codelineno-0-316"></a><span class="sd">    Args:</span>
+</span><span id="kadi.io.ping--source--__span-0-317"><a id="kadi.io.ping--source--__codelineno-0-317" name="kadi.io.ping--source--__codelineno-0-317"></a><span class="sd">        filepath_or_url (str): Chemin du fichier local ou URL de l'API REST.</span>
+</span><span id="kadi.io.ping--source--__span-0-318"><a id="kadi.io.ping--source--__codelineno-0-318" name="kadi.io.ping--source--__codelineno-0-318"></a><span class="sd">        **kwargs (Any): Paramètres additionnels transmis à la source.</span>
+</span><span id="kadi.io.ping--source--__span-0-319"><a id="kadi.io.ping--source--__codelineno-0-319" name="kadi.io.ping--source--__codelineno-0-319"></a>
+</span><span id="kadi.io.ping--source--__span-0-320"><a id="kadi.io.ping--source--__codelineno-0-320" name="kadi.io.ping--source--__codelineno-0-320"></a><span class="sd">    Returns:</span>
+</span><span id="kadi.io.ping--source--__span-0-321"><a id="kadi.io.ping--source--__codelineno-0-321" name="kadi.io.ping--source--__codelineno-0-321"></a><span class="sd">        bool: True si la source est accessible et fonctionnelle.</span>
+</span><span id="kadi.io.ping--source--__span-0-322"><a id="kadi.io.ping--source--__codelineno-0-322" name="kadi.io.ping--source--__codelineno-0-322"></a><span class="sd">    """</span>
+</span><span id="kadi.io.ping--source--__span-0-323"><a id="kadi.io.ping--source--__codelineno-0-323" name="kadi.io.ping--source--__codelineno-0-323"></a>    <span class="c1"># Détection automatique de la source et contrôle d'accès</span>
+</span><span id="kadi.io.ping--source--__span-0-324"><a id="kadi.io.ping--source--__codelineno-0-324" name="kadi.io.ping--source--__codelineno-0-324"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">_detect_source</span><span class="p">(</span><span class="n">filepath_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="kadi.io.ping--source--__span-0-325"><a id="kadi.io.ping--source--__codelineno-0-325" name="kadi.io.ping--source--__codelineno-0-325"></a>    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
