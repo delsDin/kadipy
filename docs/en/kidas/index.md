@@ -72,7 +72,7 @@ df, report = (
     .add_step("drop_dupes")
     .add_step("fill_missing", strategy="median")
     .add_step("check_schema", {"culture": "str", "rendement_kg": "float"})
-    .add_step("norm_cols", {"crops": "culture"})
+    .add_step("std_crops", col="culture")
     .run(cache=True)
 )
 
@@ -92,7 +92,7 @@ df, report = (
     .clean("drop_dupes")
     .clean("fill_missing", strategy="median")
     .validate({"culture": "str", "rendement_kg": "float"})
-    .normalize({"crops": "culture"})
+    .normalize("std_crops", col="culture")
     .run(cache=True)
 )
 ```
