@@ -391,8 +391,23 @@ class Advisor:
         # Récupération du prix futur estimé via le module de prévision
         if self.forecast:
             try:
+                hist = None
+                if self.pricing is not None and not getattr(self.pricing, "sim", False):
+                    try:
+                        prices = self.pricing.fetch(crop, market, days=365)
+                        if not prices.empty:
+                            hist = prices.copy()
+                            if "unit" in hist.columns:
+                                hist["price"] = [
+                                    self.pricing.convert_unit(price, unit, crop=crop)
+                                    for price, unit in zip(hist["price"], hist["unit"])
+                                ]
+                    except Exception as error:
+                        hist = None
+                        logger.warning("Historique indisponible pour %s/%s : %s",
+                                       crop, market, error)
                 prevision = self.forecast.predict(
-                    crop, market, ahead=jours_stockage
+                    crop, market, ahead=jours_stockage, hist=hist
                 )
                 # La prévision est en XOF/kg ; on convertit en XOF/tonne
                 prix_futur_tonne = prevision["predicted_price"] * 1000.0
