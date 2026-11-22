@@ -181,7 +181,7 @@ de la zone.
 ```python
 debut = weather.onset()
 print(debut["onset_date"])
-print(debut["method"])
+print(debut["algorithm"])
 ```
 
 **Retour :** `dict` (voir [Phenology](phenology.md)).
@@ -240,7 +240,7 @@ Simule le bilan hydrique quotidien selon la méthode FAO-56.
 
 ```python
 bilan = weather.water_balance(crop="maize", soil_type="ferrugineux")
-print(bilan[["precipitation", "ET0", "deficit_eau", "reserve_utile"]].tail(14))
+print(bilan[["precip", "et0", "deficit_eau", "reserve_utile"]].tail(14))
 ```
 
 | Paramètre | Type | Défaut | Description |
@@ -446,7 +446,7 @@ print(df.columns.tolist())
 
 # Démarrage de la saison
 debut = weather.onset()
-print(debut["onset_date"], debut["method"])
+print(debut["onset_date"], debut["algorithm"])
 
 # GDD pour le maïs
 gdd = weather.gdd(crop="maize", start="2026-05-15")
@@ -454,7 +454,7 @@ print(gdd["gdd_accumulated"], gdd["phenology_stage"])
 
 # Bilan hydrique
 bilan = weather.water_balance(crop="maize", soil_type="ferrugineux")
-print(bilan[["precipitation", "ET0", "deficit_eau"]].tail(7))
+print(bilan[["precip", "et0", "deficit_eau"]].tail(7))
 
 # Sécheresse SPI-3
 sec = weather.drought(method="spi", window=3)
