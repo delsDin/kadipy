@@ -88,6 +88,8 @@ plugins:
                 - Validator: kidas/validator.md
                 - Normalizer: kidas/normalizer.md
                 - Data Sources: kidas/sources.md
+  - autorefs:
+      resolve_closest: true
   - mkdocstrings:
       handlers:
         python:

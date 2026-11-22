@@ -25,6 +25,9 @@ Exemples d'utilisation :
 """
 
 import os
+from typing import Any
+
+import pandas as pd
 
 # Import de la classe de base abstraite
 from kadi.kidas.sources.base import Source
@@ -47,13 +50,13 @@ except ImportError:
 # Fonctions de lecture raccourcies (read_*)
 # ------------------------------------------------------------------
 
-def read_csv(filepath, **kwargs):
+def read_csv(filepath, **kwargs) -> pd.DataFrame:
     """
     Lit un fichier CSV via CSVSource.
 
     Args:
         filepath (str | Path): Chemin vers le fichier CSV.
-        **kwargs: Paramètres additionnels transmis à CSVSource.
+        **kwargs (Any): Paramètres additionnels transmis à CSVSource.
 
     Returns:
         pandas.DataFrame: Contenu du fichier CSV sous forme de DataFrame.
@@ -62,13 +65,13 @@ def read_csv(filepath, **kwargs):
     return CSVSource(filepath, **kwargs).read()
 
 
-def read_excel(filepath, **kwargs):
+def read_excel(filepath, **kwargs) -> pd.DataFrame:
     """
     Lit un fichier Excel via ExcelSource.
 
     Args:
         filepath (str | Path): Chemin vers le fichier Excel.
-        **kwargs: Paramètres additionnels transmis à ExcelSource.
+        **kwargs (Any): Paramètres additionnels transmis à ExcelSource.
 
     Returns:
         pandas.DataFrame: Contenu du fichier Excel sous forme de DataFrame.
@@ -77,13 +80,13 @@ def read_excel(filepath, **kwargs):
     return ExcelSource(filepath, **kwargs).read()
 
 
-def read_json(filepath, **kwargs):
+def read_json(filepath, **kwargs) -> pd.DataFrame:
     """
     Lit un fichier JSON via JSONSource.
 
     Args:
         filepath (str | Path): Chemin vers le fichier JSON.
-        **kwargs: Paramètres additionnels transmis à JSONSource.
+        **kwargs (Any): Paramètres additionnels transmis à JSONSource.
 
     Returns:
         pandas.DataFrame: Contenu du fichier JSON sous forme de DataFrame.
@@ -92,16 +95,16 @@ def read_json(filepath, **kwargs):
     return JSONSource(filepath, **kwargs).read()
 
 
-def read_netcdf(filepath, **kwargs):
+def read_netcdf(filepath, **kwargs) -> Any:
     """
     Lit un fichier NetCDF via NetCDFSource.
 
     Args:
         filepath (str | Path): Chemin vers le fichier NetCDF.
-        **kwargs: Paramètres additionnels transmis à NetCDFSource.
+        **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.
 
     Returns:
-        xarray.Dataset | pandas.DataFrame: Contenu du fichier NetCDF.
+        xarray.DataArray: Données extraites du fichier NetCDF.
 
     Raises:
         ImportError: Si xarray ou netCDF4 n'est pas disponible.
@@ -115,7 +118,7 @@ def read_netcdf(filepath, **kwargs):
     return NetCDFSource(filepath, **kwargs).read()
 
 
-def read_api(url: str, params: dict = None, **kwargs):
+def read_api(url: str, params: dict = None, **kwargs) -> pd.DataFrame:
     """
     Lit des données depuis une API REST via APISource.
 
@@ -124,7 +127,7 @@ def read_api(url: str, params: dict = None, **kwargs):
     Args:
         url (str): URL de l'API.
         params (dict, optional): Paramètres de requête HTTP.
-        **kwargs: Paramètres additionnels transmis à APISource.
+        **kwargs (Any): Paramètres additionnels transmis à APISource.
 
     Returns:
         pandas.DataFrame: Données renvoyées par l'API sous forme de DataFrame.
@@ -145,7 +148,7 @@ def write_csv(data, filepath: str, **kwargs) -> bool:
     Args:
         data (pandas.DataFrame): Les données à exporter.
         filepath (str): Chemin du fichier CSV de destination.
-        **kwargs: Paramètres additionnels transmis à CSVSource.write().
+        **kwargs (Any): Paramètres additionnels transmis à CSVSource.write().
 
     Returns:
         bool: True si l'écriture est réussie.
@@ -161,7 +164,7 @@ def write_excel(data, filepath: str, **kwargs) -> bool:
     Args:
         data (pandas.DataFrame): Les données à exporter.
         filepath (str): Chemin du fichier Excel de destination.
-        **kwargs: Paramètres additionnels transmis à ExcelSource.write().
+        **kwargs (Any): Paramètres additionnels transmis à ExcelSource.write().
 
     Returns:
         bool: True si l'écriture est réussie.
@@ -177,7 +180,7 @@ def write_json(data, filepath: str, **kwargs) -> bool:
     Args:
         data (pandas.DataFrame): Les données à exporter.
         filepath (str): Chemin du fichier JSON de destination.
-        **kwargs: Paramètres additionnels transmis à JSONSource.write().
+        **kwargs (Any): Paramètres additionnels transmis à JSONSource.write().
 
     Returns:
         bool: True si l'écriture est réussie.
@@ -193,7 +196,7 @@ def write_netcdf(data, filepath: str, **kwargs) -> bool:
     Args:
         data (pandas.DataFrame | xarray.Dataset): Les données à exporter.
         filepath (str): Chemin du fichier NetCDF de destination.
-        **kwargs: Paramètres additionnels transmis à NetCDFSource.write().
+        **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.write().
 
     Returns:
         bool: True si l'écriture est réussie.
@@ -217,7 +220,7 @@ def write_api(data, url: str, **kwargs) -> bool:
     Args:
         data (pandas.DataFrame): Les données à envoyer.
         url (str): URL de l'endpoint API.
-        **kwargs: Paramètres additionnels transmis à APISource.write().
+        **kwargs (Any): Paramètres additionnels transmis à APISource.write().
 
     Returns:
         bool: True si l'envoi s'est déroulé avec succès.
@@ -236,7 +239,7 @@ def _detect_source(filepath_or_url: str, **kwargs) -> Source:
 
     Args:
         filepath_or_url (str): Chemin du fichier local ou URL de l'API REST.
-        **kwargs: Arguments optionnels transmis à la classe Source.
+        **kwargs (Any): Arguments optionnels transmis à la classe Source.
 
     Returns:
         Source: Instance de la sous-classe de Source correspondante.
@@ -280,7 +283,7 @@ def write(data, filepath_or_url: str, **kwargs) -> bool:
     Args:
         data (pandas.DataFrame): Les données à exporter.
         filepath_or_url (str): Chemin du fichier ou URL de l'API REST.
-        **kwargs: Paramètres additionnels transmis à la source.
+        **kwargs (Any): Paramètres additionnels transmis à la source.
 
     Returns:
         bool: True si l'écriture est réussie.
@@ -296,7 +299,7 @@ def info(filepath_or_url: str, **kwargs) -> dict:
 
     Args:
         filepath_or_url (str): Chemin du fichier ou URL de l'API REST.
-        **kwargs: Paramètres additionnels transmis à la source.
+        **kwargs (Any): Paramètres additionnels transmis à la source.
 
     Returns:
         dict: Dictionnaire de métadonnées décrivant la source.
@@ -312,7 +315,7 @@ def ping(filepath_or_url: str, **kwargs) -> bool:
 
     Args:
         filepath_or_url (str): Chemin du fichier local ou URL de l'API REST.
-        **kwargs: Paramètres additionnels transmis à la source.
+        **kwargs (Any): Paramètres additionnels transmis à la source.
 
     Returns:
         bool: True si la source est accessible et fonctionnelle.

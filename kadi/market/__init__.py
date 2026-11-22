@@ -11,6 +11,7 @@ climatique dans la logistique et l'aide à la décision.
 """
 
 import pandas as pd
+from typing import Any
 import warnings
 from .pricing import Pricing
 from .forecasting import Forecasting
@@ -165,7 +166,7 @@ class Market:
                 tous les appels de prix. Aucune requête réseau ne sera effectuée.
                 Utile pour les études, les démonstrations ou les tests hors ligne.
                 Défaut : False (données réelles de l'API HAPI HumData).
-            **kwargs: Anciens arguments (weather_session, simulated) pour rétrocompatibilité.
+            **kwargs (Any): Anciens arguments (weather_session, simulated) pour rétrocompatibilité.
 
         Raises:
             TypeError: Si lat, lon ou location ne sont pas du bon type.
@@ -441,7 +442,7 @@ class Market:
                 pour entraîner le modèle. Défaut : 365 jours.
             sim (bool, optional): Surcharge le mode simulation de l'instance.
                 Si None, hérite de self.sim. Défaut : None.
-            **kwargs: Anciens arguments (days_ahead) gérés pour rétrocompatibilité.
+            **kwargs (Any): Anciens arguments (days_ahead) gérés pour rétrocompatibilité.
 
         Returns:
             dict: Dictionnaire contenant :
@@ -545,7 +546,7 @@ class Market:
                 Utiliser 365 si seule la dernière année est pertinente.
             sim (bool, optional): Surcharge le mode simulation de l'instance.
                 Si None, hérite de self.sim. Défaut : None.
-            **kwargs: Anciens arguments (days_back) gérés pour rétrocompatibilité.
+            **kwargs (Any): Anciens arguments (days_back) gérés pour rétrocompatibilité.
 
         Returns:
             dict: Résultat de ``MarketPricing.seasonality()``, contenant :
@@ -591,7 +592,7 @@ class Market:
         Args:
             ahead (int, optional): Horizon de prévision de pluie en jours.
                 Défaut : 7 jours.
-            **kwargs: Anciens arguments (days_ahead) pour rétrocompatibilité.
+            **kwargs (Any): Anciens arguments (days_ahead) pour rétrocompatibilité.
 
         Returns:
             dict: Dictionnaire contenant :

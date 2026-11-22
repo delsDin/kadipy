@@ -15,7 +15,7 @@ import logging
 import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -74,7 +74,7 @@ class Source(ABC):
         selon le format de fichier concerné.
 
         Args:
-            **kwargs: Arguments optionnels spécifiques à chaque format
+            **kwargs (Any): Arguments optionnels spécifiques à chaque format
                 (ex: n, sheet, lat_bounds...).
 
         Returns:
@@ -95,7 +95,7 @@ class Source(ABC):
 
         Args:
             data (pd.DataFrame): Les données à écrire vers la source.
-            **kwargs: Arguments optionnels spécifiques à chaque format
+            **kwargs (Any): Arguments optionnels spécifiques à chaque format
                 (ex: index, sheet, orient...).
 
         Returns:

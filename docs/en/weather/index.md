@@ -510,6 +510,6 @@ Legacy class and parameter names emit a `DeprecationWarning` and continue to fun
 - [Hydrology](hydrology.md): water balance, ET0
 - [Climate Risks (Risk)](risk.md): SPI, Markov chains, rain probability
 
-::: kadi.weather.session.Weather
+- [Weather](session.md#kadi.weather.session.Weather)
 ::: kadi.weather.location.Location
 ::: kadi.weather.data.WeatherLoader

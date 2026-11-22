@@ -13,6 +13,7 @@ Phase 4 :
 import logging
 import warnings
 from math import isfinite
+from typing import Any, Callable
 
 from kadi.config import CONFIG
 
@@ -81,7 +82,7 @@ class Advisor:
         self.logistics = logistics
         self.pricing = pricing
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les accès aux anciens noms de méthodes.
 
         Délègue vers le nouveau nom et émet un DeprecationWarning.
@@ -90,7 +91,7 @@ class Advisor:
             name (str): Nom de la méthode demandée.
 
         Returns:
-            callable: La méthode sous son nouveau nom.
+            Callable: La méthode sous son nouveau nom.
 
         Raises:
             AttributeError: Si le nom est inconnu.
@@ -229,8 +230,7 @@ class Advisor:
             m_from (str): Le marché d'achat (ex: 'Parakou').
             to (str): Le marché de vente (ex: 'Cotonou').
             qty (float): La quantité à transporter en tonnes métriques.
-            **kwargs: Anciens noms : origine, destination, market_from,
-                market_to et qty_tons.
+            **kwargs (Any): Anciens nom de paramètres (market_from, market_to, qty_tons).
 
         Returns:
             dict: Dictionnaire contenant :
@@ -499,7 +499,7 @@ class Advisor:
                 dictionnaire historique sous la clé 'prix_moyen_xof'.
             yields (dict, optional): Rendements attendus en tonnes/hectare.
                 Si None, utilise les rendements de référence béninois.
-            **kwargs: Anciens arguments (available_land_ha, climate_forecast, market_forecast).
+            **kwargs (Any): Anciens arguments (available_land_ha, climate_forecast, market_forecast).
 
         Returns:
             dict: Dictionnaire contenant :
@@ -673,7 +673,7 @@ class Advisor:
             land_ha (float): Surface disponible en hectares.
             climate (dict): Prévisions climatiques.
             market (dict): Prix par culture (peut être vide).
-            **kwargs: Anciens noms d'arguments gérés pour rétrocompatibilité.
+            **kwargs (Any): Anciens noms d'arguments gérés pour rétrocompatibilité.
         Returns:
             dict: Répartition heuristique, revenu estimé et recommandation.
         """
