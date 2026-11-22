@@ -232,6 +232,11 @@ class Validator:
                 pd.api.types.is_string_dtype(self.df[colonne]) or pd.api.types.is_object_dtype(self.df[colonne])
             ):
                 types_compatibles = True
+            elif (
+                "datetime" in dtype_attendu
+                and pd.api.types.is_datetime64_any_dtype(self.df[colonne])
+            ):
+                types_compatibles = True
             elif "int" in dtype_attendu and pd.api.types.is_integer_dtype(self.df[colonne]):
                 types_compatibles = True
             elif "float" in dtype_attendu and pd.api.types.is_float_dtype(self.df[colonne]):
