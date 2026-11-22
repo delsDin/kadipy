@@ -145,6 +145,22 @@ class NetCDFSource(Source):
         )
         return dimensions
 
+    @staticmethod
+    def _ordered_slice(coord: xr.DataArray, low: float, high: float) -> slice:
+        """Construit une tranche dans le sens de la coordonnée.
+
+        Args:
+            coord (xr.DataArray): Coordonnée spatiale.
+            low (float): Borne inférieure.
+            high (float): Borne supérieure.
+
+        Returns:
+            slice: Tranche adaptée à l'ordre de la coordonnée.
+        """
+        if coord.ndim == 1 and coord.size >= 2 and coord.values[0] > coord.values[-1]:
+            return slice(high, low)
+        return slice(low, high)
+
     def read(
         self,
         lat_bounds: Optional[Tuple[float, float]] = None,
@@ -195,8 +211,8 @@ class NetCDFSource(Source):
             # Extraction du sous-ensemble spatial
             da = da.sel(
                 {
-                    nom_lat: slice(lat_min, lat_max),
-                    nom_lon: slice(lon_min, lon_max),
+                    nom_lat: self._ordered_slice(da[nom_lat], lat_min, lat_max),
+                    nom_lon: self._ordered_slice(da[nom_lon], lon_min, lon_max),
                 }
             )
 
