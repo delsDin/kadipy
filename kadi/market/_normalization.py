@@ -5,6 +5,8 @@ Ce module centralise tous les dictionnaires de correspondance nécessaires
 pour convertir les noms de cultures (en français, en fon, en anglais) vers
 les codes standards, ainsi que les unités locales vers XOF/kg.
 """
+from unicodedata import combining, normalize
+
 
 # -------------------------------------------------------------------------
 # Dictionnaire de normalisation des cultures
@@ -159,6 +161,7 @@ CONTAINER_WEIGHTS_KG = {
     # Tomate
     "caisse_tomato": 20.0,       # 1 caisse de tomate = ~20 kg
     "boîte_tomato": 10.0,
+    "boite_tomato": 10.0,
 
     # Valeurs génériques si la culture est inconnue
     "sac": 80.0,
@@ -242,6 +245,21 @@ def normalize_market_name(name: str) -> str:
     return cle_normalisee
 
 
+def _normalize_unit(value: str) -> str:
+    """Normalise la casse et les accents d'un nom d'unité.
+
+    Args:
+        value (str): Nom à normaliser.
+
+    Returns:
+        str: Nom en minuscules et sans signes diacritiques.
+    """
+    return "".join(
+        char for char in normalize("NFD", value.strip().lower())
+        if not combining(char)
+    )
+
+
 def get_container_weight_kg(conteneur: str, crop: str = None) -> float:
     """
     Retourne le poids en kilogrammes d'un contenant local.
@@ -262,11 +280,11 @@ def get_container_weight_kg(conteneur: str, crop: str = None) -> float:
         >>> get_container_weight_kg("sac")
         80.0
     """
-    conteneur_norm = conteneur.strip().lower().replace(" ", "_")
+    conteneur_norm = _normalize_unit(conteneur).replace(" ", "_")
 
     # Essai avec la clé spécifique à la culture
     if crop:
-        cle_specifique = f"{conteneur_norm}_{crop}"
+        cle_specifique = f"{conteneur_norm}_{_normalize_unit(crop)}"
         if cle_specifique in CONTAINER_WEIGHTS_KG:
             return CONTAINER_WEIGHTS_KG[cle_specifique]
 
