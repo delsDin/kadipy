@@ -31,7 +31,7 @@ Market
 
 ## Sous-modules
 
-### data_ingestion — Client WFP DataBridges
+### data_ingestion - Client WFP DataBridges
 
 Interface avec l'API publique du Programme Alimentaire Mondial (VAM
 DataBridges) pour récupérer les historiques de prix officiels.
@@ -44,7 +44,7 @@ DataBridges) pour récupérer les historiques de prix officiels.
   module utilise silencieusement un dictionnaire de secours local pour
   continuer à fonctionner.
 
-### pricing — Normalisation et détection d'anomalies
+### pricing - Normalisation et détection d'anomalies
 
 Nettoie et prépare les données brutes avant toute analyse.
 
@@ -55,7 +55,7 @@ Nettoie et prépare les données brutes avant toute analyse.
 - **Interpolation** : comble les trous dans les séries temporelles jusqu'à
   7 jours consécutifs par interpolation linéaire.
 
-### forecasting — Prévision de prix
+### forecasting - Prévision de prix
 
 Anticipe les fluctuations futures des prix agricoles.
 
@@ -69,7 +69,7 @@ Anticipe les fluctuations futures des prix agricoles.
 - **Fallback** : si l'historique est insuffisant (moins de 20 points), le
   module retourne une estimation simulée clairement signalée.
 
-### logistics — Coûts de transport
+### logistics - Coûts de transport
 
 Simule la réalité des déplacements de marchandises au Bénin.
 
@@ -88,7 +88,7 @@ Simule la réalité des déplacements de marchandises au Bénin.
   d'environnement `BENIN_FUEL_PRICE`, puis depuis `config/fuel_prices.json`,
   avec un repli à 680 XOF/litre.
 
-### decision_support — Aide à la décision
+### decision_support - Aide à la décision
 
 Synthétise les données de tous les autres modules pour produire une
 recommandation exploitable.
@@ -104,7 +104,7 @@ recommandation exploitable.
 - **Optimisation de portfolio** : `portfolio_optimization()` utilise
   `scipy.optimize.linprog` si disponible, avec un fallback heuristique.
 
-### backtesting — Evaluation a posteriori
+### backtesting - Evaluation a posteriori
 
 Mesure la qualité des prévisions sur des données historiques réelles.
 
