@@ -225,7 +225,7 @@ df, rapport = (
         "date":         "datetime",
     })
     .add_step("std_crops", col="culture")
-    .add_step("norm_cols", {"prix_xof_kg": "price_xof"})
+    .add_step("norm_cols")
     .run(cache=True)
 )
 
