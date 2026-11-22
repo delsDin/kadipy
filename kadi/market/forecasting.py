@@ -392,9 +392,12 @@ class Forecasting:
         # ------------------------------------------------------------------
 
         # Si l'historique est partiellement simulé, le signal se propage
-        est_simule = False
-        if "is_simulated" in hist.columns:
-            est_simule = bool(hist["is_simulated"].any())
+        est_simule = any(
+            col in hist.columns and bool(hist[col].any())
+            for col in ("is_simulated", "sim", "is_sim")
+        )
+        if not est_simule and "source" in hist.columns:
+            est_simule = bool(hist["source"].eq("simulated").any())
 
         # Calcul du score de confiance basé sur la source et la taille de l'historique
         # Formule : score_source * facteur_volume_données
