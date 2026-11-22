@@ -95,7 +95,11 @@ def _rain_prob(weather) -> float:
     try:
         # Horizon de prévision météo configuré pour la logistique
         days_ahead = _LOGISTICS_CONFIG.get("days_ahead_weather", 1)
-        resultat = weather.rain_probability(days_ahead=days_ahead)
+        rain_prob = getattr(weather, "rain_prob", None)
+        if callable(rain_prob):
+            resultat = rain_prob(days=days_ahead)
+        else:
+            resultat = weather.rain_probability(days_ahead=days_ahead)
 
         # La clé 'tomorrow' correspond au J+1 (premier jour de la prévision)
         prob = float(resultat.get("tomorrow", 0.0))
