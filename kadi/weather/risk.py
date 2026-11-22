@@ -234,13 +234,7 @@ class Risk:
 
         counts = transitions.groupby(["current", "next"]).size().unstack(fill_value=0)
 
-        # S'assure d'avoir la matrice 2x2
-        for i in [0, 1]:
-            if i not in counts.index:
-                counts.loc[i] = [0, 0]
-            for j in [0, 1]:
-                if j not in counts.columns:
-                    counts[j] = 0
+        counts = counts.reindex(index=[0, 1], columns=[0, 1], fill_value=0)
 
         # Calcul des probabilités normalisées par ligne
         p0 = counts.loc[0].sum()
@@ -252,10 +246,10 @@ class Risk:
         p11 = counts.loc[1, 1] / p1 if p1 > 0 else 0
 
         return {
-            "p_dry_dry": round(p00, 2),
-            "p_dry_wet": round(p01, 2),
-            "p_wet_dry": round(p10, 2),
-            "p_wet_wet": round(p11, 2),
+            "p_dry_dry": round(float(p00), 2),
+            "p_dry_wet": round(float(p01), 2),
+            "p_wet_dry": round(float(p10), 2),
+            "p_wet_wet": round(float(p11), 2),
         }
 
     def hurst(self, window: int = 1095) -> float:
