@@ -79,9 +79,8 @@ Créez un fichier `.env` à la racine du projet pour activer les sources de donn
 réelles :
 
 ```env
-# Clé API WFP DataBridges (facultatif : des données publiques HAPI HumData
-# sont utilisées sans elle)
-WFP_API_Token=votre_cle_ici
+# Identifiant HAPI HumData personnalisable
+HAPI_APP_IDENTIFIER=your_app_identifier
 
 # Prix du carburant manuel en XOF/litre (facultatif)
 BENIN_FUEL_PRICE=680
