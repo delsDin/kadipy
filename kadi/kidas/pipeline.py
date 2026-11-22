@@ -284,7 +284,21 @@ class Pipeline:
                     )
                 params.setdefault(param_name, schema_or_mappings)
             elif type_etape == "normalization":
-                params["mappings"] = schema_or_mappings
+                method = Normalizer._METHODES_DEPRECATED.get(step_name, step_name)
+                param = {
+                    "convert_units": "unit_map",
+                    "std_crops": "col",
+                    "std_markets": "col",
+                    "convert_currency": "col",
+                    "norm_cols": "mappings",
+                    "normalize": "mappings",
+                    "mappings": "mappings",
+                }.get(method)
+                if param is None:
+                    raise TypeError(
+                        f"L'étape '{step_name}' ne prend pas d'argument positionnel."
+                    )
+                params.setdefault(param, schema_or_mappings)
 
         # Enregistrement de l'étape dans la file
         self._steps.append({
