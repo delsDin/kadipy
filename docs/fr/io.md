@@ -295,7 +295,7 @@ source = CSVSource("recoltes.csv", sep=";", decimal=",")
 df     = source.read(n=100)    # Lire les 100 premières lignes
 meta   = source.info()         # Métadonnées
 ok     = source.ping()         # Test d'accessibilité
-source.write(df, "copie.csv") # Réécriture
+CSVSource("copie.csv", sep=";", decimal=",").write(df) # Réécriture
 ```
 
 Les classes sources sont des implémentations de la classe abstraite `Source`,
