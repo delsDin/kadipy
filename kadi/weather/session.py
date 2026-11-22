@@ -430,14 +430,15 @@ class Weather:
     def water_balance(
         self,
         crop: str = "maize",
-        soil_type: str = "ferrugineux",
+        soil_type: Optional[str] = None,
     ) -> pd.DataFrame:
         """
         Simule le bilan hydrique quotidien (FAO-56).
 
         Args:
             crop (str): Type de culture.
-            soil_type (str): Type de sol.
+            soil_type (str, optional): Sol explicite. Par défaut, utilise le
+                sol détecté à l’initialisation.
 
         Returns:
             pd.DataFrame: DataFrame avec le bilan hydrique.
@@ -445,9 +446,20 @@ class Weather:
         self._init_component("hydrology")
         # Mise à jour des paramètres de culture et de sol avant le calcul
         self.hydrology.crop = crop
+        if soil_type is None:
+            return self.hydrology.water_balance()
+
+        # Le choix explicite ne remplace pas le sol détecté des appels suivants.
+        original_type = self.hydrology.soil_type
+        original_soil = self.hydrology.soil
+        soil = self.hydrology.soil_params(soil_type)
         self.hydrology.soil_type = soil_type
-        self.hydrology.soil = self.hydrology.soil_params(soil_type)
-        return self.hydrology.water_balance()
+        self.hydrology.soil = soil
+        try:
+            return self.hydrology.water_balance()
+        finally:
+            self.hydrology.soil_type = original_type
+            self.hydrology.soil = original_soil
 
     def et0_hargreaves(
         self,

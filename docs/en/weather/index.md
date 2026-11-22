@@ -234,7 +234,7 @@ print(prob["recommendation"])    # agronomic recommendation
 
 ---
 
-### `water_balance(crop='maize', soil_type='ferrugineux')`
+### `water_balance(crop='maize', soil_type=None)`
 
 Simulates daily water balance using the FAO-56 methodology.
 
@@ -246,7 +246,7 @@ print(wb[["precip", "et0", "deficit_eau", "reserve_utile"]].tail(14))
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `crop` | `str` | `'maize'` | Crop type |
-| `soil_type` | `str` | `'ferrugineux'` | Soil type |
+| `soil_type` | `str or None` | `None` | Uses the detected soil by default |
 
 **Returns:** `pd.DataFrame` (see [Hydrology](hydrology.md)).
 
