@@ -14,9 +14,12 @@
 name: Publication PyPI
 
 on:
-  # Déclenchement sur chaque release GitHub (ex: création du tag "v1.0.0")
+  # Déclenchement sur chaque release GitHub ou chaque tag "vX.Y.Z" poussé
   release:
     types: [published]
+  push:
+    tags:
+      - "v*.*.*"
 
 # Droits OIDC nécessaires pour le Trusted Publishing (connexion sans mot de passe)
 permissions:

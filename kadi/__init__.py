@@ -30,7 +30,7 @@ import warnings
 # Version du package
 # ------------------------------------------------------------------
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 # ------------------------------------------------------------------
 # Configuration du logger racine de KadiPy
