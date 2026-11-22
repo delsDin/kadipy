@@ -302,7 +302,7 @@ Legacy method names emit a `DeprecationWarning` and continue to function until K
 | `load_data(source)` | `add_source(source)` or `load(source)` |
 | `add_cleaning_step(step)` | `add_step(step)` or `clean(step)` |
 | `add_validation_step(schema)` | `add_step('check_schema', schema)` or `validate(schema)` |
-| `add_normalization_step(mappings)` | `add_step(step, **params)` or `normalize(mappings)` |
+| `add_normalization_step(mappings)` | `add_step('std_crops', col='culture')` or `normalize('std_crops', col='culture')` |
 | `execute(cache)` | `run(cache)` |
 | `get_pipeline_config()` | `config()` |
 | `export_report(filepath)` | `export(filepath)` |

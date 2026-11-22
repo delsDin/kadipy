@@ -319,7 +319,7 @@ de fonctionner jusqu'à KadiPy v2.0 :
 | `load_data(source)` | `add_source(source)` ou `load(source)` |
 | `add_cleaning_step(step)` | `add_step(step)` ou `clean(step)` |
 | `add_validation_step(schema)` | `add_step('check_schema', schema)` ou `validate(schema)` |
-| `add_normalization_step(mappings)` | `add_step(step, **params)` ou `normalize(mappings)` |
+| `add_normalization_step(mappings)` | `add_step('std_crops', col='culture')` ou `normalize('std_crops', col='culture')` |
 | `execute(cache)` | `run(cache)` |
 | `get_pipeline_config()` | `config()` |
 | `export_report(filepath)` | `export(filepath)` |
