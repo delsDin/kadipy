@@ -75,8 +75,8 @@ pip install "kadipy[geospatial]"
 Create a `.env` file at the root of the project to enable live data sources:
 
 ```env
-# WFP DataBridges API key (optional: public HAPI HumData data is used without it)
-WFP_API_Token=your_token_here
+# Optional custom identifier for HAPI HumData
+HAPI_APP_IDENTIFIER=your_app_identifier
 
 # Manual fuel price in XOF/liter (optional)
 BENIN_FUEL_PRICE=680
