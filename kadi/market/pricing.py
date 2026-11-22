@@ -4,6 +4,7 @@ des données de marché, et de la détection d'anomalies de prix.
 """
 
 import warnings
+from typing import Optional
 
 import pandas as pd
 import numpy as np
@@ -367,12 +368,12 @@ class Pricing:
 
         return df_interpolated
 
-    def source(self, series: pd.DataFrame) -> str:
+    def source(self, series: Optional[pd.DataFrame]) -> str:
         """
         Identifie la source des données d'une série de prix.
 
-        Si le DataFrame contient la colonne ``sim``, la méthode
-        retourne 'simulated' ou 'wfp-vam' selon le cas.
+        Un indicateur de simulation vrai donne 'simulated'. Sinon, la
+        méthode utilise la dernière source renseignée, ou 'wfp-vam'.
 
         Args:
             series (pd.DataFrame): DataFrame retourné par fetch().
@@ -380,12 +381,18 @@ class Pricing:
         Returns:
             str: La source identifiée ('wfp-vam', 'ratin', 'scrape-local', 'simulated').
         """
-        # Vérification de la colonne sim
-        if "sim" in series.columns:
-            if series["sim"].any():
+        if series is None or series.empty:
+            return "wfp-vam"
+
+        for col in ("is_simulated", "sim", "is_sim"):
+            if col in series.columns and bool(series[col].dropna().any()):
                 return "simulated"
 
-        # Par défaut, on suppose WFP VAM (source primaire du V1)
+        if "source" in series.columns:
+            sources = series["source"].dropna()
+            if not sources.empty:
+                return str(sources.iloc[-1])
+
         return "wfp-vam"
 
     def seasonality(
