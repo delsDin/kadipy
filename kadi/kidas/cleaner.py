@@ -314,6 +314,9 @@ class Cleaner:
         for colonne in cols_num:
             serie = self.df[colonne].dropna()
 
+            if serie.empty:
+                continue
+
             if method == "iqr":
                 # Règle de Tukey : Q1 - 1.5*IQR ≤ x ≤ Q3 + 1.5*IQR
                 q1 = serie.quantile(0.25)
@@ -344,7 +347,7 @@ class Cleaner:
                     masque_col = pd.Series(True, index=self.df.index)
 
             # Remplacement des NaN par True (les lignes sans valeur ne sont pas des outliers)
-            masque_col = masque_col.fillna(True)
+            masque_col = masque_col.fillna(True) | self.df[colonne].isna()
             masque_normal = masque_normal & masque_col
 
         # Séparation des outliers et des données normales
