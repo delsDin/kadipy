@@ -1599,7 +1599,7 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Confidence  : </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">'confidence_score'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Simulated   : </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">'is_sim'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></code></pre></div>
-<p><strong>Returns:</strong> <code>dict</code> containing keys <code>crop</code>, <code>market</code>, <code>prix_median</code>, <code>prix_min</code>, <code>prix_max</code>, <code>prix_moyen</code>, <code>nb_observations</code>, <code>nb_anomalies</code>, <code>is_sim</code>, <code>confidence_score</code>, <code>source</code>, <code>donnees</code> (full DataFrame).</p>
+<p><strong>Returns:</strong> <code>dict</code> containing keys <code>crop</code>, <code>market</code>, <code>prix_median</code>, <code>prix_min</code>, <code>prix_max</code>, <code>prix_moyen</code>, <code>nb_observations</code>, <code>nb_anomalies</code>, <code>is_simulated</code>, <code>confidence_score</code>, <code>source</code>, <code>donnees</code> (full DataFrame).</p>
 <hr />
 <h3 id="predictcrop-ahead-confidence_interval-days-sim"><code>predict(crop, ahead, confidence_interval, days, sim)</code><a class="headerlink" href="#predictcrop-ahead-confidence_interval-days-sim" title="Permanent link">&para;</a></h3>
 <p>Predicts future price for a crop using linear regression with seasonal features (Fourier harmonics).</p>
@@ -1610,7 +1610,7 @@
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RMSE                   : </span><span class="si">{</span><span class="n">forecast</span><span class="p">[</span><span class="s1">'rmse'</span><span class="p">]</span><span class="si">}</span><span class="s2"> XOF/kg"</span><span class="p">)</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"History data points    : </span><span class="si">{</span><span class="n">forecast</span><span class="p">[</span><span class="s1">'nb_history_pts'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></code></pre></div>
-<p><strong>Returns:</strong> <code>dict</code> containing <code>predicted_price</code>, <code>low_90</code>, <code>high_90</code>, <code>confidence</code>, <code>model_used</code>, <code>rmse</code>, <code>is_sim</code>, <code>confidence_score</code>, <code>nb_history_pts</code>, <code>ahead</code>, <code>crop</code>, <code>market</code>.</p>
+<p><strong>Returns:</strong> <code>dict</code> containing <code>predicted_price</code>, <code>low_90</code>, <code>high_90</code>, <code>confidence</code>, <code>model_used</code>, <code>rmse</code>, <code>is_simulated</code>, <code>confidence_score</code>, <code>nb_history_pts</code>, <code>days_ahead</code>, <code>crop</code>, <code>market</code>.</p>
 <hr />
 <h3 id="seasonalitycrop-days-sim"><code>seasonality(crop, days, sim)</code><a class="headerlink" href="#seasonalitycrop-days-sim" title="Permanent link">&para;</a></h3>
 <p>Calculates 12 monthly seasonal price indices for a crop.</p>
@@ -1692,7 +1692,7 @@
 <tr>
 <th>Level</th>
 <th>Source</th>
-<th><code>is_sim</code></th>
+<th><code>is_simulated</code></th>
 <th><code>confidence_score</code></th>
 </tr>
 </thead>

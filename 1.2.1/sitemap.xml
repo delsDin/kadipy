@@ -127,13 +127,6 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/"/>
     </url>
     <url>
-        <loc>https://delsDin.github.io/kadipy/1.2.1/market/data_ingestion/</loc>
-        <lastmod>2026-11-22</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1/market/data_ingestion/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1en/market/data_ingestion/"/>
-    </url>
-    <url>
         <loc>https://delsDin.github.io/kadipy/1.2.1/market/decision_support/</loc>
         <lastmod>2026-11-22</lastmod>
         <changefreq>daily</changefreq>
@@ -384,12 +377,5 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/weather/session/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1weather/session/"/>
-    </url>
-    <url>
-        <loc>https://delsDin.github.io/kadipy/1.2.1/en/market/data_ingestion/</loc>
-        <lastmod>2026-11-22</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://delsDin.github.io/kadipy/1.2.1/en/market/data_ingestion/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://delsDin.github.io/kadipy/1.2.1market/data_ingestion/"/>
     </url>
 </urlset>
