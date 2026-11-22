@@ -101,12 +101,11 @@ import kadi as kd
 df = kd.read_csv("enquete_prix_2024.csv")
 cleaner = kd.Cleaner(df)
 
-df_propre = (
-    cleaner
-    .fix_encoding()
-    .drop_dupes()
-    .fill_missing(strategy="median", columns=["prix_xof_kg"])
-    .drop_outliers(method="iqr", columns=["prix_xof_kg"])
+cleaner.norm_text()
+cleaner.drop_dupes()
+cleaner.fill_missing(strategy="median", cols=["prix_xof_kg"])
+df_propre, df_outliers = cleaner.drop_outliers(
+    method="iqr", cols=["prix_xof_kg"]
 )
 ```
 
@@ -117,10 +116,10 @@ import kadi as kd
 
 weather = kd.Weather(lat=9.3333, lon=2.6333, name="Parakou")
 
-risque = weather.rain_probability(days_ahead=1)
+risque = weather.rain_prob(days=1)
 print(risque["recommendation"])
 
-secheresse = weather.drought_index(method="spi", window_months=3)
+secheresse = weather.drought(method="spi", window=3)
 print(f"Sévérité : {secheresse['drought_severity']}")
 ```
 
@@ -131,7 +130,7 @@ import kadi as kd
 
 marche = kd.Market(lat=9.30, lon=2.08, location="Parakou")
 
-resume = marche.price_crop("maize", days_back=90)
+resume = marche.price("maize", days=90)
 print(f"Prix médian : {resume['prix_median']} XOF/kg")
 ```
 
@@ -143,11 +142,11 @@ import kadi as kd
 weather = kd.Weather(lat=9.30, lon=2.08, name="Parakou")
 marche = kd.Market(lat=9.30, lon=2.08, location="Parakou", weather=weather)
 
-decision = marche.advisor.arbitrage_decision(
+decision = marche.advisor.arbitrage(
     crop="maize",
-    origine="Parakou",
-    destination="Cotonou",
-    qty_tons=10.0,
+    m_from="Parakou",
+    to="Cotonou",
+    qty=10.0,
 )
 print(f"Recommandation : {decision['recommandation']}")
 print(f"Gain net : {decision['gain_net_percent']:.1f}%")

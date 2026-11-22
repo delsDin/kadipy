@@ -66,7 +66,7 @@ le nom passé.
 pipeline.add_step("drop_dupes")
 pipeline.add_step("fill_missing", strategy="median")
 pipeline.add_step("check_schema", {"culture": "str", "rendement_kg": "float"})
-pipeline.add_step("norm_cols", {"crops": "culture"})
+pipeline.add_step("std_crops", col="culture")
 ```
 
 #### Étapes de nettoyage disponibles
@@ -95,7 +95,7 @@ pipeline.add_step("norm_cols", {"crops": "culture"})
 
 | Nom | Description |
 |-----|-------------|
-| `'norm_cols'` | Renomme les colonnes selon un dictionnaire de correspondances |
+| `'norm_cols'` | Standardise les en-têtes en `snake_case` |
 | `'convert_units'` | Convertit les unités (kg/tonne, ha/m2, etc.) |
 | `'convert_currency'` | Convertit les devises via `ExchangeRateClient` |
 | `'std_crops'` | Normalise les noms de cultures vers le référentiel KadiPy |
@@ -106,7 +106,7 @@ pipeline.add_step("norm_cols", {"crops": "culture"})
 
 - `clean(step, **params)` : alias pour les étapes de nettoyage
 - `validate(schema, **params)` : alias pour `add_step('check_schema', schema)`
-- `normalize(mappings, **params)` : alias pour `add_step('norm_cols', mappings)`
+- `normalize(step, **params)` : alias pour `add_step(step, **params)`
 
 ---
 
@@ -247,7 +247,7 @@ df, rapport = (
     .clean("drop_dupes")
     .clean("fill_missing", strategy="median")
     .validate({"culture": "str", "prix_xof_kg": "float"})
-    .normalize({"crops": "culture"})
+    .normalize("std_crops", col="culture")
     .run(cache=True)
 )
 ```
@@ -319,7 +319,7 @@ de fonctionner jusqu'à KadiPy v2.0 :
 | `load_data(source)` | `add_source(source)` ou `load(source)` |
 | `add_cleaning_step(step)` | `add_step(step)` ou `clean(step)` |
 | `add_validation_step(schema)` | `add_step('check_schema', schema)` ou `validate(schema)` |
-| `add_normalization_step(mappings)` | `add_step('norm_cols', mappings)` ou `normalize(mappings)` |
+| `add_normalization_step(mappings)` | `add_step('std_crops', col='culture')` ou `normalize('std_crops', col='culture')` |
 | `execute(cache)` | `run(cache)` |
 | `get_pipeline_config()` | `config()` |
 | `export_report(filepath)` | `export(filepath)` |

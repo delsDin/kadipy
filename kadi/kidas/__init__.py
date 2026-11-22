@@ -8,7 +8,7 @@ en cache des données issues de fichiers CSV, Excel, JSON, NetCDF ou d'APIs.
 
 Exemple d'utilisation rapide :
     >>> import kadi.kidas as kidas
-    >>> df, report = kidas.load_and_clean('recolte_2024.csv')
+    >>> df, report = kidas.load_clean('recolte_2024.csv')
 
 Exemple avec pipeline personnalisé :
     >>> pipeline = kidas.Pipeline()
@@ -63,7 +63,6 @@ __all__ = [
     "Cache",
     "Pipeline",
     "load_clean",
-    "load_and_clean"
 ]
 
 
@@ -87,7 +86,7 @@ def load_clean(source: str, cache: bool = True):
 
     Exemple:
         >>> import kadi.kidas as kidas
-        >>> df, report = kidas.load_and_clean('recoltes_2024.csv')
+        >>> df, report = kidas.load_clean('recoltes_2024.csv')
         >>> print(f"{len(df)} lignes chargées, score qualité : "
         ...       f"{report.get('quality_score', {}).get('overall', 'N/A')}")
     """

@@ -125,12 +125,9 @@ class Normalizer:
 
     Exemple:
         >>> normalizer = Normalizer(df)
-        >>> df_norm = (
-        ...     normalizer
-        ...     .norm_cols()
-        ...     .std_crops(col='culture')
-        ...     .convert_units(unit_map={'production': 'tonne'})
-        ... )
+        >>> normalizer.norm_cols()
+        >>> normalizer.std_crops(col='culture')
+        >>> df_norm = normalizer.convert_units(unit_map={'production': 'tonne'})
     """
 
     # Table de rétrocompatibilité des méthodes d'instance.

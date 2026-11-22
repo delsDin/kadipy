@@ -2,7 +2,7 @@
 
 `Cleaner` is the tabular agricultural data cleaning class of KadiPy. It provides six cleaning methods tailored for Beninese agricultural files: duplicates, missing values, statistical outliers, heterogeneous dates, unnormalized text, and mixed decimal separators.
 
-Each method updates the internal DataFrame and returns that DataFrame, enabling method chaining in a single expression.
+Transformations update the internal DataFrame and return a `pd.DataFrame`. `drop_outliers()` returns two DataFrames (the cleaned data and the outliers). Call each method on the same instance, or use `Pipeline` to chain steps.
 
 ---
 

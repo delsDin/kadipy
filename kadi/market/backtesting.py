@@ -14,15 +14,15 @@ Usage typique :
     >>> from kadi.market.backtesting import Backtester
     >>> from kadi.market.forecasting import Forecasting
     >>> backtester = Backtester(Forecasting())
-    >>> resultats = backtester.run("maize", "cotonou", window=90,
-    ...                           horizon=7, n=5)
+    >>> resultats = backtester.run("maize", "cotonou", hist=df,
+    ...                           window=90, horizon=7, n=5)
     >>> rapport = backtester.summary()
     >>> print(rapport["mae_moyen"])
 """
 
-from typing_extensions import Optional
 import logging
 import warnings
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -217,8 +217,9 @@ class Backtester:
         Args:
             crop (str): Code de la culture à évaluer (ex: 'maize', 'rice').
             market (str): Nom du marché (ex: 'cotonou', 'parakou').
-            hist (pd.DataFrame): DataFrame avec colonnes 'date' (datetime)
-                et 'price' (float en XOF/kg), trié par ordre chronologique.
+            hist (pd.DataFrame, optional): Historique avec colonnes 'date'
+                et 'price' (XOF/kg). Sans historique exploitable, la méthode
+                retourne une liste vide.
             window (int, optional): Taille de la fenêtre d'entraînement
                 en jours. Défaut : 90.
             horizon (int, optional): Horizon de prévision en jours.
@@ -237,7 +238,9 @@ class Backtester:
                 - 'mae'             (float) : MAE en XOF/kg.
                 - 'rmse'            (float) : RMSE en XOF/kg.
                 - 'mape'            (float) : MAPE en pourcentage.
-                - 'precision_dir'   (float) : Précision directionnelle (%).
+                - 'precision_dir' (float) : 100 si le prix prédit et le prix
+                  réel moyen évoluent dans le même sens par rapport au dernier
+                  prix d'entraînement, 0 sinon (NaN si indisponible).
                 - 'is_simulated'    (bool)  : True si la prévision est simulée.
         """
 
@@ -249,6 +252,13 @@ class Backtester:
 
         # Réinitialisation des résultats pour une nouvelle exécution
         self._results = []
+
+        if not isinstance(hist, pd.DataFrame) or hist.empty:
+            logger.warning(
+                "Backtesting : l'historique doit être un DataFrame non vide. "
+                "Aucun résultat produit."
+            )
+            return self._results
 
         # Vérification des colonnes obligatoires
         if "date" not in hist.columns or "price" not in hist.columns:
@@ -329,7 +339,17 @@ class Backtester:
             mae = self._mae(y_true, y_pred)
             rmse = self._rmse(y_true, y_pred)
             mape = self._mape(y_true, y_pred)
-            precision_dir = self._dir_acc(y_true, y_pred)
+            # La prévision scalaire décrit une direction par fenêtre.
+            prix_reel_moyen = float(np.mean(y_true))
+            dernier_prix_train = float(df_train["price"].iloc[-1])
+            precision_dir = float("nan")
+            prix_comparables = [prix_predit, prix_reel_moyen, dernier_prix_train]
+            if np.isfinite(prix_comparables).all():
+                direction_reelle = np.sign(prix_reel_moyen - dernier_prix_train)
+                direction_predite = np.sign(prix_predit - dernier_prix_train)
+                precision_dir = (
+                    100.0 if direction_reelle == direction_predite else 0.0
+                )
 
             # Date de coupure (fin de la fenêtre d'entraînement)
             date_fin_train = str(df_train["date"].iloc[-1].date())
@@ -340,7 +360,7 @@ class Backtester:
                 "date_fin_train": date_fin_train,
                 "nb_train_pts": len(df_train),
                 "prix_predit": round(prix_predit, 1),
-                "prix_reel_moyen": round(float(np.mean(y_true)), 1),
+                "prix_reel_moyen": round(prix_reel_moyen, 1),
                 "mae": round(mae, 2),
                 "rmse": round(rmse, 2),
                 "mape": round(mape, 2),
@@ -438,12 +458,12 @@ def __getattr__(name: str):
     if name in _DEPRECATED:
         new_name, cls = _DEPRECATED[name]
         _warnings.warn(
-            f"kadi.kidas.backtesting.{name} est obsolète et sera supprimé dans "
+            f"{__name__}.{name} est obsolète et sera supprimé dans "
             f"KadiPy v2.0. Utilisez {new_name} à la place.",
             category=DeprecationWarning,
             stacklevel=2,
         )
         return cls
     raise AttributeError(
-        f"Le module 'kadi.kidas.backtesting' n'a pas d'attribut '{name}'."
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
     )

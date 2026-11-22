@@ -214,6 +214,16 @@ class TestAppelAPI:
             resultat = sg._call_api(lat=9.33, lon=2.35)
         assert resultat is None
 
+    def test_appel_api_repli_via_probabilites_v2(self):
+        """Lit la première paire classe-probabilité si le nom est absent."""
+        reponse = MagicMock()
+        reponse.json.return_value = {
+            "wrb_class_probability": [["Luvisols", 25], ["Acrisols", 20]],
+        }
+
+        with patch("requests.get", return_value=reponse):
+            assert sg._call_api(lat=6.36, lon=2.42) == "Luvisols"
+
     def test_appel_api_fallback_via_probabilities(self):
         """Si 'most_probable_wrb_class' est absent, utiliser la première probabilité."""
         mock_resp = MagicMock()
@@ -284,20 +294,22 @@ class TestFetchSoilType:
         """Après un appel API réussi, le point doit être sauvegardé dans le cache."""
         mock_resp = MagicMock()
         mock_resp.json.return_value = {
-            "properties": {
-                "most_probable_wrb_class": "Arenosol",
-                "probabilities": [],
-            }
+            "type": "Point",
+            "coordinates": [2.43, 6.35],
+            "wrb_class_name": "Arenosols",
+            "wrb_class_probability": [["Luvisols", 15]],
         }
         mock_resp.raise_for_status = MagicMock()
 
         with patch("requests.get", return_value=mock_resp):
-            sg.fetch_soil_type(lat=6.35, lon=2.43)
+            resultat = sg.fetch_soil_type(lat=6.35, lon=2.43)
+
+        assert resultat == "sableux"
 
         # Le cache doit maintenant contenir le point
         points = sg._load_cache()
         assert len(points) == 1
-        assert points[0]["wrb_class"] == "Arenosol"
+        assert points[0]["wrb_class"] == "Arenosols"
         assert points[0]["soil_type"] == "sableux"
 
     def test_retourne_fallback_si_api_indisponible(self):

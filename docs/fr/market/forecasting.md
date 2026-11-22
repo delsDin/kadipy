@@ -83,7 +83,7 @@ Via la façade Market (pipeline complet en un seul appel) :
 prev = marche.predict("maize", ahead=30, confidence_interval=0.9, days=365)
 
 print(f"Prix prédit dans 30j : {prev['predicted_price']} XOF/kg")
-print(f"Horizon utilisé      : {prev['ahead']} jours")
+print(f"Horizon utilisé      : {prev['days_ahead']} jours")
 ```
 
 **Paramètres :**

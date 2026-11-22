@@ -99,7 +99,7 @@ print(f"Confidence  : {summary['confidence_score']:.2f}")
 print(f"Simulated   : {summary['is_sim']}")
 ```
 
-**Returns:** `dict` containing keys `crop`, `market`, `prix_median`, `prix_min`, `prix_max`, `prix_moyen`, `nb_observations`, `nb_anomalies`, `is_sim`, `confidence_score`, `source`, `donnees` (full DataFrame).
+**Returns:** `dict` containing keys `crop`, `market`, `prix_median`, `prix_min`, `prix_max`, `prix_moyen`, `nb_observations`, `nb_anomalies`, `is_simulated`, `confidence_score`, `source`, `donnees` (full DataFrame).
 
 ---
 
@@ -116,7 +116,7 @@ print(f"RMSE                   : {forecast['rmse']} XOF/kg")
 print(f"History data points    : {forecast['nb_history_pts']}")
 ```
 
-**Returns:** `dict` containing `predicted_price`, `low_90`, `high_90`, `confidence`, `model_used`, `rmse`, `is_sim`, `confidence_score`, `nb_history_pts`, `ahead`, `crop`, `market`.
+**Returns:** `dict` containing `predicted_price`, `low_90`, `high_90`, `confidence`, `model_used`, `rmse`, `is_simulated`, `confidence_score`, `nb_history_pts`, `days_ahead`, `crop`, `market`.
 
 ---
 
@@ -225,7 +225,7 @@ print(risk["recommendation"])
 
 ## Data Modes and Fallback Loop
 
-| Level | Source | `is_sim` | `confidence_score` |
+| Level | Source | `is_simulated` | `confidence_score` |
 |-------|--------|----------|--------------------|
 | 1 | Local SQLite Cache | `False` | Variable (original score) |
 | 2 | HAPI HumData API (WFP/OCHA) | `False` | `0.9` |

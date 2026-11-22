@@ -49,6 +49,19 @@ def test_compute_water_balance(mock_resolve_soil, hydrology_setup):
     assert 'stress_hydrique_index' in balance_df.columns
 
 
+def test_bilan_hydrique_cassava_et_manioc(hydrology_setup):
+    """Les deux codes du manioc donnent le même bilan hydrique."""
+    location, precip_data, temp_data = hydrology_setup
+    hydro = Hydrology(
+        location, precip_data, temp_data,
+        soil_type="ferrugineux", crop="cassava",
+    )
+    bilan_cassava = hydro.water_balance()
+
+    hydro.crop = "manioc"
+    pd.testing.assert_frame_equal(bilan_cassava, hydro.water_balance())
+
+
 @patch('kadi.weather.hydrology.Hydrology._resolve_soil')
 def test_insufficient_data(mock_resolve_soil, hydrology_setup):
     """Un bilan sur des données vides doit lever DataError."""

@@ -55,10 +55,11 @@ class Phenology:
         self.crop = {
             "maize":   {"base_temp": 10, "gdd_total": 1300},
             "rice":    {"base_temp": 10, "gdd_total": 1500},
-            "manioc":  {"base_temp": 14, "gdd_total": 3000},
+            "cassava": {"base_temp": 14, "gdd_total": 3000},
             "sorghum": {"base_temp": 10, "gdd_total": 1400},
             "tomato":  {"base_temp": 10, "gdd_total": 1000},
         }
+        self.crop["manioc"] = self.crop["cassava"].copy()
 
     def onset(self, threshold: int = 120) -> dict:
         """

@@ -18,8 +18,12 @@ from .base import Source
 from .csv_source import CSVSource
 from .excel_source import ExcelSource
 from .json_source import JSONSource
-from .netcdf_source import NetCDFSource
 from .api_source import APISource
+
+try:
+    from .netcdf_source import NetCDFSource
+except ImportError:
+    NetCDFSource = None  # type: ignore[assignment,misc]
 
 # Liste officielle des symboles publics du sous-package
 __all__ = [

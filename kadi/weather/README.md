@@ -43,18 +43,18 @@ dernières données en cache de manière transparente.
 
 ## Architecture
 
-Le module est construit autour d'une facade principale (`WeatherSession`)
+Le module est construit autour d'une façade principale (`Weather`)
 qui orchestre le chargement des composants à la demande pour limiter la
 consommation de mémoire et de bande passante.
 
 ```
-WeatherSession
+Weather
     |
     ├── Location          -> Coordonnées GPS + zone agro-écologique
-    ├── WeatherData       -> Requêtes Open-Meteo / CHIRPS + cache SQLite
+    ├── WeatherLoader     -> Requêtes Open-Meteo / CHIRPS + cache SQLite
     ├── Phenology         -> Sivakumar, Walter-Anyadike, GDD
     ├── Hydrology         -> ET0 Hargreaves, bilan hydrique FAO
-    └── RiskIndicators    -> SPI, Markov, probabilité de pluie
+    └── Risk              -> SPI, Markov, probabilité de pluie
 ```
 
 ---
@@ -64,11 +64,11 @@ WeatherSession
 ### Initialisation
 
 ```python
-from kadi.weather import WeatherSession
+from kadi.weather import Weather
 
 # Le module détecte automatiquement la zone agro-écologique
 # depuis les coordonnées (Nord, Centre ou Sud Bénin).
-session = WeatherSession(latitude=9.3333, longitude=2.6333, name="Parakou")
+session = Weather(lat=9.3333, lon=2.6333, name="Parakou")
 ```
 
 ### Données brutes
@@ -79,7 +79,7 @@ previsions = session.forecast(days=3)
 print(previsions["data"])
 
 # Historique des températures sur 1 mois
-historique = session.historical(metric="temperature", months_back=1)
+historique = session.historical(metric="temperature", months=1)
 ```
 
 ### Phénologie
@@ -94,7 +94,7 @@ fin = session.cessation()
 print("Fin estimée  :", fin["cessation_date"])
 
 # Suivi du stade phénologique du maïs semé le 1er mai
-gdd = session.growing_degree_days(crop="maize", start_date="2026-05-01")
+gdd = session.gdd(crop="maize", start="2026-05-01")
 print("Stade phénologique :", gdd["phenology_stage"])
 ```
 
@@ -103,18 +103,18 @@ print("Stade phénologique :", gdd["phenology_stage"])
 ```python
 # Bilan hydrique sur la période historique disponible
 bilan = session.water_balance(crop="maize", soil_type="ferrugineux")
-print(bilan[["precipitation", "ET0", "deficit_eau", "reserve_utile"]].tail())
+print(bilan[["precip", "et0", "deficit_eau", "reserve_utile"]].tail())
 ```
 
 ### Risques et alertes
 
 ```python
 # Probabilité de pluie et recommandation pour les 2 prochains jours
-risque = session.rain_probability(days_ahead=2)
+risque = session.rain_prob(days=2)
 print("Recommandation :", risque["recommendation"])
 
 # Indice de sécheresse sur 3 mois glissants
-secheresse = session.drought_index(method="spi", window_months=3)
+secheresse = session.drought(method="spi", window=3)
 print("Sévérité :", secheresse["drought_severity"])
 ```
 
@@ -128,13 +128,13 @@ logistique (`gamma_route`) et dans le score de confiance des
 recommandations d'arbitrage.
 
 ```python
-from kadi.weather import WeatherSession
+from kadi.weather import Weather
 from kadi.market import Market
 
-session = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=session)
+session = Weather(lat=9.30, lon=2.08, name="Parakou")
+marche = Market(lat=9.30, lon=2.08, location="Parakou", weather=session)
 
-risque = marche.assess_climate_risk(days_ahead=7)
+risque = marche.climate_risk(ahead=7)
 print(risque["recommendation"])
 ```
 
@@ -161,7 +161,7 @@ print(risque["recommendation"])
 ## Tests
 
 ```bash
-pytest tests/test_weather/ -v
+pytest tests/weather/ -v
 ```
 
 ---

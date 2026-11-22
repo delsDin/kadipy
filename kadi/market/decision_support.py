@@ -11,7 +11,8 @@ Phase 4 :
 """
 
 import logging
-from typing import Callable, Any
+from math import isfinite
+from typing import Any, Callable
 
 from kadi.config import CONFIG
 
@@ -474,7 +475,8 @@ class Advisor:
                 - 'drought_severity' (str)      : 'no_drought', 'mild', 'moderate', 'severe'
                 - 'prob_pluie_7j' (float)       : probabilité de pluie sur 7 jours
             market (dict): Prix médians actuels par culture (XOF/kg).
-                Exemple : {'maize': 285, 'cowpea': 580, 'sorghum': 210}
+                Les prix peuvent être numériques ou fournis dans un
+                dictionnaire historique sous la clé 'prix_moyen_xof'.
             yields (dict, optional): Rendements attendus en tonnes/hectare.
                 Si None, utilise les rendements de référence béninois.
             **kwargs (Any): Anciens arguments (available_land_ha, climate_forecast, market_forecast).
@@ -507,10 +509,11 @@ class Advisor:
 
         # Cultures à optimiser : celles pour lesquelles on a un prix de marché
         # On filtre pour ne garder que les cultures connues dans les rendements
-        cultures = [
-            c for c in market
-            if c in rends and market[c] > 0
-        ]
+        prices = {
+            crop: self._extract_price(entry)
+            for crop, entry in market.items() if crop in rends
+        }
+        cultures = [crop for crop, price in prices.items() if price > 0]
 
         if not cultures:
             # Aucune culture avec données : fallback heuristique complet
@@ -541,7 +544,7 @@ class Advisor:
         # Revenus attendus par hectare pour chaque culture (XOF/ha)
         # prix en XOF/kg * rendement en t/ha * 1000 kg/t = XOF/ha
         revenu_par_ha = {
-            c: market[c] * rends_ajustes[c] * 1000
+            c: prices[c] * rends_ajustes[c] * 1000
             for c in cultures
         }
 
@@ -606,6 +609,27 @@ class Advisor:
 
         # --- Fallback heuristique si scipy est absent ou échoue ----------
         return self._heuristic(land_ha, climate, market)
+
+    @staticmethod
+    def _extract_price(entry) -> float:
+        """Renvoie le prix positif en XOF/kg depuis un scalaire ou un dict.
+
+        Args:
+            entry: Prix courant ou dictionnaire historique contenant
+                'prix_moyen_xof'.
+
+        Returns:
+            float: Prix exploitable, ou 0.0 s'il est absent ou invalide.
+        """
+        if isinstance(entry, dict):
+            entry = entry.get("prix_moyen_xof")
+
+        try:
+            price = float(entry)
+        except (TypeError, ValueError, OverflowError):
+            return 0.0
+
+        return price if isfinite(price) and price > 0 else 0.0
 
     def _heuristic(
         self,
@@ -692,10 +716,7 @@ class Advisor:
             # Récupération de la clé anglaise pour la table des rendements
             cle_anglaise = _NOM_CULTURE_VERS_CLE.get(nom_fr, nom_fr)
 
-            # Prix de marché en XOF/kg (clé "prix_moyen_xof" ou absence → 0)
-            prix_xof_par_kg = market.get(cle_anglaise, {}).get(
-                "prix_moyen_xof", 0.0
-            )
+            prix_xof_par_kg = self._extract_price(market.get(cle_anglaise))
 
             # Rendement FAO/INSAE de référence (t/ha)
             rendement_t_ha = _RENDEMENTS_BENIN.get(cle_anglaise, _RENDEMENT_DEFAUT)
@@ -743,12 +764,12 @@ def __getattr__(name: str):
     if name in _DEPRECATED:
         new_name, cls = _DEPRECATED[name]
         _warnings.warn(
-            f"kadi.kidas.decision_support.{name} est obsolète et sera supprimé dans "
+            f"{__name__}.{name} est obsolète et sera supprimé dans "
             f"KadiPy v2.0. Utilisez {new_name} à la place.",
             category=DeprecationWarning,
             stacklevel=2,
         )
         return cls
     raise AttributeError(
-        f"Le module 'kadi.kidas.decision_support' n'a pas d'attribut '{name}'."
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
     )
