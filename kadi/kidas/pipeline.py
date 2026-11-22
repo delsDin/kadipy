@@ -435,6 +435,9 @@ class Pipeline:
                 f"Echec de lecture dans le pipeline : {erreur}"
             ) from erreur
 
+        # Le rapport de normalisation décrit uniquement cette exécution.
+        self._reports["normalisation"] = None
+
         # Exécution des étapes dans l'ordre
         for etape in self._steps:
             self._df = self._exec_step(etape)
@@ -626,7 +629,13 @@ class Pipeline:
 
                     self._df = normalizer.df
 
-                self._reports["normalisation"] = normalizer.mappings()
+                mappings = normalizer.mappings()
+                report = self._reports["normalisation"]
+                if report is None:
+                    self._reports["normalisation"] = mappings
+                else:
+                    for category, values in mappings.items():
+                        report[category].update(values)
 
         except PipelineError:
             raise
