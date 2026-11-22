@@ -105,7 +105,7 @@ Lit un fichier NetCDF (`.nc`, `.netcdf`). Nécessite les dépendances optionnell
 `xarray` et `netCDF4`.
 
 ```python
-df = kd.read_netcdf("chirps_2024.nc")
+da = kd.read_netcdf("chirps_2024.nc")
 ```
 
 **Retour :** `xarray.Dataset` ou `pandas.DataFrame` selon les options passées.
@@ -177,7 +177,7 @@ kd.write_json(df, "export.json")
 ### `write_netcdf(data, filepath, **kwargs)`
 
 ```python
-kd.write_netcdf(df, "export.nc")
+kd.write_netcdf(df, "export.nc")  # df: pandas.DataFrame
 ```
 
 Même dépendance optionnelle que `read_netcdf`.

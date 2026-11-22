@@ -30,7 +30,7 @@ kd.ping("recoltes_2024.csv")      # Check if source is accessible
 
 ## Read Functions
 
-These functions read data from a source and return a `pandas.DataFrame`. Each function accepts optional arguments passed down to the underlying source class.
+These functions read data from a source and return a `pandas.DataFrame`, except NetCDF reads. Each function accepts optional arguments passed down to the underlying source class.
 
 ### `read_csv(filepath, **kwargs)`
 
@@ -94,10 +94,10 @@ df = kd.read_json("campagne_2023.json")
 Reads a NetCDF file (`.nc`, `.netcdf`). Requires optional dependencies `xarray` and `netCDF4`.
 
 ```python
-df = kd.read_netcdf("chirps_2024.nc")
+da = kd.read_netcdf("chirps_2024.nc")
 ```
 
-**Returns:** `xarray.Dataset` or `pandas.DataFrame` depending on options passed.
+**Returns:** an `xarray.DataArray`. Use `kd.NetCDFSource(filepath).to_df()` for a table.
 
 **Exception:** `ImportError` if `xarray` or `netCDF4` is not installed.
 
@@ -164,7 +164,7 @@ kd.write_json(df, "export.json")
 ### `write_netcdf(data, filepath, **kwargs)`
 
 ```python
-kd.write_netcdf(df, "export.nc")
+kd.write_netcdf(df, "export.nc")  # df: pandas.DataFrame
 ```
 
 Same optional dependencies as `read_netcdf`.
