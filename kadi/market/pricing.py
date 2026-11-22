@@ -167,7 +167,10 @@ class Pricing:
 
         if self.client is not None:
             # Appel au client WFP (qui gère lui-même le retry, le cache et le fallback)
-            df_prices = self.client.get_market_prices(market, crop, time_range)
+            fetch = getattr(self.client, "prices", None)
+            if not callable(fetch):
+                fetch = self.client.get_market_prices
+            df_prices = fetch(market, crop, time_range)
         else:
             # Pas de client configuré : on génère des données de simulation
             logger.warning(
