@@ -126,7 +126,7 @@ The algorithm used depends on the location climate zone:
 
 | Zone | Regime | Algorithm |
 |------|--------|-----------|
-| Nord (> 9.5° N) | Unimodal | Sivakumar |
+| Nord (≥ 9.0° N) | Unimodal | Sivakumar |
 | Sud and Centre | Bimodal | Walter-Anyadike |
 
 ---
