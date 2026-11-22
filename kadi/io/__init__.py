@@ -154,7 +154,8 @@ def write_csv(data, filepath: str, **kwargs) -> bool:
         bool: True si l'écriture est réussie.
     """
     # Instanciation de la source CSV et écriture des données
-    return CSVSource(filepath, **kwargs).write(data)
+    options = {"index": kwargs.pop("index")} if "index" in kwargs else {}
+    return CSVSource(filepath, **kwargs).write(data, **options)
 
 
 def write_excel(data, filepath: str, **kwargs) -> bool:
@@ -170,7 +171,8 @@ def write_excel(data, filepath: str, **kwargs) -> bool:
         bool: True si l'écriture est réussie.
     """
     # Instanciation de la source Excel et écriture des données
-    return ExcelSource(filepath, **kwargs).write(data)
+    options = {"sheet": kwargs.pop("sheet")} if "sheet" in kwargs else {}
+    return ExcelSource(filepath, **kwargs).write(data, **options)
 
 
 def write_json(data, filepath: str, **kwargs) -> bool:
@@ -186,7 +188,8 @@ def write_json(data, filepath: str, **kwargs) -> bool:
         bool: True si l'écriture est réussie.
     """
     # Instanciation de la source JSON et écriture des données
-    return JSONSource(filepath, **kwargs).write(data)
+    options = {"orient": kwargs.pop("orient")} if "orient" in kwargs else {}
+    return JSONSource(filepath, **kwargs).write(data, **options)
 
 
 def write_netcdf(data, filepath: str, **kwargs) -> bool:
@@ -288,6 +291,18 @@ def write(data, filepath_or_url: str, **kwargs) -> bool:
     Returns:
         bool: True si l'écriture est réussie.
     """
+    path = str(filepath_or_url)
+    if not path.startswith(("http://", "https://")):
+        extension = os.path.splitext(path.lower())[1]
+        writer = {
+            ".csv": write_csv,
+            ".xls": write_excel,
+            ".xlsx": write_excel,
+            ".json": write_json,
+        }.get(extension)
+        if writer is not None:
+            return writer(data, path, **kwargs)
+
     # Détection automatique de la source et exécution de l'écriture
     source = _detect_source(filepath_or_url, **kwargs)
     return source.write(data)
