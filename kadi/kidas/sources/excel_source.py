@@ -195,7 +195,8 @@ class ExcelSource(Source):
         """
         try:
             # Lecture de la feuille entière pour les métadonnées
-            df = pd.read_excel(self.path, sheet_name=sheet)
+            source = ExcelSource(self.path, sheet=sheet, header=self.header)
+            df = source.read()
             return {
                 "sheet": sheet,
                 "rows": len(df),
