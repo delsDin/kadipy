@@ -466,7 +466,6 @@ class Pipeline:
         # Sauvegarde en cache du résultat final
         if cache and self._df is not None:
             self._cache.set(cle_cache, self._df)
-            self._reports["cache_utilise"] = True
 
         # Calcul du nombre de lignes en sortie
         nb_lignes_out = len(self._df) if self._df is not None else 0
