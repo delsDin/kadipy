@@ -56,13 +56,16 @@ def read_csv(filepath, **kwargs) -> pd.DataFrame:
 
     Args:
         filepath (str | Path): Chemin vers le fichier CSV.
-        **kwargs (Any): Paramètres additionnels transmis à CSVSource.
+        **kwargs (Any): Options du constructeur et de lecture (n, skip).
 
     Returns:
         pandas.DataFrame: Contenu du fichier CSV sous forme de DataFrame.
     """
     # Instanciation de la source CSV et lecture des données
-    return CSVSource(filepath, **kwargs).read()
+    read_options = {
+        key: kwargs.pop(key) for key in ('n', 'skip') if key in kwargs
+    }
+    return CSVSource(filepath, **kwargs).read(**read_options)
 
 
 def read_excel(filepath, **kwargs) -> pd.DataFrame:
@@ -86,13 +89,16 @@ def read_json(filepath, **kwargs) -> pd.DataFrame:
 
     Args:
         filepath (str | Path): Chemin vers le fichier JSON.
-        **kwargs (Any): Paramètres additionnels transmis à JSONSource.
+        **kwargs (Any): Options du constructeur et de lecture (flatten).
 
     Returns:
         pandas.DataFrame: Contenu du fichier JSON sous forme de DataFrame.
     """
     # Instanciation de la source JSON et lecture des données
-    return JSONSource(filepath, **kwargs).read()
+    read_options = {
+        key: kwargs.pop(key) for key in ('flatten',) if key in kwargs
+    }
+    return JSONSource(filepath, **kwargs).read(**read_options)
 
 
 def read_netcdf(filepath, **kwargs) -> Any:
@@ -101,7 +107,7 @@ def read_netcdf(filepath, **kwargs) -> Any:
 
     Args:
         filepath (str | Path): Chemin vers le fichier NetCDF.
-        **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.
+        **kwargs (Any): Options du constructeur et de lecture (lat_bounds, lon_bounds, time_bounds).
 
     Returns:
         xarray.DataArray: Données extraites du fichier NetCDF.
@@ -115,7 +121,10 @@ def read_netcdf(filepath, **kwargs) -> Any:
             "Le support NetCDF nécessite l'installation des dépendances xarray et netCDF4."
         )
     # Instanciation de la source NetCDF et lecture des données
-    return NetCDFSource(filepath, **kwargs).read()
+    read_options = {
+        key: kwargs.pop(key) for key in ('lat_bounds', 'lon_bounds', 'time_bounds') if key in kwargs
+    }
+    return NetCDFSource(filepath, **kwargs).read(**read_options)
 
 
 def read_api(url: str, params: dict = None, **kwargs) -> pd.DataFrame:
