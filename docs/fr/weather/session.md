@@ -130,7 +130,7 @@ L'algorithme dépend de la zone climatique de la localisation :
 
 | Zone | Régime | Algorithme |
 |------|--------|------------|
-| Nord (> 9.5° N) | Unimodal | Sivakumar |
+| Nord (≥ 9.0° N) | Unimodal | Sivakumar |
 | Sud et Centre | Bimodal | Walter-Anyadike |
 
 ---
