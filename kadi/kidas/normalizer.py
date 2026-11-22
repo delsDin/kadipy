@@ -507,6 +507,11 @@ class Normalizer:
                 .decode("utf-8")
             )
 
+            if not nom_norm:
+                lats.append(None)
+                lons.append(None)
+                continue
+
             # Recherche du marché dans la référence (correspondance partielle)
             coords_trouvees = None
             for cle_marche, coords in _MARCHE_COORDS.items():
