@@ -12,6 +12,7 @@ import datetime
 import logging
 
 from kadi.market._normalization import (
+    _normalize_unit,
     get_container_weight_kg,
 )
 from kadi.config import EXCHANGE_RATES as _EXCHANGE_RATES_FALLBACK
@@ -262,7 +263,7 @@ class Pricing:
         valeur = float(value)
 
         # Normalisation de l'unité pour la comparaison
-        unite = unit.strip().lower()
+        unite = _normalize_unit(unit)
 
         # --- Conversion des tonnes ---
         if "tonne" in unite or "/t" == unite[-2:]:
