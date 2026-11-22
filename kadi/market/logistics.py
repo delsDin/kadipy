@@ -644,12 +644,12 @@ def __getattr__(name: str):
     if name in _DEPRECATED:
         new_name, cls = _DEPRECATED[name]
         _warnings.warn(
-            f"kadi.kidas.logistics.{name} est obsolète et sera supprimé dans "
+            f"{__name__}.{name} est obsolète et sera supprimé dans "
             f"KadiPy v2.0. Utilisez {new_name} à la place.",
             category=DeprecationWarning,
             stacklevel=2,
         )
         return cls
     raise AttributeError(
-        f"Le module 'kadi.kidas.logistics' n'a pas d'attribut '{name}'."
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
     )
