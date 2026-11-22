@@ -369,13 +369,14 @@ class Hydrology:
             "sorghum": {"ini": 0.3,  "mid": 1.0,  "end": 0.55},
             "tomato":  {"ini": 0.6,  "mid": 1.15, "end": 0.7},
         }
-        if crop == "manioc":
-            crop = "cassava"
-        if crop not in kcs:
+        crop_key = crop.strip().lower() if isinstance(crop, str) else ""
+        if crop_key == "manioc":
+            crop_key = "cassava"
+        if crop_key not in kcs:
             raise CropError(
                 f"Culture non reconnue pour le coefficient FAO-56 : {crop}"
             )
-        return kcs[crop].get(stage, 1.0)
+        return kcs[crop_key].get(stage, 1.0)
 
     # ----------------------------------------------------------------
     # Méthodes dépréciées (anciens noms publics)
