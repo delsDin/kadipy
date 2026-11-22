@@ -5,8 +5,7 @@ KadiPy. Elle fournit six méthodes de nettoyage adaptées aux fichiers agricoles
 béninois : doublons, valeurs manquantes, outliers statistiques, dates
 hétérogènes, texte non normalisé et séparateurs décimaux mixtes.
 
-Chaque méthode met à jour le DataFrame interne et retourne ce DataFrame, ce
-qui permet d'enchaîner les appels en une seule expression.
+Les transformations mettent à jour le DataFrame interne et renvoient un `pd.DataFrame`. `drop_outliers()` renvoie deux DataFrame (données nettoyées et valeurs atypiques). Appelez les méthodes successivement sur la même instance, ou utilisez `Pipeline` pour chaîner les étapes.
 
 ---
 

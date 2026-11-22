@@ -31,7 +31,7 @@ Market
 
 ## Sous-modules
 
-### data_ingestion — Client WFP DataBridges
+### data_ingestion - Client WFP DataBridges
 
 Interface avec l'API publique du Programme Alimentaire Mondial (VAM
 DataBridges) pour récupérer les historiques de prix officiels.
@@ -44,7 +44,7 @@ DataBridges) pour récupérer les historiques de prix officiels.
   module utilise silencieusement un dictionnaire de secours local pour
   continuer à fonctionner.
 
-### pricing — Normalisation et détection d'anomalies
+### pricing - Normalisation et détection d'anomalies
 
 Nettoie et prépare les données brutes avant toute analyse.
 
@@ -55,7 +55,7 @@ Nettoie et prépare les données brutes avant toute analyse.
 - **Interpolation** : comble les trous dans les séries temporelles jusqu'à
   7 jours consécutifs par interpolation linéaire.
 
-### forecasting — Prévision de prix
+### forecasting - Prévision de prix
 
 Anticipe les fluctuations futures des prix agricoles.
 
@@ -69,7 +69,7 @@ Anticipe les fluctuations futures des prix agricoles.
 - **Fallback** : si l'historique est insuffisant (moins de 20 points), le
   module retourne une estimation simulée clairement signalée.
 
-### logistics — Coûts de transport
+### logistics - Coûts de transport
 
 Simule la réalité des déplacements de marchandises au Bénin.
 
@@ -82,13 +82,13 @@ Simule la réalité des déplacements de marchandises au Bénin.
   `C_transfer = Info + (Distance × gamma_route × Carburant) + Perte qualité`
 - **Intégration météo (Phase 4)** : le coefficient `gamma_route` est
   automatiquement dégradé selon la probabilité de pluie fournie par
-  `WeatherSession`. Les cultures périssables (tomate, oignon) voient leur
+  `Weather`. Les cultures périssables (tomate, oignon) voient leur
   coefficient de perte de qualité augmenter en cas de pluie.
 - **Prix du carburant dynamique** : récupéré depuis la variable
   d'environnement `BENIN_FUEL_PRICE`, puis depuis `config/fuel_prices.json`,
   avec un repli à 680 XOF/litre.
 
-### decision_support — Aide à la décision
+### decision_support - Aide à la décision
 
 Synthétise les données de tous les autres modules pour produire une
 recommandation exploitable.
@@ -104,7 +104,7 @@ recommandation exploitable.
 - **Optimisation de portfolio** : `portfolio_optimization()` utilise
   `scipy.optimize.linprog` si disponible, avec un fallback heuristique.
 
-### backtesting — Evaluation a posteriori
+### backtesting - Evaluation a posteriori
 
 Mesure la qualité des prévisions sur des données historiques réelles.
 
@@ -121,20 +121,20 @@ Mesure la qualité des prévisions sur des données historiques réelles.
 from kadi.market import Market
 
 # Initialisation du marché (agriculteur à Parakou)
-marche = Market(latitude=9.30, longitude=2.08, location="Parakou")
+marche = Market(lat=9.30, lon=2.08, location="Parakou")
 
 # Arbitrage spatial : vaut-il mieux vendre à Cotonou ?
-resultat = marche.decision_support.arbitrage_decision(
+resultat = marche.advisor.arbitrage(
     crop="maize",
-    origine="Parakou",
-    destination="Cotonou",
-    qty_tons=10.0,
+    m_from="Parakou",
+    to="Cotonou",
+    qty=10.0,
 )
 print(resultat["recommandation"])
 print(f"Bénéfice net estimé : {resultat['gain_net_percent']}%")
 
 # Coût de transport détaillé
-cout = marche.logistics.calculate_transfer_cost(
+cout = marche.logistics.transfer_cost(
     origine="Parakou",
     destination="Malanville",
 )
@@ -142,9 +142,7 @@ print(f"Distance       : {cout['details']['distance_km']} km")
 print(f"Coût total     : {cout['total_cost_cfa']} XOF")
 
 # Prévision de prix à 30 jours
-prevision = marche.forecasting.predict_price(
-    crop="maize", market="Parakou", days_ahead=30
-)
+prevision = marche.predict(crop="maize", ahead=30)
 print(f"Prix prévu     : {prevision['predicted_price']} XOF/kg")
 print(f"Pire scénario  : {prevision['low_90']} XOF/kg")
 ```
@@ -152,13 +150,13 @@ print(f"Pire scénario  : {prevision['low_90']} XOF/kg")
 ### Avec intégration météo (Phase 4)
 
 ```python
-from kadi.weather import WeatherSession
+from kadi.weather import Weather
 from kadi.market import Market
 
-session = WeatherSession(latitude=9.30, longitude=2.08, name="Parakou")
-marche = Market(lat=9.30, lon=2.08, location="Parakou", weather_session=session)
+session = Weather(lat=9.30, lon=2.08, name="Parakou")
+marche = Market(lat=9.30, lon=2.08, location="Parakou", weather=session)
 
-risque = marche.assess_climate_risk(days_ahead=7)
+risque = marche.climate_risk(ahead=7)
 print(risque["recommendation"])
 ```
 
@@ -170,8 +168,8 @@ Renseignez le fichier `.env` à la racine du projet pour activer les
 données réelles :
 
 ```env
-# Clé API WFP DataBridges (optionnel, fallback local si absent)
-WFP_API_Token=votre_cle_api_ici
+# Identifiant d’application WFP Humanitarian API
+HAPI_APP_IDENTIFIER=votre_identifiant_ici
 
 # Prix de l'essence en XOF/litre (optionnel, 680 par défaut)
 BENIN_FUEL_PRICE=680

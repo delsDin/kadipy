@@ -24,6 +24,7 @@ from kadi.config import CONFIG
 
 # Noms publics officiels (v1.2.0+)
 __all__ = [
+    "Market",
     "Pricing",
     "Forecasting",
     "Logistics",
@@ -452,10 +453,10 @@ class Market:
                 - 'confidence'       : niveau de confiance (0.9 ou 0.95)
                 - 'model_used'       : identifiant du modèle
                 - 'rmse'             : RMSE réel en XOF/kg (None si simulé)
-                - 'is_sim'     : True si les données source sont simulées
+                - 'is_simulated': True si les données source sont simulées
                 - 'confidence_score' : score de fiabilité 0.0 à 1.0
                 - 'nb_history_pts'   : nombre de points d'historique utilisés
-                - 'ahead'       : horizon de prévision utilisé
+                - 'days_ahead' : horizon de prévision utilisé
         """
         if "days_ahead" in kwargs:
             ahead = kwargs.pop("days_ahead")
@@ -620,9 +621,13 @@ class Market:
 
         # Récupération de la probabilité de pluie sur l'horizon demandé
         try:
-            prob_pluie = self.weather.rain_probability(
-                ahead = ahead, min_rainfall_mm=1.0
-            )
+            rain_prob = getattr(self.weather, "rain_prob", None)
+            if callable(rain_prob):
+                prob_pluie = rain_prob(days=ahead, min_mm=1.0)
+            else:
+                prob_pluie = self.weather.rain_probability(
+                    days_ahead=ahead, min_rainfall_mm=1.0
+                )
             prob_j1 = float(prob_pluie.get("tomorrow", 0.0))
         except Exception:
             prob_pluie = {"message": "Données de prévision indisponibles."}
@@ -630,7 +635,13 @@ class Market:
 
         # Récupération de l'indice de sécheresse SPI
         try:
-            drought = self.weather.drought_index(method="spi", window_months=3)
+            drought_method = getattr(self.weather, "drought", None)
+            if callable(drought_method):
+                drought = drought_method(method="spi", window=3)
+            else:
+                drought = self.weather.drought_index(
+                    method="spi", window_months=3
+                )
             severity = drought.get("drought_severity", "unknown")
         except Exception:
             drought = {}

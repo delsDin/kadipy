@@ -88,11 +88,12 @@ def test_chirps_indisponible_pour_mois_courant():
     assert _is_available(mois_courant) is False
 
 
-def test_chirps_disponible_decembre_annee_precedente():
-    """Décembre de l'année précédente doit être disponible (mi-janvier écoulé)."""
-    annee_precedente = date.today().year - 1
-    decembre = date(annee_precedente, 12, 15)
-    assert _is_available(decembre) is True
+@pytest.mark.parametrize("day, expected", [(15, False), (16, True)])
+def test_chirps_disponible_decembre_annee_precedente(day, expected):
+    """Les données de décembre deviennent disponibles le 16 janvier."""
+    with patch("kadi._sources.chirps.date", wraps=date) as clock:
+        clock.today.return_value = date(2026, 1, day)
+        assert _is_available(date(2025, 12, 15)) is expected
 
 
 # ---------------------------------------------------------------------------

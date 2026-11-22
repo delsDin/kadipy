@@ -4,6 +4,7 @@ des données de marché, et de la détection d'anomalies de prix.
 """
 
 import warnings
+from typing import Optional
 
 import pandas as pd
 import numpy as np
@@ -226,6 +227,7 @@ class Pricing:
             "unit": "XOF/kg",
             # Marqueurs explicites d'origine simulée
             "sim": True,
+            "is_simulated": True,
             "source": "simulated",
             "fetched_at": maintenant,
             "confidence_score": 0.1,
@@ -367,12 +369,12 @@ class Pricing:
 
         return df_interpolated
 
-    def source(self, series: pd.DataFrame) -> str:
+    def source(self, series: Optional[pd.DataFrame]) -> str:
         """
         Identifie la source des données d'une série de prix.
 
-        Si le DataFrame contient la colonne ``sim``, la méthode
-        retourne 'simulated' ou 'wfp-vam' selon le cas.
+        Un indicateur de simulation vrai donne 'simulated'. Sinon, la
+        méthode utilise la dernière source renseignée, ou 'wfp-vam'.
 
         Args:
             series (pd.DataFrame): DataFrame retourné par fetch().
@@ -380,12 +382,18 @@ class Pricing:
         Returns:
             str: La source identifiée ('wfp-vam', 'ratin', 'scrape-local', 'simulated').
         """
-        # Vérification de la colonne sim
-        if "sim" in series.columns:
-            if series["sim"].any():
+        if series is None or series.empty:
+            return "wfp-vam"
+
+        for col in ("is_simulated", "sim", "is_sim"):
+            if col in series.columns and bool(series[col].dropna().any()):
                 return "simulated"
 
-        # Par défaut, on suppose WFP VAM (source primaire du V1)
+        if "source" in series.columns:
+            sources = series["source"].dropna()
+            if not sources.empty:
+                return str(sources.iloc[-1])
+
         return "wfp-vam"
 
     def seasonality(
@@ -617,12 +625,12 @@ def __getattr__(name: str):
     if name in _DEPRECATED:
         new_name, cls = _DEPRECATED[name]
         _warnings.warn(
-            f"kadi.kidas.pricing.{name} est obsolète et sera supprimé dans "
+            f"{__name__}.{name} est obsolète et sera supprimé dans "
             f"KadiPy v2.0. Utilisez {new_name} à la place.",
             category=DeprecationWarning,
             stacklevel=2,
         )
         return cls
     raise AttributeError(
-        f"Le module 'kadi.kidas.pricing' n'a pas d'attribut '{name}'."
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
     )

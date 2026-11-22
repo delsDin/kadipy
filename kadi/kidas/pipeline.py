@@ -23,15 +23,8 @@ from kadi.kidas.sources import (
     JSONSource,
     APISource,
     Source,
+    NetCDFSource,
 )
-
-# Import conditionnel : xarray est requis pour NetCDF
-try:
-    from kadi.kidas.sources import NetCDFSource
-    _NETCDF_DISPONIBLE = True
-except ImportError:
-    NetCDFSource = None  # type: ignore[assignment]
-    _NETCDF_DISPONIBLE = False
 
 # Import des classes de traitement (Phase 3 : nouveaux noms)
 from kadi.kidas.cleaner import Cleaner
@@ -188,6 +181,11 @@ class Pipeline:
             elif type_source == "json":
                 self._source = JSONSource(source, **kwargs)
             elif type_source == "netcdf":
+                if NetCDFSource is None:
+                    raise ImportError(
+                        "Le support NetCDF nécessite xarray et un moteur "
+                        "NetCDF compatible, par exemple netCDF4."
+                    )
                 self._source = NetCDFSource(source, **kwargs)
             elif type_source == "api":
                 self._source = APISource(source, **kwargs)
@@ -243,12 +241,17 @@ class Pipeline:
             "fix_dates", "standardize_text", "remove_special_chars",
             "detect_inconsistent_decimals", "get_cleaning_report",
         }
-        _validation = {
-            "check_schema", "check_types", "check_ranges",
-            "check_coords", "check_unique", "check_fk",
-            "quality_score", "validate_schema", "validate_types",
-            "validate_ranges", "validate_coordinates", "validate_uniqueness",
+        validation_params = {
+            "check_schema": "schema",
+            "check_types": "dtypes",
+            "check_ranges": "bounds",
+            "check_coords": None,
+            "check_unique": "cols",
+            "check_fk": None,
         }
+        validation_method = Validator._METHODES_DEPRECATED.get(
+            step_name, step_name
+        )
         _normalisation = {
             "norm_cols", "convert_units", "convert_currency",
             "std_crops", "std_markets", "std_coords", "mappings",
@@ -259,7 +262,10 @@ class Pipeline:
 
         if step_name in _cleaning:
             type_etape = "cleaning"
-        elif step_name in _validation:
+        elif (
+            validation_method in validation_params
+            or validation_method == "quality_score"
+        ):
             type_etape = "validation"
         elif step_name in _normalisation:
             type_etape = "normalization"
@@ -269,7 +275,12 @@ class Pipeline:
         # Gestion du premier argument positionnel
         if schema_or_mappings is not None:
             if type_etape == "validation":
-                params["schema"] = schema_or_mappings
+                param_name = validation_params.get(validation_method)
+                if param_name is None:
+                    raise TypeError(
+                        f"L'étape '{step_name}' ne prend pas d'argument positionnel."
+                    )
+                params.setdefault(param_name, schema_or_mappings)
             elif type_etape == "normalization":
                 params["mappings"] = schema_or_mappings
 
@@ -337,6 +348,8 @@ class Pipeline:
         """
         if isinstance(mappings, str):
             return self.add_step(mappings, **params)
+        if isinstance(mappings, dict):
+            return self.add_step("mappings", mappings, **params)
         return self.add_step("norm_cols", mappings, **params)
 
     def run(
@@ -423,6 +436,9 @@ class Pipeline:
             raise ReadError(
                 f"Echec de lecture dans le pipeline : {erreur}"
             ) from erreur
+
+        # Le rapport de normalisation décrit uniquement cette exécution.
+        self._reports["normalisation"] = None
 
         # Exécution des étapes dans l'ordre
         for etape in self._steps:
@@ -522,9 +538,12 @@ class Pipeline:
                 resultat = getattr(cleaner, nom_methode)(**params)
 
                 # Certaines méthodes retournent un tuple (df, outliers_df)
-                if isinstance(resultat, tuple):
+                if (
+                    isinstance(resultat, tuple) and resultat
+                    and isinstance(resultat[0], pd.DataFrame)
+                ):
                     self._df = resultat[0]
-                else:
+                elif isinstance(resultat, pd.DataFrame):
                     self._df = resultat
 
                 # Mise à jour cumulée du rapport de nettoyage
@@ -539,19 +558,35 @@ class Pipeline:
                     rep_existant["lignes_finales"] = len(self._df)
                     rep_existant["colonnes_finales"] = len(self._df.columns)
 
-            elif type_etape == "validation":
-                # Validation du schéma et calcul du score qualité
-                validator = Validator(self._df)
-                est_valide, erreurs = validator.check_schema(params.get("schema", {}))
-                score = validator.quality_score()
-
-                # Journalisation du résultat de validation
-                if not est_valide:
-                    logger.warning(
-                        "Validation du schéma : %d erreur(s) détectée(s).", len(erreurs)
+                if nom_methode in (
+                    "check_decimals", "detect_inconsistent_decimals"
+                ) and isinstance(resultat, dict):
+                    diagnostics = self._reports["nettoyage"].setdefault(
+                        "diagnostics_decimales", []
                     )
-                    for erreur in erreurs:
-                        logger.warning("  - %s", erreur)
+                    diagnostics.append(resultat)
+
+            elif type_etape == "validation":
+                validator = Validator(self._df)
+                method = Validator._METHODES_DEPRECATED.get(
+                    nom_methode, nom_methode
+                )
+                validate = getattr(validator, nom_methode)
+                if method == "quality_score":
+                    score = validate(**params)
+                else:
+                    if method == "check_schema":
+                        params = {"schema": {}, **params}
+                    est_valide, erreurs = validate(**params)
+                    if not est_valide:
+                        logger.warning(
+                            "Validation (%s) : %d anomalie(s) détectée(s).",
+                            nom_methode, len(erreurs),
+                        )
+                        if isinstance(erreurs, list):
+                            for erreur in erreurs:
+                                logger.warning("  - %s", erreur)
+                    score = validator.quality_score()
 
                 nouveau_val_rep = validator.report()
                 if self._reports["validation"] is None:
@@ -574,19 +609,20 @@ class Pipeline:
                     "std_crops", "std_markets", "std_coords",
                 }
 
-                if nom_methode in _methodes_directes:
-                    # Dispatch direct : appel de la méthode par son nom
-                    if not hasattr(normalizer, nom_methode):
-                        raise PipelineError(
-                            f"Méthode de normalisation '{nom_methode}' inconnue."
-                        )
+                legacy_mappings = (
+                    nom_methode in ("norm_cols", "normalize")
+                    and isinstance(params.get("mappings"), dict)
+                )
+                method = Normalizer._METHODES_DEPRECATED.get(
+                    nom_methode, nom_methode
+                )
+                if method in _methodes_directes and not legacy_mappings:
                     resultat = getattr(normalizer, nom_methode)(**params)
-                    # mappings() retourne un dict, les autres retournent un DataFrame
                     if isinstance(resultat, pd.DataFrame):
                         self._df = resultat
 
                 else:
-                    # Ancien mécanisme via le dict 'mappings' (rétrocompatibilité)
+                    # Les correspondances déclaratives configurent plusieurs opérations.
                     mappings = params.get("mappings", {})
 
                     # Normalisation des noms de colonnes si demandé
@@ -607,7 +643,13 @@ class Pipeline:
 
                     self._df = normalizer.df
 
-                self._reports["normalisation"] = normalizer.mappings()
+                mappings = normalizer.mappings()
+                report = self._reports["normalisation"]
+                if report is None:
+                    self._reports["normalisation"] = mappings
+                else:
+                    for category, values in mappings.items():
+                        report[category].update(values)
 
         except PipelineError:
             raise

@@ -173,7 +173,7 @@ Detects rainy season onset date based on zone climate regime.
 ```python
 season_start = weather.onset()
 print(season_start["onset_date"])
-print(season_start["method"])
+print(season_start["algorithm"])
 ```
 
 **Returns:** `dict` (see [Phenology](phenology.md)).
@@ -234,19 +234,19 @@ print(prob["recommendation"])    # agronomic recommendation
 
 ---
 
-### `water_balance(crop='maize', soil_type='ferrugineux')`
+### `water_balance(crop='maize', soil_type=None)`
 
 Simulates daily water balance using the FAO-56 methodology.
 
 ```python
 wb = weather.water_balance(crop="maize", soil_type="ferrugineux")
-print(wb[["precipitation", "ET0", "deficit_eau", "reserve_utile"]].tail(14))
+print(wb[["precip", "et0", "deficit_eau", "reserve_utile"]].tail(14))
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `crop` | `str` | `'maize'` | Crop type |
-| `soil_type` | `str` | `'ferrugineux'` | Soil type |
+| `soil_type` | `str or None` | `None` | Uses the detected soil by default |
 
 **Returns:** `pd.DataFrame` (see [Hydrology](hydrology.md)).
 
@@ -439,7 +439,7 @@ print(df.columns.tolist())
 
 # Season onset date
 start = weather.onset()
-print(start["onset_date"], start["method"])
+print(start["onset_date"], start["algorithm"])
 
 # GDD calculation for maize
 gdd = weather.gdd(crop="maize", start="2026-05-15")
@@ -447,7 +447,7 @@ print(gdd["gdd_accumulated"], gdd["phenology_stage"])
 
 # Daily water balance
 wb = weather.water_balance(crop="maize", soil_type="ferrugineux")
-print(wb[["precipitation", "ET0", "deficit_eau"]].tail(7))
+print(wb[["precip", "et0", "deficit_eau"]].tail(7))
 
 # SPI-3 drought index
 drought_info = weather.drought(method="spi", window=3)

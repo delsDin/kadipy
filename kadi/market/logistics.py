@@ -95,7 +95,11 @@ def _rain_prob(weather) -> float:
     try:
         # Horizon de prévision météo configuré pour la logistique
         days_ahead = _LOGISTICS_CONFIG.get("days_ahead_weather", 1)
-        resultat = weather.rain_probability(days_ahead=days_ahead)
+        rain_prob = getattr(weather, "rain_prob", None)
+        if callable(rain_prob):
+            resultat = rain_prob(days=days_ahead)
+        else:
+            resultat = weather.rain_probability(days_ahead=days_ahead)
 
         # La clé 'tomorrow' correspond au J+1 (premier jour de la prévision)
         prob = float(resultat.get("tomorrow", 0.0))
@@ -644,12 +648,12 @@ def __getattr__(name: str):
     if name in _DEPRECATED:
         new_name, cls = _DEPRECATED[name]
         _warnings.warn(
-            f"kadi.kidas.logistics.{name} est obsolète et sera supprimé dans "
+            f"{__name__}.{name} est obsolète et sera supprimé dans "
             f"KadiPy v2.0. Utilisez {new_name} à la place.",
             category=DeprecationWarning,
             stacklevel=2,
         )
         return cls
     raise AttributeError(
-        f"Le module 'kadi.kidas.logistics' n'a pas d'attribut '{name}'."
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
     )

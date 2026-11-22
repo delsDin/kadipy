@@ -8,7 +8,7 @@ import pandas as pd
 
 from kadi.weather.risk import Risk, RiskIndicators
 from kadi.weather.location import Location
-from kadi.exceptions import DataError
+from kadi.exceptions import DataError, ValidationError
 
 
 # ---------------------------------------------------------------------------
@@ -207,3 +207,20 @@ def test_rain_probability_sans_historique(risk_setup):
 def test_alias_retrocompatibilite_risk_indicators(risk_setup):
     """L'ancien alias RiskIndicators doit pointer vers Risk."""
     assert RiskIndicators is Risk
+
+
+@pytest.mark.parametrize("forecast", [float("nan"), float("inf")])
+def test_rain_prob_ignore_precipitation_non_finie(forecast):
+    """Une prévision indisponible ne crée pas un risque maximal."""
+    risk = Risk(
+        Location(lat=9.0, lon=2.0), pd.Series(dtype=float),
+        pd.DataFrame({"precipitation": [forecast]}),
+    )
+    assert risk.rain_prob()["tomorrow"] == pytest.approx(0.15)
+
+
+@pytest.mark.parametrize("threshold", [0, -1, float("nan"), float("inf"), None])
+def test_rain_prob_rejette_seuil_invalide(risk_setup, threshold):
+    """Le seuil doit être numérique, fini et strictement positif."""
+    with pytest.raises(ValidationError, match="min_mm"):
+        Risk(*risk_setup, pd.DataFrame()).rain_prob(min_mm=threshold)

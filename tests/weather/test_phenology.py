@@ -71,6 +71,18 @@ def test_growing_degree_days(nord_setup):
     assert gdd['crop'] == 'maize'
 
 
+@pytest.mark.parametrize("crop", ["cassava", "manioc"])
+def test_gdd_manioc(nord_setup, crop):
+    """Le code canonique et son alias utilisent les paramètres du manioc."""
+    pheno = Phenology(*nord_setup)
+
+    gdd = pheno.gdd(crop=crop, start="2026-05-01", end="2026-05-10")
+
+    assert gdd["crop"] == crop
+    assert gdd["gdd_accumulated"] == 130.0
+    assert gdd["gdd_total_cycle"] == 3000
+
+
 def test_growing_degree_days_insufficient_data(nord_setup):
     """Un GDD sur des données vides doit lever DataError."""
     location, _, _ = nord_setup

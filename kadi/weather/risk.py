@@ -361,7 +361,15 @@ class Risk:
 
         Raises:
             DataError: Si les données de prévision sont absentes ou vides.
+            ValidationError: Si le seuil n'est pas fini et strictement positif.
         """
+        try:
+            valid_threshold = bool(np.isfinite(min_mm) and min_mm > 0)
+        except (TypeError, ValueError):
+            valid_threshold = False
+        if not valid_threshold:
+            raise ValidationError("Le seuil 'min_mm' doit être strictement positif.")
+
         if self.forecast is None or self.forecast.empty:
             raise DataError(
                 "Données de prévision indisponibles pour estimer la "
@@ -393,12 +401,15 @@ class Risk:
         max_prob = 0.0
 
         for i, (date, row) in enumerate(df.iterrows()):
-            forecast_precip = row.get("precipitation", 0.0)
+            forecast_precip = row.get("precipitation")
 
-            # 1. Probabilité issue de la prévision API (heuristique)
-            prob_api = min(1.0, forecast_precip / (min_mm * 5))
-            if forecast_precip < min_mm:
-                prob_api *= 0.5
+            # Une observation absente ne contribue pas au risque de pluie.
+            prob_api = 0.0
+            if pd.notna(forecast_precip) and np.isfinite(forecast_precip):
+                forecast_precip = max(0.0, float(forecast_precip))
+                prob_api = min(1.0, forecast_precip / (min_mm * 5))
+                if forecast_precip < min_mm:
+                    prob_api *= 0.5
 
             # 2. Probabilité de Markov (probabilité conditionnelle d'un jour humide)
             prob_markov = (
