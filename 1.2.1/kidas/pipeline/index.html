@@ -1754,7 +1754,7 @@ le nom passé.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="s2">"drop_dupes"</span><span class="p">)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="s2">"fill_missing"</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">"median"</span><span class="p">)</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="s2">"check_schema"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"culture"</span><span class="p">:</span> <span class="s2">"str"</span><span class="p">,</span> <span class="s2">"rendement_kg"</span><span class="p">:</span> <span class="s2">"float"</span><span class="p">})</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="s2">"norm_cols"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"crops"</span><span class="p">:</span> <span class="s2">"culture"</span><span class="p">})</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">pipeline</span><span class="o">.</span><span class="n">add_step</span><span class="p">(</span><span class="s2">"std_crops"</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">"culture"</span><span class="p">)</span>
 </span></code></pre></div>
 <h4 id="etapes-de-nettoyage-disponibles">Étapes de nettoyage disponibles<a class="headerlink" href="#etapes-de-nettoyage-disponibles" title="Permanent link">&para;</a></h4>
 <table>
@@ -1837,7 +1837,7 @@ le nom passé.</p>
 <tbody>
 <tr>
 <td><code>'norm_cols'</code></td>
-<td>Renomme les colonnes selon un dictionnaire de correspondances</td>
+<td>Standardise les en-têtes en <code>snake_case</code></td>
 </tr>
 <tr>
 <td><code>'convert_units'</code></td>
@@ -1865,7 +1865,7 @@ le nom passé.</p>
 <ul>
 <li><code>clean(step, **params)</code> : alias pour les étapes de nettoyage</li>
 <li><code>validate(schema, **params)</code> : alias pour <code>add_step('check_schema', schema)</code></li>
-<li><code>normalize(mappings, **params)</code> : alias pour <code>add_step('norm_cols', mappings)</code></li>
+<li><code>normalize(step, **params)</code> : alias pour <code>add_step(step, **params)</code></li>
 </ul>
 <hr />
 <h2 id="execution">Exécution<a class="headerlink" href="#execution" title="Permanent link">&para;</a></h2>
@@ -1998,7 +1998,7 @@ l'extension du chemin de destination.</p>
 </span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="s2">"drop_dupes"</span><span class="p">)</span>
 </span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="s2">"fill_missing"</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">"median"</span><span class="p">)</span>
 </span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="o">.</span><span class="n">validate</span><span class="p">({</span><span class="s2">"culture"</span><span class="p">:</span> <span class="s2">"str"</span><span class="p">,</span> <span class="s2">"prix_xof_kg"</span><span class="p">:</span> <span class="s2">"float"</span><span class="p">})</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="o">.</span><span class="n">normalize</span><span class="p">({</span><span class="s2">"crops"</span><span class="p">:</span> <span class="s2">"culture"</span><span class="p">})</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">"std_crops"</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">"culture"</span><span class="p">)</span>
 </span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="p">)</span>
 </span></code></pre></div>
@@ -2070,7 +2070,7 @@ de fonctionner jusqu'à KadiPy v2.0 :</p>
 </tr>
 <tr>
 <td><code>add_normalization_step(mappings)</code></td>
-<td><code>add_step('norm_cols', mappings)</code> ou <code>normalize(mappings)</code></td>
+<td><code>add_step('std_crops', col='culture')</code> ou <code>normalize('std_crops', col='culture')</code></td>
 </tr>
 <tr>
 <td><code>execute(cache)</code></td>
