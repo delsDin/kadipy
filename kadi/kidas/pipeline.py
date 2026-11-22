@@ -10,6 +10,7 @@ Son API fluide (chainable) permet une utilisation concise et lisible.
 
 from copy import deepcopy
 import hashlib
+import json
 import logging
 import os
 import warnings
@@ -410,33 +411,23 @@ class Pipeline:
         # tronqué à 16 caractères hexadécimaux pour éviter les collisions et les
         # erreurs d'encodage avec des chemins contenant des espaces ou des accents.
         _empreinte = hashlib.sha256(
-            str(self._source.path).encode("utf-8")
+            json.dumps(
+                [str(self._source.path), self._steps], default=repr,
+                ensure_ascii=False,
+            ).encode("utf-8")
         ).hexdigest()[:16]
         cle_cache = f"pipeline_{_empreinte}"
 
         # Tentative de chargement depuis le cache
         if cache:
-            df_cached, _ = self._cache.get(cle_cache)
-            if df_cached is not None:
+            df_cached, metadata = self._cache.get(cle_cache)
+            rapport_cache = (metadata or {}).get("pipeline_report")
+            if df_cached is not None and rapport_cache is not None:
                 logger.info(
                     "Pipeline kidas : données chargées depuis le cache (clé: '%s').",
                     cle_cache,
                 )
-                # Construction du rapport minimal pour un retour depuis le cache
-                rapport_cache = {
-                    "nb_rows_in":    len(df_cached),
-                    "nb_rows_out":   len(df_cached),
-                    "steps_summary": [e["nom"] for e in self._steps],
-                    "quality_score": None,
-                    "warnings":      [],
-                    "cache_utilise": True,
-                    "details": {
-                        "source":        self._reports.get("source"),
-                        "nettoyage":     None,
-                        "validation":    None,
-                        "normalisation": None,
-                    },
-                }
+                rapport_cache["cache_utilise"] = True
                 return df_cached, deepcopy(rapport_cache)
 
         # Lecture des données depuis la source et mémorisation du nombre de lignes brutes
@@ -465,10 +456,6 @@ class Pipeline:
         for etape in self._steps:
             self._df = self._exec_step(etape)
 
-        # Sauvegarde en cache du résultat final
-        if cache and self._df is not None:
-            self._cache.set(cle_cache, self._df)
-
         # Calcul du nombre de lignes en sortie
         nb_lignes_out = len(self._df) if self._df is not None else 0
 
@@ -487,6 +474,10 @@ class Pipeline:
                 "normalisation": self._reports.get("normalisation"),
             },
         }
+
+        if cache and self._df is not None:
+            metadata = json.loads(json.dumps(rapport_final, default=str))
+            self._cache.set(cle_cache, self._df, meta={"pipeline_report": metadata})
 
         return self._df, deepcopy(rapport_final)
 
