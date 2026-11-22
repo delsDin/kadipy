@@ -74,6 +74,31 @@ def historique_court() -> pd.DataFrame:
 # Tests de la méthode run()
 # ------------------------------------------------------------------
 
+@pytest.mark.parametrize(
+    "slope, offset, expected",
+    [(1, 3, 100), (-1, -3, 100), (-1, 3, 0), (1, np.nan, np.nan)],
+)
+def test_run_precision_directionnelle(slope, offset, expected):
+    """Compare la direction au dernier prix connu de la fenêtre."""
+    from unittest.mock import Mock
+
+    hist = pd.DataFrame({
+        "date": pd.date_range("2026-01-01", periods=23),
+        "price": 200 + slope * np.arange(23),
+    })
+    forecaster = Mock()
+    forecaster.predict.return_value = {
+        "predicted_price": hist["price"].iloc[19] + offset,
+    }
+    result = Backtester(forecaster).run(
+        "maize", "cotonou", hist=hist, window=20, horizon=3, n=1,
+    )[0]["precision_dir"]
+    if np.isnan(expected):
+        assert np.isnan(result)
+    else:
+        assert result == expected
+
+
 def test_run_retourne_resultats(backtester, historique_valide):
     """run() doit retourner une liste non vide avec un historique suffisant."""
     # Exécution du backtesting avec 3 fenêtres glissantes
