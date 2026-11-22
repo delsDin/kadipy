@@ -1769,7 +1769,7 @@
 </tr>
 <tr>
 <td><code>'drop_outliers'</code></td>
-<td>Removes statistical outliers (<code>method</code>, <code>threshold</code> parameters)</td>
+<td>Removes statistical outliers (<code>method</code>, <code>thresh</code> parameters)</td>
 </tr>
 <tr>
 <td><code>'parse_dates'</code></td>
@@ -1835,11 +1835,11 @@
 </tr>
 <tr>
 <td><code>'convert_units'</code></td>
-<td>Converts units (kg/tonne, ha/m2, etc.)</td>
+<td>Converts mass units (tonne, sack, tiya, etc.) to kg</td>
 </tr>
 <tr>
 <td><code>'convert_currency'</code></td>
-<td>Converts currencies via <code>ExchangeRateClient</code></td>
+<td>Converts currencies using internal fixed rates</td>
 </tr>
 <tr>
 <td><code>'std_crops'</code></td>
@@ -1851,7 +1851,7 @@
 </tr>
 <tr>
 <td><code>'std_coords'</code></td>
-<td>Normalizes GPS coordinates (format, rounding)</td>
+<td>Creates a <code>geometry</code> column of <code>shapely.geometry.Point</code> objects</td>
 </tr>
 </tbody>
 </table>

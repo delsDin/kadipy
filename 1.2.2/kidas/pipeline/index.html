@@ -1775,7 +1775,7 @@ le nom passé.</p>
 </tr>
 <tr>
 <td><code>'drop_outliers'</code></td>
-<td>Supprime les valeurs aberrantes (paramètres <code>method</code>, <code>threshold</code>)</td>
+<td>Supprime les valeurs aberrantes (paramètres <code>method</code>, <code>thresh</code>)</td>
 </tr>
 <tr>
 <td><code>'parse_dates'</code></td>
@@ -1841,11 +1841,11 @@ le nom passé.</p>
 </tr>
 <tr>
 <td><code>'convert_units'</code></td>
-<td>Convertit les unités (kg/tonne, ha/m2, etc.)</td>
+<td>Convertit les unités de masse (tonne, sac, tiya, etc.) en kg</td>
 </tr>
 <tr>
 <td><code>'convert_currency'</code></td>
-<td>Convertit les devises via <code>ExchangeRateClient</code></td>
+<td>Convertit les devises avec les taux fixes internes</td>
 </tr>
 <tr>
 <td><code>'std_crops'</code></td>
@@ -1857,7 +1857,7 @@ le nom passé.</p>
 </tr>
 <tr>
 <td><code>'std_coords'</code></td>
-<td>Normalise les coordonnées GPS (format, arrondi)</td>
+<td>Crée une colonne <code>geometry</code> de points <code>shapely.geometry.Point</code></td>
 </tr>
 </tbody>
 </table>
