@@ -249,3 +249,14 @@ def test_mae_tableau_vide():
     """_calculer_mae() doit retourner NaN pour un tableau vide."""
     mae = Backtester._mae(np.array([]), np.array([]))
     assert np.isnan(mae), "MAE doit être NaN pour un tableau vide."
+
+
+@pytest.mark.parametrize("hist", [None, pd.DataFrame(), []])
+def test_run_historique_inexploitable(hist):
+    """Une entrée absente ou invalide donne une liste vide."""
+    assert Backtester().run("maize", "cotonou", hist=hist) == []
+
+
+def test_run_sans_historique():
+    """L'appel avec la valeur par défaut ne lève aucune exception."""
+    assert Backtester().run("maize", "cotonou") == []
