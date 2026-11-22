@@ -351,7 +351,7 @@ def fetch_historical_precipitation(
 
 # Table des anciens noms -> (nouveau nom, classe cible)
 _DEPRECATED = {
-    "_chirps_disponible_pour": ("is_available", _is_available),
+    "_chirps_disponible_pour": ("_is_available", _is_available),
     "_chemin_raster_cache": ("_cache_path", _cache_path),
     "_construire_url": ("_build_url", _build_url),
     "_telecharger_et_decouper_raster": ("_download_and_clip", _download_and_clip),
@@ -375,12 +375,12 @@ def __getattr__(name: str):
     if name in _DEPRECATED:
         new_name, cls = _DEPRECATED[name]
         _warnings.warn(
-            f"kadi.kidas.cache.{name} est obsolète et sera supprimé dans "
+            f"{__name__}.{name} est obsolète et sera supprimé dans "
             f"KadiPy v2.0. Utilisez {new_name} à la place.",
             category=DeprecationWarning,
             stacklevel=2,
         )
         return cls
     raise AttributeError(
-        f"Le module 'kadi.kidas.cache' n'a pas d'attribut '{name}'."
+        f"Le module '{__name__}' n'a pas d'attribut '{name}'."
     )
