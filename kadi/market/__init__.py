@@ -688,13 +688,13 @@ _DEPRECATED = {
     "MarketPricing":          ("Pricing",       Pricing),
     "MarketForecasting":      ("Forecasting",   Forecasting),
     "MarketLogistics":        ("Logistics",     Logistics),
-    "MarketPricing":          ("Pricing",       Pricing)
+    "DecisionSupport":        ("Advisor",       Advisor),
 }
 
 
 def __getattr__(name: str):
     """
-    Intercepte les anciens noms exportés depuis kadi.weather.
+    Intercepte les anciens noms exportés depuis kadi.market.
 
     Args:
         name (str): Nom du symbole demandé.
