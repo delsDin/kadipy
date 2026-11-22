@@ -459,24 +459,18 @@ def vider_cache(
     """
     initialiser_base(db_path)
 
-    with _connexion(db_path) as conn:
-        if market and crop:
-            conn.execute(
-                "DELETE FROM market_prices WHERE market = ? AND crop = ?",
-                (market, crop),
-            )
-            conn.execute(
-                "DELETE FROM cache_meta WHERE market = ? AND crop = ?",
-                (market, crop),
-            )
-        elif market:
-            conn.execute("DELETE FROM market_prices WHERE market = ?", (market,))
-            conn.execute("DELETE FROM cache_meta WHERE market = ?", (market,))
-        else:
-            conn.execute("DELETE FROM market_prices;")
-            conn.execute("DELETE FROM cache_meta;")
+    clause = ""
+    params = ()
+    if market and crop:
+        clause = " WHERE market = ? AND crop = ?"
+        params = (market, crop)
+    elif market:
+        clause = " WHERE market = ?"
+        params = (market,)
 
-        nb = conn.execute("SELECT changes()").fetchone()[0]
+    with _connexion(db_path) as conn:
+        nb = conn.execute("DELETE FROM market_prices" + clause, params).rowcount
+        conn.execute("DELETE FROM cache_meta" + clause, params)
         conn.commit()
 
     return nb
