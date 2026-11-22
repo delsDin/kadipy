@@ -13,13 +13,12 @@ des recommandations selon les conditions climatiques en cours.
 
 ## Architecture
 
-Le module est organisé autour d'une facade principale (`Market`) qui
-orchestre six sous-modules spécialisés.
+Le module est organisé autour d'une façade principale (`Market`) qui
+orchestre cinq sous-modules spécialisés.
 
 ```
 Market
     |
-    ├── data_ingestion    -> Client WFP DataBridges + cache local
     ├── pricing           -> Normalisation des prix + détection anomalies
     ├── forecasting       -> Prévision par régression linéaire saisonnière
     ├── logistics         -> Distance réelle, coûts de transport, météo
@@ -31,18 +30,13 @@ Market
 
 ## Sous-modules
 
-### data_ingestion - Client WFP DataBridges
+### Sources de données et cache
 
-Interface avec l'API publique du Programme Alimentaire Mondial (VAM
-DataBridges) pour récupérer les historiques de prix officiels.
-
-- **Endpoints utilisés** : `/Commodities/List`, `/Markets/List`,
-  `/MarketPrices/alldata`.
-- **Cache local** : les listes de marchés et de cultures sont sauvegardées
-  dans `~/.kadi/wfp_cache.json` pour limiter les appels réseau.
-- **Fallback** : si la clé API est absente ou le réseau indisponible, le
-  module utilise silencieusement un dictionnaire de secours local pour
-  continuer à fonctionner.
+- `kadi._sources.WFPClient` récupère l'historique des prix via HAPI HumData.
+  L'identifiant d'application se configure avec `HAPI_APP_IDENTIFIER`.
+- `ExchangeRateClient` fournit les taux de change via Frankfurter.
+- `kadi.market._cache` gère un cache SQLite pour les prix et les prévisions.
+  La façade l'utilise notamment pour enregistrer les prévisions.
 
 ### pricing - Normalisation et détection d'anomalies
 
