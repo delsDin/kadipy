@@ -247,9 +247,9 @@ class Pipeline:
             "check_schema": "schema",
             "check_types": "dtypes",
             "check_ranges": "bounds",
-            "check_coords": "lat",
+            "check_coords": None,
             "check_unique": "cols",
-            "check_fk": "fk_col",
+            "check_fk": None,
         }
         validation_method = Validator._METHODES_DEPRECATED.get(
             step_name, step_name
@@ -280,7 +280,7 @@ class Pipeline:
                 param_name = validation_params.get(validation_method)
                 if param_name is None:
                     raise TypeError(
-                        f"L'étape '{step_name}' ne prend aucun argument."
+                        f"L'étape '{step_name}' ne prend pas d'argument positionnel."
                     )
                 params.setdefault(param_name, schema_or_mappings)
             elif type_etape == "normalization":
@@ -554,14 +554,16 @@ class Pipeline:
 
             elif type_etape == "validation":
                 validator = Validator(self._df)
-                if nom_methode == "quality_score":
-                    score = validator.quality_score(**params)
+                method = Validator._METHODES_DEPRECATED.get(
+                    nom_methode, nom_methode
+                )
+                validate = getattr(validator, nom_methode)
+                if method == "quality_score":
+                    score = validate(**params)
                 else:
-                    if nom_methode in ("check_schema", "validate_schema"):
+                    if method == "check_schema":
                         params = {"schema": {}, **params}
-                    est_valide, erreurs = getattr(validator, nom_methode)(
-                        **params
-                    )
+                    est_valide, erreurs = validate(**params)
                     if not est_valide:
                         logger.warning(
                             "Validation (%s) : %d anomalie(s) détectée(s).",
