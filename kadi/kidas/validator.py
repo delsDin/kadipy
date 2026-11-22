@@ -422,11 +422,11 @@ class Validator:
         # Rétrocompatibilité : ancien paramètre accepté
         if cols is None and "columns" in kwargs:
             cols = kwargs.pop("columns")
-        if cols is None:
-            cols = []
+        subset = cols if cols else None
+        cols = list(self.df.columns) if subset is None else cols
 
-        # Détection des lignes dupliquées sur les colonnes spécifiées
-        masque_doublons = self.df.duplicated(subset=cols, keep=False)
+        # Sans sélection explicite, compare toutes les colonnes.
+        masque_doublons = self.df.duplicated(subset=subset, keep=False)
         df_doublons = self.df[masque_doublons].copy()
 
         est_valide = len(df_doublons) == 0
