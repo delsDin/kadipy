@@ -8,6 +8,7 @@ nettoyage, validation et normalisation, puis met les résultats en cache.
 Son API fluide (chainable) permet une utilisation concise et lisible.
 """
 
+from copy import deepcopy
 import hashlib
 import logging
 import os
@@ -436,7 +437,7 @@ class Pipeline:
                         "normalisation": None,
                     },
                 }
-                return df_cached, rapport_cache
+                return df_cached, deepcopy(rapport_cache)
 
         # Lecture des données depuis la source et mémorisation du nombre de lignes brutes
         try:
@@ -456,8 +457,9 @@ class Pipeline:
                 f"Echec de lecture dans le pipeline : {erreur}"
             ) from erreur
 
-        # Le rapport de normalisation décrit uniquement cette exécution.
-        self._reports["normalisation"] = None
+        for key in ("nettoyage", "validation", "normalisation", "quality_score"):
+            self._reports[key] = None
+        self._reports["cache_utilise"] = False
 
         # Exécution des étapes dans l'ordre
         for etape in self._steps:
@@ -486,7 +488,7 @@ class Pipeline:
             },
         }
 
-        return self._df, rapport_final
+        return self._df, deepcopy(rapport_final)
 
     def _collect_warnings(self) -> List[str]:
         """Collecte les avertissements depuis les rapports internes.
