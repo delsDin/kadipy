@@ -11,6 +11,7 @@ Phase 4 :
 """
 
 import logging
+import warnings
 from math import isfinite
 from typing import Any, Callable
 
@@ -243,12 +244,31 @@ class Advisor:
                 - 'confidence_score'     : score de confiance de la recommandation (0-1)
                 - 'prob_pluie'           : probabilité de pluie utilisée (0 si sans météo)
         """
+        if "origine" in kwargs:
+            warnings.warn(
+                "Le paramètre 'origine' est obsolète. Utilisez 'm_from'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            m_from = kwargs.pop("origine")
+        if "destination" in kwargs:
+            warnings.warn(
+                "Le paramètre 'destination' est obsolète. Utilisez 'to'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            to = kwargs.pop("destination")
         if "market_from" in kwargs:
             m_from = kwargs.pop("market_from")
         if "market_to" in kwargs:
             to = kwargs.pop("market_to")
         if "qty_tons" in kwargs:
             qty = kwargs.pop("qty_tons")
+        if kwargs:
+            unknown = ", ".join(sorted(kwargs))
+            raise TypeError(
+                f"Advisor.arbitrage() a reçu des arguments inattendus : {unknown}"
+            )
         
         # Récupération des prix réels (ou simulés) pour les deux marchés
         prix_origine_kg, simule_origine, conf_origine = self._get_price(
