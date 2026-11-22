@@ -426,7 +426,10 @@ class Pipeline:
 
         # Lecture des données depuis la source et mémorisation du nombre de lignes brutes
         try:
-            self._df = self._source.read()
+            if NetCDFSource is not None and isinstance(self._source, NetCDFSource):
+                self._df = self._source.to_df()
+            else:
+                self._df = self._source.read()
             # Capture du nombre de lignes avant tout traitement
             self._lignes_avant = len(self._df)
             logger.info(
