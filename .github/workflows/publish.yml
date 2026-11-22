@@ -21,10 +21,10 @@ on:
     tags:
       - "v*.*.*"
 
-# Droits OIDC nécessaires pour le Trusted Publishing (connexion sans mot de passe)
+# Droits OIDC nécessaires pour le Trusted Publishing et la création de la Release GitHub
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -75,14 +75,38 @@ jobs:
       url: https://pypi.org/project/kadipy/
 
     steps:
-      # Étape 1 : Récupération des fichiers de distribution construits
+      # Étape 1 : Récupération du dépôt (pour disposer du tag et de gh release create)
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Étape 2 : Récupération des fichiers de distribution construits
       - name: Récupération des artefacts
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
-      # Étape 2 : Publication sur PyPI via Trusted Publishing (OIDC)
+      # Étape 3 : Publication sur PyPI via Trusted Publishing (OIDC)
       # Aucun token ou mot de passe requis grâce au mécanisme OIDC de PyPI
       - name: Publication sur PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+      # Étape 4 : Création automatique de la Release GitHub associée au tag
+      # afin que la section "Releases" du dépôt affiche toujours la dernière version ("Latest")
+      - name: Création de la Release GitHub
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            TAG_MSG=$(git tag -l --format='%(contents:subject)' "$TAG_NAME")
+            if [ -z "$TAG_MSG" ]; then
+              TAG_MSG="$TAG_NAME"
+            fi
+            gh release create "$TAG_NAME" --title "$TAG_MSG" --generate-notes --latest
+          fi
