@@ -2,7 +2,7 @@
 
 `Normalizer` is the agricultural data normalization class of KadiPy, tailored for the Beninese context. It gathers six transformations: column name normalization to snake_case, unit conversion to kilograms, currency conversion, crop name standardization to FAO codes, market geocoding, and creation of Shapely GPS geometries.
 
-Each method updates the internal DataFrame and returns it, allowing method chaining in a single expression. The history of applied transformations is accessible via `mappings()`.
+Transformations update the internal DataFrame and return a `pd.DataFrame`. Use `mappings()` to inspect the transformation history. Call each method on the same instance, or use `Pipeline` to chain steps.
 
 ---
 

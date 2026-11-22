@@ -7,9 +7,7 @@ mesure vers le kilogramme, conversion de devises, standardisation des noms
 de cultures vers les codes FAO, géocodage des noms de marchés, et création
 de géométries GPS shapely.
 
-Chaque méthode met à jour le DataFrame interne et le retourne, ce qui permet
-d'enchaîner les appels en une seule expression. L'historique des transformations
-appliquées est accessible via `mappings()`.
+Les transformations mettent à jour le DataFrame interne et renvoient un `pd.DataFrame`. L’historique est disponible via `mappings()`. Appelez les méthodes successivement sur la même instance, ou utilisez `Pipeline` pour chaîner les étapes.
 
 ---
 
