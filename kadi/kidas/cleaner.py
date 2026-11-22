@@ -12,7 +12,7 @@ import logging
 import re
 import unicodedata
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -98,7 +98,7 @@ class Cleaner:
             "operations": [],
         }
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Callable:
         """Intercepte les anciens noms de méthodes pour la rétrocompatibilité.
 
         Permet aux scripts utilisant les anciens noms (ex: remove_duplicates)
@@ -108,7 +108,7 @@ class Cleaner:
             name (str): Nom de la méthode demandée.
 
         Returns:
-            callable: La méthode correspondant au nouveau nom.
+            Callable: La méthode correspondant au nouveau nom.
 
         Raises:
             AttributeError: Si le nom n'est pas un alias connu.

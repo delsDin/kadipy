@@ -76,7 +76,9 @@ class Hydrology:
         from kadi._sources.soilgrids import fetch_soil_type
         return fetch_soil_type(location.lat, location.lon)
 
-    def et0_hargreaves(self, tmin, tmax, day_of_year) -> float:
+    def et0_hargreaves(
+        self, tmin: float, tmax: float, day_of_year: int
+    ) -> float:
         """
         Calcule l'évapotranspiration de référence (ETo) par Hargreaves-Samani.
 

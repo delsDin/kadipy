@@ -63,19 +63,21 @@ class Pipeline:
         _cache (Cache): Instance du gestionnaire de cache kidas.
 
     Exemple:
-        >>> pipeline = Pipeline()
-        >>> df, rapport = (
-        ...     pipeline
-        ...     .add_source('recolte_2024.xlsx')
-        ...     .add_step('drop_dupes')
-        ...     .add_step('fill_missing', strategy='mean')
-        ...     .add_step('check_schema', {'culture': 'str', 'rendement_kg': 'float'})
-        ...     .run(cache=True)
-        ... )
-        >>> print(rapport['nb_rows_out'])
-        150
-        >>> print(rapport['quality_score']['overall'])
-        0.97
+        ```python
+        pipeline = Pipeline()
+        df, rapport = (
+            pipeline
+            .add_source('recolte_2024.xlsx')
+            .add_step('drop_dupes')
+            .add_step('fill_missing', strategy='mean')
+            .add_step('check_schema', {'culture': 'str', 'rendement_kg': 'float'})
+            .run(cache=True)
+        )
+        print(rapport['nb_rows_out'])
+
+        print(rapport['quality_score']['overall'])
+        # Exemple de résultat : 0.97
+        ```
     """
 
     def __init__(self) -> None:
