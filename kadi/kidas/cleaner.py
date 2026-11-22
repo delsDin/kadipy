@@ -147,7 +147,7 @@ class Cleaner:
             pd.DataFrame: DataFrame sans doublons.
         """
         # Comptage des doublons avant suppression
-        nb_doublons = int(self.df.duplicated(subset=subset).sum())
+        nb_doublons = int(self.df.duplicated(subset=subset, keep=keep).sum())
 
         if nb_doublons > 0:
             # Suppression des doublons
