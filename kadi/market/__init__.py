@@ -24,6 +24,7 @@ from kadi.config import CONFIG
 
 # Noms publics officiels (v1.2.0+)
 __all__ = [
+    "Market",
     "Pricing",
     "Forecasting",
     "Logistics",
