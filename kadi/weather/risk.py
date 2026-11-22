@@ -363,7 +363,11 @@ class Risk:
             DataError: Si les données de prévision sont absentes ou vides.
             ValidationError: Si le seuil n'est pas fini et strictement positif.
         """
-        if not np.isfinite(min_mm) or min_mm <= 0:
+        try:
+            valid_threshold = bool(np.isfinite(min_mm) and min_mm > 0)
+        except (TypeError, ValueError):
+            valid_threshold = False
+        if not valid_threshold:
             raise ValidationError("Le seuil 'min_mm' doit être strictement positif.")
 
         if self.forecast is None or self.forecast.empty:
