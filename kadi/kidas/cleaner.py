@@ -40,7 +40,7 @@ class Cleaner:
     et texte non normalisé.
 
     Chaque méthode de nettoyage met à jour le rapport interne (_report)
-    et retourne le DataFrame modifié. Cela permet un usage enchaîné.
+    et retourne le DataFrame modifié. Appelez les méthodes sur l'instance.
 
     Attributs:
         df (pd.DataFrame): Le DataFrame en cours de nettoyage.
@@ -48,12 +48,9 @@ class Cleaner:
 
     Exemple:
         >>> cleaner = Cleaner(df)
-        >>> df_propre = (
-        ...     cleaner
-        ...     .drop_dupes()
-        ...     .fill_missing(strategy='mean')
-        ...     .parse_dates(cols=['date_recolte'])
-        ... )
+        >>> cleaner.drop_dupes()
+        >>> cleaner.fill_missing(strategy='mean')
+        >>> df_propre = cleaner.parse_dates(cols=['date_recolte'])
         >>> print(cleaner.report())
     """
 

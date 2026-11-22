@@ -7,9 +7,7 @@ mesure vers le kilogramme, conversion de devises, standardisation des noms
 de cultures vers les codes FAO, géocodage des noms de marchés, et création
 de géométries GPS shapely.
 
-Chaque méthode met à jour le DataFrame interne et le retourne, ce qui permet
-d'enchaîner les appels en une seule expression. L'historique des transformations
-appliquées est accessible via `mappings()`.
+Les transformations mettent à jour le DataFrame interne et renvoient un `pd.DataFrame`. L’historique est disponible via `mappings()`. Appelez les méthodes successivement sur la même instance, ou utilisez `Pipeline` pour chaîner les étapes.
 
 ---
 
@@ -294,14 +292,11 @@ from kadi.kidas import Normalizer
 df = kd.read_csv("recoltes_2024.csv")
 normalizer = Normalizer(df)
 
-df_norm = (
-    normalizer
-    .norm_cols()
-    .std_crops(col="culture")
-    .convert_units({"rendement_kg": "sac_100kg", "production": "tonne"})
-    .std_markets(col="marche")
-    .std_coords(lat="latitude", lon="longitude")
-)
+normalizer.norm_cols()
+normalizer.std_crops(col="culture")
+normalizer.convert_units({"rendement_kg": "sac_100kg", "production": "tonne"})
+normalizer.std_markets(col="marche")
+df_norm = normalizer.std_coords(lat="latitude", lon="longitude")
 
 hist = normalizer.mappings()
 print(f"Colonnes renommées : {len(hist['colonnes'])}")
