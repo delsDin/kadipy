@@ -363,10 +363,12 @@ class Hydrology:
         kcs = {
             "maize":   {"ini": 0.3,  "mid": 1.2,  "end": 0.35},
             "rice":    {"ini": 1.05, "mid": 1.2,  "end": 0.9},
-            "manioc":  {"ini": 0.3,  "mid": 0.8,  "end": 0.3},
+            "cassava": {"ini": 0.3,  "mid": 0.8,  "end": 0.3},
             "sorghum": {"ini": 0.3,  "mid": 1.0,  "end": 0.55},
             "tomato":  {"ini": 0.6,  "mid": 1.15, "end": 0.7},
         }
+        if crop == "manioc":
+            crop = "cassava"
         if crop not in kcs:
             raise CropError(
                 f"Culture non reconnue pour le coefficient FAO-56 : {crop}"
