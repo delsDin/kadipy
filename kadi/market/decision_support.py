@@ -11,6 +11,7 @@ Phase 4 :
 """
 
 import logging
+import warnings
 
 from kadi.config import CONFIG
 
@@ -243,8 +244,18 @@ class Advisor:
                 - 'prob_pluie'           : probabilité de pluie utilisée (0 si sans météo)
         """
         if "origine" in kwargs:
+            warnings.warn(
+                "Le paramètre 'origine' est obsolète. Utilisez 'm_from'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             m_from = kwargs.pop("origine")
         if "destination" in kwargs:
+            warnings.warn(
+                "Le paramètre 'destination' est obsolète. Utilisez 'to'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             to = kwargs.pop("destination")
         if "market_from" in kwargs:
             m_from = kwargs.pop("market_from")
