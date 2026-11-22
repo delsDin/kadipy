@@ -522,6 +522,8 @@ class Normalizer:
             if coords_trouvees:
                 lats.append(coords_trouvees["lat"])
                 lons.append(coords_trouvees["lon"])
+                if nom_norm:
+                    self._mappings["marches"][valeur] = coords_trouvees.copy()
             else:
                 lats.append(None)
                 lons.append(None)
