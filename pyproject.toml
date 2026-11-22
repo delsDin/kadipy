@@ -128,6 +128,9 @@ dev = [
     "mkdocs-material>=8.0",
     "mkdocs-static-i18n>=1.2",
     "mkdocstrings[python]>=0.20",
+    # La dernière version de mkdocstrings compatible avec Python 3.10
+    # utilise encore l'ancienne signature de Highlight.
+    "pymdown-extensions<12; python_version == '3.10'",
 ]
 geospatial = [
     # Découpage et manipulation des rasters GeoTIFF (CHIRPS)

@@ -14,9 +14,7 @@ Il expose :
 
 Exemples d'utilisation :
 
-    >>> import pandas as pd
-
-from kadi.io import read_csv, write_csv
+    >>> from kadi.io import read_csv, write_csv
     >>> df = read_csv("recoltes_2024.csv")
     >>> write_csv(df, "recoltes_copie.csv")
 
@@ -28,6 +26,8 @@ from kadi.io import read_csv, write_csv
 
 import os
 from typing import Any
+
+import pandas as pd
 
 # Import de la classe de base abstraite
 from kadi.kidas.sources.base import Source
@@ -95,7 +95,7 @@ def read_json(filepath, **kwargs) -> pd.DataFrame:
     return JSONSource(filepath, **kwargs).read()
 
 
-def read_netcdf(filepath, **kwargs) -> pd.DataFrame:
+def read_netcdf(filepath, **kwargs) -> Any:
     """
     Lit un fichier NetCDF via NetCDFSource.
 
@@ -104,7 +104,7 @@ def read_netcdf(filepath, **kwargs) -> pd.DataFrame:
         **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.
 
     Returns:
-        xarray.Dataset | pandas.DataFrame: Contenu du fichier NetCDF.
+        xarray.DataArray: Données extraites du fichier NetCDF.
 
     Raises:
         ImportError: Si xarray ou netCDF4 n'est pas disponible.

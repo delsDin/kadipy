@@ -83,8 +83,8 @@ class Pipeline:
         print(rapport['nb_rows_out'])
 
         print(rapport['quality_score']['overall'])
+        # Exemple de résultat : 0.97
         ```
-        0.97
     """
 
     def __init__(self) -> None:
