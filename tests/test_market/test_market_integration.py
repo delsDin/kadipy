@@ -478,7 +478,7 @@ class TestWeatherMarketIntegration:
         """
         from unittest.mock import MagicMock
 
-        ws = MagicMock()
+        ws = MagicMock(spec=["rain_probability", "drought_index"])
         # Probabilité de pluie élevée demain (saison des pluies)
         ws.rain_probability.return_value = {
             "tomorrow": 0.9,
