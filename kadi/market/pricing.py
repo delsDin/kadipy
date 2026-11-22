@@ -12,6 +12,7 @@ import datetime
 import logging
 
 from kadi.market._normalization import (
+    _normalize_unit,
     get_container_weight_kg,
 )
 from kadi.config import EXCHANGE_RATES as _EXCHANGE_RATES_FALLBACK
@@ -30,6 +31,40 @@ _DEPRECATED_METHODS = {
     "interpolate_gaps": "fill_gaps",
     "get_data_source": "source",
 }
+
+
+_MISSING = object()
+
+
+def _legacy_options(options, **kwargs):
+    """Résout les mots-clés historiques des méthodes Pricing.
+
+    Args:
+        options (dict): Association ancien nom, valeur et nom actuel.
+        **kwargs: Anciens arguments reçus et arguments inconnus.
+
+    Returns:
+        list: Valeurs dans l'ordre des options fournies.
+
+    Raises:
+        TypeError: Si un argument est inconnu ou manque.
+    """
+    values = []
+    for old, (current, value) in options.items():
+        if old in kwargs:
+            warnings.warn(
+                f"Le paramètre '{old}' est obsolète. Utilisez '{current}'.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+            value = kwargs.pop(old)
+        if value is _MISSING:
+            raise TypeError(f"Le paramètre '{current}' est obligatoire.")
+        values.append(value)
+    if kwargs:
+        unknown = ", ".join(sorted(kwargs))
+        raise TypeError(f"Arguments inattendus pour Pricing : {unknown}")
+    return values
 
 
 class Pricing:
@@ -122,6 +157,7 @@ class Pricing:
         market: str,
         days: int = 365,
         sim: bool = None,
+        **kwargs: Any,
     ) -> pd.DataFrame:
         """
         Récupère les prix historiques pour une culture et un marché donnés.
@@ -141,11 +177,15 @@ class Pricing:
             days (int, optional): Nombre de jours d'historique. Défaut à 365.
             sim (bool, optional): Surcharge le mode simulation.
                 Si None, hérite de self.sim. Défaut : None.
+            **kwargs (Any): Anciens paramètres acceptés (days_back, simulated).
 
         Returns:
             pd.DataFrame: DataFrame avec les colonnes 'date', 'price', 'unit',
                 'sim', 'source', 'fetched_at', 'confidence_score'.
         """
+        days, sim = _legacy_options(
+            {"days_back": ("days", days), "simulated": ("sim", sim)}, **kwargs
+        )
         # Résolution du mode simulation : paramètre local ou instance
         mode_simule = self.sim if sim is None else sim
 
@@ -167,7 +207,10 @@ class Pricing:
 
         if self.client is not None:
             # Appel au client WFP (qui gère lui-même le retry, le cache et le fallback)
-            df_prices = self.client.get_market_prices(market, crop, time_range)
+            fetch = getattr(self.client, "prices", None)
+            if not callable(fetch):
+                fetch = self.client.get_market_prices
+            df_prices = fetch(market, crop, time_range)
         else:
             # Pas de client configuré : on génère des données de simulation
             logger.warning(
@@ -233,7 +276,9 @@ class Pricing:
             "confidence_score": 0.1,
         })
 
-    def convert_unit(self, value: float, unit: str, crop: str = None) -> float:
+    def convert_unit(
+        self, value: float, unit: str = _MISSING, crop: str = None, **kwargs: Any
+    ) -> float:
         """
         Convertit une valeur de prix vers le standard XOF/kg.
 
@@ -255,14 +300,16 @@ class Pricing:
             unit (str): L'unité d'origine (ex: 'XOF/Tonne', 'USD/kg', 'XOF/sac').
             crop (str, optional): Code de la culture, utilisé pour les poids
                 de contenants spécifiques (ex: poids d'un sac de maïs vs riz).
+            **kwargs (Any): Anciens paramètres acceptés (unit_orig).
 
         Returns:
             float: Le prix normalisé en XOF/kg.
         """
+        unit, = _legacy_options({"unit_orig": ("unit", unit)}, **kwargs)
         valeur = float(value)
 
         # Normalisation de l'unité pour la comparaison
-        unite = unit.strip().lower()
+        unite = _normalize_unit(unit)
 
         # --- Conversion des tonnes ---
         if "tonne" in unite or "/t" == unite[-2:]:
@@ -304,7 +351,9 @@ class Pricing:
         )
         return valeur
 
-    def anomalies(self, series: pd.DataFrame, z: float = 3.0) -> pd.DataFrame:
+    def anomalies(
+        self, series: pd.DataFrame = _MISSING, z: float = 3.0, **kwargs: Any
+    ) -> pd.DataFrame:
         """
         Détecte les anomalies dans une série de prix par la méthode du Z-score.
 
@@ -314,11 +363,15 @@ class Pricing:
         Args:
             series (pd.DataFrame): DataFrame contenant une colonne 'price'.
             z (float, optional): Seuil d'anomalie. Défaut à 3.0.
+            **kwargs (Any): Anciens paramètres acceptés (price_series, z_threshold).
 
         Returns:
             pd.DataFrame: DataFrame original avec une colonne booléenne 'is_anomaly'.
         """
         # Copie pour ne pas modifier le DataFrame d'entrée
+        series, z = _legacy_options(
+            {"price_series": ("series", series), "z_threshold": ("z", z)}, **kwargs
+        )
         df_result = series.copy()
 
         if "price" not in df_result.columns:
@@ -341,7 +394,9 @@ class Pricing:
 
         return df_result
 
-    def fill_gaps(self, series: pd.DataFrame, max_gap: int = 7) -> pd.DataFrame:
+    def fill_gaps(
+        self, series: pd.DataFrame = _MISSING, max_gap: int = 7, **kwargs: Any
+    ) -> pd.DataFrame:
         """
         Comble les valeurs manquantes dans une série de prix par interpolation linéaire.
 
@@ -352,11 +407,15 @@ class Pricing:
         Args:
             series (pd.DataFrame): DataFrame contenant une colonne 'price'.
             max_gap (int, optional): Nombre maximum de jours à interpoler. Défaut à 7.
+            **kwargs (Any): Anciens paramètres acceptés (price_series, max_gap_days).
 
         Returns:
             pd.DataFrame: DataFrame avec les trous courts comblés par interpolation.
         """
         # Copie pour préserver le DataFrame d'entrée
+        series, max_gap = _legacy_options(
+            {"price_series": ("series", series), "max_gap_days": ("max_gap", max_gap)}, **kwargs
+        )
         df_interpolated = series.copy()
 
         if "price" in df_interpolated.columns:
@@ -369,7 +428,9 @@ class Pricing:
 
         return df_interpolated
 
-    def source(self, series: Optional[pd.DataFrame]) -> str:
+    def source(
+        self, series: Optional[pd.DataFrame] = _MISSING, **kwargs: Any
+    ) -> str:
         """
         Identifie la source des données d'une série de prix.
 
@@ -378,10 +439,12 @@ class Pricing:
 
         Args:
             series (pd.DataFrame): DataFrame retourné par fetch().
+            **kwargs (Any): Anciens paramètres acceptés (price_series).
 
         Returns:
             str: La source identifiée ('wfp-vam', 'ratin', 'scrape-local', 'simulated').
         """
+        series, = _legacy_options({"price_series": ("series", series)}, **kwargs)
         if series is None or series.empty:
             return "wfp-vam"
 

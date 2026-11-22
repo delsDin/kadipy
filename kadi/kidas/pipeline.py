@@ -8,6 +8,7 @@ nettoyage, validation et normalisation, puis met les résultats en cache.
 Son API fluide (chainable) permet une utilisation concise et lisible.
 """
 
+from copy import deepcopy
 import hashlib
 import json
 import logging
@@ -285,7 +286,21 @@ class Pipeline:
                     )
                 params.setdefault(param_name, schema_or_mappings)
             elif type_etape == "normalization":
-                params["mappings"] = schema_or_mappings
+                method = Normalizer._METHODES_DEPRECATED.get(step_name, step_name)
+                param = {
+                    "convert_units": "unit_map",
+                    "std_crops": "col",
+                    "std_markets": "col",
+                    "convert_currency": "col",
+                    "norm_cols": "mappings",
+                    "normalize": "mappings",
+                    "mappings": "mappings",
+                }.get(method)
+                if param is None:
+                    raise TypeError(
+                        f"L'étape '{step_name}' ne prend pas d'argument positionnel."
+                    )
+                params.setdefault(param, schema_or_mappings)
 
         # Enregistrement de l'étape dans la file
         self._steps.append({
@@ -413,11 +428,14 @@ class Pipeline:
                     cle_cache,
                 )
                 rapport_cache["cache_utilise"] = True
-                return df_cached, rapport_cache
+                return df_cached, deepcopy(rapport_cache)
 
         # Lecture des données depuis la source et mémorisation du nombre de lignes brutes
         try:
-            self._df = self._source.read()
+            if NetCDFSource is not None and isinstance(self._source, NetCDFSource):
+                self._df = self._source.to_df()
+            else:
+                self._df = self._source.read()
             # Capture du nombre de lignes avant tout traitement
             self._lignes_avant = len(self._df)
             logger.info(
@@ -430,8 +448,9 @@ class Pipeline:
                 f"Echec de lecture dans le pipeline : {erreur}"
             ) from erreur
 
-        # Le rapport de normalisation décrit uniquement cette exécution.
-        self._reports["normalisation"] = None
+        for key in ("nettoyage", "validation", "normalisation", "quality_score"):
+            self._reports[key] = None
+        self._reports["cache_utilise"] = False
 
         # Exécution des étapes dans l'ordre
         for etape in self._steps:
@@ -459,10 +478,8 @@ class Pipeline:
         if cache and self._df is not None:
             metadata = json.loads(json.dumps(rapport_final, default=str))
             self._cache.set(cle_cache, self._df, meta={"pipeline_report": metadata})
-            self._reports["cache_utilise"] = True
-            rapport_final["cache_utilise"] = True
 
-        return self._df, rapport_final
+        return self._df, deepcopy(rapport_final)
 
     def _collect_warnings(self) -> List[str]:
         """Collecte les avertissements depuis les rapports internes.

@@ -67,7 +67,7 @@ pipeline.add_step("std_crops", col="culture")
 |------|-------------|
 | `'drop_dupes'` | Removes duplicate rows |
 | `'fill_missing'` | Imputes missing values (`strategy` parameter) |
-| `'drop_outliers'` | Removes statistical outliers (`method`, `threshold` parameters) |
+| `'drop_outliers'` | Removes statistical outliers (`method`, `thresh` parameters) |
 | `'parse_dates'` | Normalizes date columns to `datetime64` |
 | `'norm_text'` | Normalizes text strings (accents, case, whitespace) |
 | `'strip_chars'` | Removes unwanted special characters |
@@ -88,11 +88,11 @@ pipeline.add_step("std_crops", col="culture")
 | Name | Description |
 |------|-------------|
 | `'norm_cols'` | Standardizes column names to `snake_case` |
-| `'convert_units'` | Converts units (kg/tonne, ha/m2, etc.) |
-| `'convert_currency'` | Converts currencies via `ExchangeRateClient` |
+| `'convert_units'` | Converts mass units (tonne, sack, tiya, etc.) to kg |
+| `'convert_currency'` | Converts currencies using internal fixed rates |
 | `'std_crops'` | Normalizes crop names to KadiPy reference |
 | `'std_markets'` | Normalizes market names |
-| `'std_coords'` | Normalizes GPS coordinates (format, rounding) |
+| `'std_coords'` | Creates a `geometry` column of `shapely.geometry.Point` objects |
 
 **Short Aliases:**
 
@@ -213,7 +213,7 @@ df, report = (
         "date":         "datetime",
     })
     .add_step("std_crops", col="culture")
-    .add_step("norm_cols", {"prix_xof_kg": "price_xof"})
+    .add_step("norm_cols")
     .run(cache=True)
 )
 

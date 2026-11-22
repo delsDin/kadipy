@@ -211,12 +211,15 @@ class APISource(Source):
                 # Parse et retour de la réponse JSON
                 return reponse.json()
 
-            except requests.exceptions.ConnectionError as erreur:
+            except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+            ) as erreur:
                 derniere_erreur = erreur
                 if tentative < retries:
                     delai_attente = min(backoff * (2 ** tentative), _MAX_BACKOFF_SEC)
                     logger.warning(
-                        "Erreur de connexion. Réessai dans %.1f sec.", delai_attente
+                        "Erreur réseau. Réessai dans %.1f sec.", delai_attente
                     )
                     time.sleep(delai_attente)
 

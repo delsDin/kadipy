@@ -144,8 +144,8 @@ print(risque["recommendation"])
 
 | Zone | Latitude | Régime pluviométrique | Algorithme utilisé |
 |------|----------|-----------------------|--------------------|
-| Nord | > 9.5° N | Unimodal | Sivakumar |
-| Centre | 7.5° - 9.5° N | Transition | Sivakumar |
+| Nord | ≥ 9.0° N | Unimodal | Sivakumar |
+| Centre | 7.5° N ≤ lat < 9.0° N | Bimodal | Walter-Anyadike bimodal (profil hybride) |
 | Sud | < 7.5° N | Bimodal | Walter-Anyadike |
 
 ---

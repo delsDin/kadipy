@@ -80,13 +80,17 @@ class ExcelSource(Source):
 
         # Cache interne pour la ligne d'en-tête détectée
         self._header: Optional[int] = None
+        self._headers_by_sheet: dict[Union[str, int], int] = {}
 
-    def _sniff_header(self) -> int:
+    def _sniff_header(self, sheet: Optional[Union[str, int]] = None) -> int:
         """Détecte automatiquement la ligne contenant les en-têtes de colonnes.
 
         Inspecte les premières lignes du fichier et cherche la première ligne
         contenant des valeurs non-null et hétérogènes (mélange de types),
         ce qui caractérise une ligne d'en-tête typique.
+
+        Args:
+            sheet (str | int, optional): Feuille à inspecter, ou feuille par défaut.
 
         Returns:
             int: Index (0-based) de la ligne d'en-tête détectée.
@@ -104,7 +108,7 @@ class ExcelSource(Source):
             # Lecture des premières lignes sans en-tête pour l'inspection
             df_brut = pd.read_excel(
                 self.path,
-                sheet_name=self.sheet,
+                sheet_name=sheet if sheet is not None else self.sheet,
                 header=None,
                 nrows=_MAX_HEADER_SCAN_ROWS,
             )
@@ -191,7 +195,8 @@ class ExcelSource(Source):
         """
         try:
             # Lecture de la feuille entière pour les métadonnées
-            df = pd.read_excel(self.path, sheet_name=sheet)
+            source = ExcelSource(self.path, sheet=sheet, header=self.header)
+            df = source.read()
             return {
                 "sheet": sheet,
                 "rows": len(df),
@@ -254,11 +259,11 @@ class ExcelSource(Source):
 
         # Détermination de la ligne d'en-tête
         if self.header == "auto":
-            ligne_entete = (
-                self._header
-                if self._header is not None
-                else self._sniff_header()
-            )
+            ligne_entete = self._headers_by_sheet.get(feuille)
+            if ligne_entete is None:
+                ligne_entete = self._sniff_header(feuille)
+                self._headers_by_sheet[feuille] = ligne_entete
+            self._header = ligne_entete
         else:
             ligne_entete = int(self.header)
 

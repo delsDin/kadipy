@@ -277,7 +277,7 @@ source = CSVSource("recoltes.csv", sep=";", decimal=",")
 df     = source.read(n=100)    # Read first 100 rows
 meta   = source.info()         # Metadata
 ok     = source.ping()         # Accessibility test
-source.write(df, "copie.csv") # Rewriting
+CSVSource("copie.csv", sep=";", decimal=",").write(df) # Rewriting
 ```
 
 Source classes implement the abstract base class `Source`, which defines the shared contract: `read()`, `write()`, `info()`, `ping()`.
