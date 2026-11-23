@@ -221,6 +221,31 @@ class TestValidator:
         assert isinstance(rapport, dict)
         assert "validations" in rapport
 
+    @pytest.mark.parametrize("ref_invalide", [None, "abc", b"abc", 123, True])
+    def test_check_fk_ref_invalide_leve_validation_error(self, ref_invalide):
+        """check_fk() doit lever ValidationError si ref est absent ou non collection."""
+        df = pd.DataFrame({"marche": ["Cotonou", "Parakou"]})
+        validator = Validator(df)
+        with pytest.raises(ValidationError):
+            validator.check_fk("marche", ref=ref_invalide)
+
+    def test_check_fk_ensemble_vide_et_alias_reference_set(self):
+        """check_fk() accepte set() et conserve la rétrocompatibilité reference_set."""
+        df = pd.DataFrame({"marche": ["Cotonou", None, "Parakou"]})
+        validator = Validator(df)
+
+        # Ensemble vide valide : toutes les valeurs non nulles sont manquantes
+        valide_vide, df_manquants = validator.check_fk("marche", ref=set())
+        assert valide_vide is False
+        assert len(df_manquants) == 2
+
+        # Alias déprécié reference_set=
+        valide_alias, df_alias = validator.check_fk(
+            "marche", reference_set={"Cotonou", "Parakou"}
+        )
+        assert valide_alias is True
+        assert df_alias.empty
+
 
 # =============================================================================
 # Tests Normalizer
