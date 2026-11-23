@@ -72,6 +72,31 @@ class TestCleaner:
         with pytest.raises(CleanError):
             cleaner.drop_outliers(method="methode_invalide")
 
+    @pytest.mark.parametrize(
+        "values",
+        [
+            [10.0, 10.0, 10.0, 10.0],
+            [0.1, 0.1, 0.1],
+            [42.0],
+        ],
+    )
+    def test_drop_outliers_zscore_colonne_constante_sans_warning(self, values):
+        """zscore sur colonne constante ou singleton ne supprime rien et n'émet aucun warning."""
+        import warnings
+
+        df = pd.DataFrame({"val": values})
+        cleaner = Cleaner(df)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            df_propre, df_outliers = cleaner.drop_outliers(method="zscore")
+
+        runtime_warnings = [
+            w for w in caught if issubclass(w.category, RuntimeWarning)
+        ]
+        assert not runtime_warnings
+        assert len(df_propre) == len(values)
+        assert df_outliers.empty
+
     def test_parse_dates_convertit_colonne(self, sample_df):
         """Vérifie que parse_dates() convertit une colonne en datetime64."""
         cleaner = Cleaner(sample_df)
