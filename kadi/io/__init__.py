@@ -206,7 +206,7 @@ def write_netcdf(data, filepath: str, **kwargs) -> bool:
     Écrit des données dans un fichier NetCDF via NetCDFSource.
 
     Args:
-        data (pandas.DataFrame | xarray.Dataset): Les données à exporter.
+        data (pandas.DataFrame): Les données à exporter.
         filepath (str): Chemin du fichier NetCDF de destination.
         **kwargs (Any): Paramètres additionnels transmis à NetCDFSource.write().
 
