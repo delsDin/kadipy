@@ -37,7 +37,8 @@ kd.ping("recoltes_2024.csv")      # Vérifie si la source est accessible
 ## Fonctions de lecture
 
 Ces fonctions lisent les données depuis une source et retournent un
-`pandas.DataFrame`. Chaque fonction accepte des arguments optionnels transmis
+`pandas.DataFrame`, sauf la lecture NetCDF qui retourne un
+`xarray.DataArray`. Chaque fonction accepte des arguments optionnels transmis
 à la classe source sous-jacente.
 
 ### `read_csv(filepath, **kwargs)`
@@ -108,7 +109,8 @@ Lit un fichier NetCDF (`.nc`, `.netcdf`). Nécessite les dépendances optionnell
 da = kd.read_netcdf("chirps_2024.nc")
 ```
 
-**Retour :** `xarray.Dataset` ou `pandas.DataFrame` selon les options passées.
+**Retour :** `xarray.DataArray`. Pour obtenir un tableau `pandas.DataFrame`,
+utilisez `kd.NetCDFSource(filepath).to_df()`.
 
 **Exception :** `ImportError` si `xarray` ou `netCDF4` n'est pas installé.
 
