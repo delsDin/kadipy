@@ -247,8 +247,17 @@ class Hydrology:
         kc = self.crop_kc(self.crop, "mid")
 
         precip_arr = self.rainfall.to_numpy()
-        tmin_arr = self.temperature["temperature_min"].to_numpy()
-        tmax_arr = self.temperature["temperature_max"].to_numpy()
+        # Associer les températures aux dates des précipitations
+        temperature = self.temperature.reindex(self.rainfall.index)
+        if (
+            temperature[["temperature_min", "temperature_max"]]
+            .isna()
+            .any()
+            .any()
+        ):
+            raise DataError("Températures manquantes pour le bilan hydrique.")
+        tmin_arr = temperature["temperature_min"].to_numpy()
+        tmax_arr = temperature["temperature_max"].to_numpy()
         dates = self.rainfall.index
         dayofyear_arr = dates.dayofyear.to_numpy()
 

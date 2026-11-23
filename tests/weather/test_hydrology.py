@@ -134,3 +134,31 @@ def test_et0_penman_plage_realiste_benin(mock_resolve_soil, hydrology_setup):
     eto = hydro.et0_fao56_penman(tmin=24.0, tmax=34.0, humidity=65.0, wind_speed=2.5, solar_rad=22.0)
 
     assert 2.0 <= eto <= 10.0
+
+
+def test_water_balance_aligne_temperatures_par_date():
+    """L'ordre des lignes de température ne doit pas changer l'association par date."""
+    location = Location(lat=10.0, lon=2.0, name="Parakou")
+    dates = pd.date_range("2025-05-01", periods=2)
+    precip = pd.Series([0.0, 0.0], index=dates)
+    temp = pd.DataFrame(
+        {
+            "temperature_min": [15.0, 25.0],
+            "temperature_max": [25.0, 40.0],
+        },
+        index=dates,
+    )
+
+    expected = Hydrology(
+        location, precip, temp, soil_type="ferrugineux"
+    ).water_balance()
+    actual = Hydrology(
+        location, precip, temp.iloc[::-1], soil_type="ferrugineux"
+    ).water_balance()
+    pd.testing.assert_frame_equal(actual, expected)
+
+    # Une date absente dans les températures doit lever DataError
+    with pytest.raises(DataError):
+        Hydrology(
+            location, precip, temp.iloc[:1], soil_type="ferrugineux"
+        ).water_balance()
