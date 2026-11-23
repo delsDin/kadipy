@@ -407,12 +407,18 @@ class Pipeline:
                 "Aucune source configurée. Appelez add_source() avant run()."
             )
 
-        # Génération d'une clé de cache sécurisée : hachage SHA-256 du chemin brut,
-        # tronqué à 16 caractères hexadécimaux pour éviter les collisions et les
-        # erreurs d'encodage avec des chemins contenant des espaces ou des accents.
+        # Génération d'une clé de cache sécurisée : hachage SHA-256 combinant le
+        # chemin brut, les options de feuille/en-tête Excel et les étapes.
+        source_options = {}
+        if isinstance(self._source, ExcelSource):
+            source_options = {
+                "sheet": self._source.sheet,
+                "header": self._source.header,
+            }
         _empreinte = hashlib.sha256(
             json.dumps(
-                [str(self._source.path), self._steps], default=repr,
+                [str(self._source.path), source_options, self._steps],
+                default=repr,
                 ensure_ascii=False,
             ).encode("utf-8")
         ).hexdigest()[:16]
