@@ -91,6 +91,39 @@ def test_growing_degree_days_insufficient_data(nord_setup):
         pheno.growing_degree_days('maize', '2026-05-01', '2026-05-10')
 
 
+def test_gdd_temperatures_manquantes_leve_data_error():
+    """Une période sans aucune température moyenne valide doit lever DataError."""
+    location = Location(lat=10.0, lon=2.0, name="Natitingou")
+    dates = pd.date_range("2025-05-01", periods=2)
+    precip = pd.Series([0.0, 0.0], index=dates)
+
+    # Tmin et Tmax entièrement manquants
+    temp_nan = pd.DataFrame(
+        {"temperature_min": [np.nan, np.nan], "temperature_max": [np.nan, np.nan]},
+        index=dates,
+    )
+    with pytest.raises(DataError):
+        Phenology(location, precip, temp_nan).gdd("maize", dates[0], dates[-1])
+
+    # Une seule colonne manquante suffit à rendre tmean inexploitable
+    temp_partiel = pd.DataFrame(
+        {"temperature_min": [np.nan, np.nan], "temperature_max": [30.0, 32.0]},
+        index=dates,
+    )
+    with pytest.raises(DataError):
+        Phenology(location, precip, temp_partiel).gdd("maize", dates[0], dates[-1])
+
+    # Températures valides mais sous Tbase : 0.0 reste attendu
+    temp_froid = pd.DataFrame(
+        {"temperature_min": [5.0, 6.0], "temperature_max": [8.0, 9.0]},
+        index=dates,
+    )
+    res_froid = Phenology(location, precip, temp_froid).gdd(
+        "maize", dates[0], dates[-1]
+    )
+    assert res_froid["gdd_accumulated"] == 0.0
+
+
 # ---------------------------------------------------------------------------
 # Tests de l'onset
 # ---------------------------------------------------------------------------

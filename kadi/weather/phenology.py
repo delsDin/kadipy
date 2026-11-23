@@ -266,6 +266,10 @@ class Phenology:
 
         # Calcul GDD journalier : (Tmax + Tmin) / 2 - Tbase
         tmean = (period["temperature_max"] + period["temperature_min"]) / 2.0
+        if not tmean.notna().any():
+            raise DataError(
+                "Aucune température exploitable sur la période GDD."
+            )
         daily_gdd = tmean - tbase
         # GDD ne peut pas être négatif
         daily_gdd[daily_gdd < 0] = 0
