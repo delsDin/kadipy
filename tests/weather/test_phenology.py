@@ -142,3 +142,24 @@ def test_onset_donnees_vides(nord_setup):
     pheno = Phenology(location, pd.Series(dtype=float), temp_df)
     with pytest.raises(DataError):
         pheno.onset()
+
+
+def test_cessation_ne_depasse_pas_annee_courante():
+    """La durée de saison n'utilise pas un onset de l'année suivante."""
+    location = Location(lat=10.0, lon=2.0, name="Natitingou")
+    dates = pd.date_range("2024-05-01", "2025-06-03")
+    precip = pd.Series(0.0, index=dates)
+    precip.loc["2024-09-01"] = 20.0
+    precip.loc["2025-05-01":"2025-05-03"] = 7.0
+    precip.loc["2025-05-04":"2025-06-03"] = 1.0
+    temp = pd.DataFrame(
+        {
+            "temperature_min": 22.0,
+            "temperature_max": 32.0,
+        },
+        index=dates,
+    )
+
+    result = Phenology(location, precip, temp).cessation()
+    assert result["cessation_1"] == "2024-09-01"
+    assert result["duration_days"] == 0

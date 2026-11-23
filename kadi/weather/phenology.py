@@ -337,7 +337,9 @@ class Phenology:
             pd.Timestamp: Date d'onset estimée, ou None si non détectée.
         """
         try:
-            series = self.rainfall.loc[search_start_date:]
+            year = pd.Timestamp(search_start_date).year
+            # Borner la recherche à l'année civile pour ne pas capturer l'année suivante
+            series = self.rainfall.loc[search_start_date:f"{year}-12-31"]
         except KeyError:
             return None
 
