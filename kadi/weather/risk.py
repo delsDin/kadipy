@@ -225,12 +225,14 @@ class Risk:
             )
 
         # États : 0 = sec, 1 = humide
-        states = (self.rainfall >= thresh).astype(int)
+        states = (self.rainfall >= thresh).astype(float)
+        # Préserver les lacunes comme NaN pour éviter de fausses transitions sèches
+        states = states.where(self.rainfall.notna())
 
-        # Construction de la matrice de transitions
+        # Construction de la matrice de transitions sur paires adjacentes valides
         transitions = pd.DataFrame(
             {"current": states.iloc[:-1].values, "next": states.iloc[1:].values}
-        )
+        ).dropna()
 
         counts = transitions.groupby(["current", "next"]).size().unstack(fill_value=0)
 

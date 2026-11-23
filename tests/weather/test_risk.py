@@ -224,3 +224,26 @@ def test_rain_prob_rejette_seuil_invalide(risk_setup, threshold):
     """Le seuil doit être numérique, fini et strictement positif."""
     with pytest.raises(ValidationError, match="min_mm"):
         Risk(*risk_setup, pd.DataFrame()).rain_prob(min_mm=threshold)
+
+
+def test_markov_ignore_precips_manquantes():
+    """Les valeurs NaN ne doivent pas générer de transitions vers ou depuis sec."""
+    location = Location(lat=10.0, lon=2.0, name="Parakou")
+    rainfall = pd.Series([2.0, 2.0, np.nan, 2.0])
+    result = Risk(location, rainfall, pd.DataFrame()).markov()
+
+    assert result["p_wet_wet"] == 1.0
+    assert result["p_wet_dry"] == 0.0
+    assert result["p_dry_wet"] == 0.0
+    assert result["p_dry_dry"] == 0.0
+
+    # Aucune paire adjacente complète (séparée par NaN)
+    result_separe = Risk(
+        location, pd.Series([2.0, np.nan, 0.0]), pd.DataFrame()
+    ).markov()
+    assert result_separe == {
+        "p_dry_dry": 0.0,
+        "p_dry_wet": 0.0,
+        "p_wet_dry": 0.0,
+        "p_wet_wet": 0.0,
+    }
