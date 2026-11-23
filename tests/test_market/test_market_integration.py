@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from kadi.market import Market
-from kadi._sources import WFPClient
+from kadi.market.data_ingestion import WFPDataBridgesClient
 from kadi.market._cache import (
     initialiser_base,
     sauvegarder_prix,
@@ -224,25 +224,38 @@ class TestCache:
 # Tests d'intégration du client WFP avec cache
 # ============================================================
 
-@responses.activate
 class TestWFPClientAvecCache:
     """Tests du client WFP DataBridges avec cache SQLite intégré."""
 
-    def test_cache_hit_evite_appel_api(self, db_temporaire, df_prix_reel, monkeypatch):
+    @responses.activate
+    def test_cache_hit_evite_appel_api(
+        self, db_temporaire, df_prix_reel, monkeypatch, tmp_path
+    ):
         """Quand le cache est frais, l'API ne doit pas être appelée."""
         # Pré-remplissage du cache avec des données fraîches
-        sauvegarder_prix("cotonou", "maize", df_prix_reel, source="wfp-vam", db_path=db_temporaire)
-
-        # Monkey-patch pour utiliser la base temporaire
-        monkeypatch.setattr(
-            "kadi.market._cache.MARKET_DB_PATH", db_temporaire
+        sauvegarder_prix(
+            "cotonou", "maize", df_prix_reel, source="wfp-vam", db_path=db_temporaire
         )
+
+        # Monkey-patch pour isoler le cache SQLite et l'environnement local
+        monkeypatch.setattr("kadi.market._cache.MARKET_DB_PATH", db_temporaire)
         monkeypatch.setattr(
             "kadi.market.data_ingestion.recuperer_prix",
-            lambda m, c, max_age_jours: recuperer_prix(m, c, max_age_jours, db_temporaire),
+            lambda m, c, max_age_jours: recuperer_prix(
+                m, c, max_age_jours, db_temporaire
+            ),
+        )
+        monkeypatch.setattr(
+            "kadi.market.data_ingestion.calculer_score_confiance",
+            lambda m, c, max_age_jours=7: calculer_score_confiance(
+                m, c, max_age_jours=max_age_jours, db_path=db_temporaire
+            ),
         )
 
-        client = WFPClient()
+        client = WFPDataBridgesClient(
+            env_file=str(tmp_path / ".env"),
+            cache_file=str(tmp_path / "wfp_cache.json"),
+        )
         client.token = "fake_token"
         client.cache["commodities"] = {"maize": 51}
         client.cache["markets"] = {"cotonou": 1001}
@@ -252,10 +265,14 @@ class TestWFPClientAvecCache:
 
         # Les données du cache doivent être retournées
         assert not df.empty
-        assert len(responses.calls) == 0, "L'API ne doit pas être appelée si le cache est frais"
+        assert (
+            len(responses.calls) == 0
+        ), "L'API ne doit pas être appelée si le cache est frais"
 
     @responses.activate
-    def test_donnees_reelles_api_sauvegardees_en_cache(self, db_temporaire, monkeypatch):
+    def test_donnees_reelles_api_sauvegardees_en_cache(
+        self, db_temporaire, monkeypatch, tmp_path
+    ):
         """Après un appel API réussi, les données sont sauvegardées dans le cache."""
         # Mock de l'API WFP
         responses.add(
@@ -263,8 +280,16 @@ class TestWFPClientAvecCache:
             "https://api.wfp.org/vam-data-bridges/1.3.1/MarketPrices/alldata",
             json={
                 "items": [
-                    {"CommodityPriceDate": "2024-01-01T00:00:00", "ActualPrice": 310, "UnitName": "KG"},
-                    {"CommodityPriceDate": "2024-01-02T00:00:00", "ActualPrice": 320, "UnitName": "KG"},
+                    {
+                        "CommodityPriceDate": "2024-01-01T00:00:00",
+                        "ActualPrice": 310,
+                        "UnitName": "KG",
+                    },
+                    {
+                        "CommodityPriceDate": "2024-01-02T00:00:00",
+                        "ActualPrice": 320,
+                        "UnitName": "KG",
+                    },
                 ]
             },
             status=200,
@@ -277,10 +302,21 @@ class TestWFPClientAvecCache:
         )
         monkeypatch.setattr(
             "kadi.market.data_ingestion.sauvegarder_prix",
-            lambda m, c, df, source, **kw: sauvegarder_prix(m, c, df, source, db_temporaire),
+            lambda m, c, df, source, **kw: sauvegarder_prix(
+                m, c, df, source, db_temporaire
+            ),
+        )
+        monkeypatch.setattr(
+            "kadi.market.data_ingestion.calculer_score_confiance",
+            lambda m, c, max_age_jours=7: calculer_score_confiance(
+                m, c, max_age_jours=max_age_jours, db_path=db_temporaire
+            ),
         )
 
-        client = WFPClient()
+        client = WFPDataBridgesClient(
+            env_file=str(tmp_path / ".env"),
+            cache_file=str(tmp_path / "wfp_cache.json"),
+        )
         client.token = "fake_token"
         client.cache["commodities"] = {"maize": 51}
         client.cache["markets"] = {"savalou": 1234}
@@ -295,11 +331,22 @@ class TestWFPClientAvecCache:
         assert "confidence_score" in df.columns
         assert df["is_simulated"].all() == False
         assert df["source"].iloc[0] == "wfp-vam"
+        assert recuperer_prix("savalou", "maize", db_path=db_temporaire) is not None
 
     @responses.activate
-    def test_fallback_simule_sans_token(self):
+    def test_fallback_simule_sans_token(self, monkeypatch, tmp_path):
         """Sans token WFP, le client retourne des données simulées."""
-        client = WFPClient()
+        monkeypatch.delenv("WFP_API_Token", raising=False)
+        monkeypatch.delenv("WFP_API_KEY", raising=False)
+        monkeypatch.setattr(
+            "kadi.market.data_ingestion.recuperer_prix",
+            lambda *args, **kwargs: None,
+        )
+
+        client = WFPDataBridgesClient(
+            env_file=str(tmp_path / ".env"),
+            cache_file=str(tmp_path / "wfp_cache.json"),
+        )
         # Pas de token : client.token == ""
         assert client.token == ""
 
