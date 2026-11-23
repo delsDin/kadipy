@@ -290,11 +290,8 @@ class Hydrology:
         dr = 0.0
 
         for i in range(n):
-            temp_dr = dr - pluie_eff_arr[i]
-            if temp_dr < 0:
-                dr = 0.0
-            else:
-                dr = min(taw, temp_dr + etc_arr[i])
+            # Borner après avoir compté tous les flux du jour (pluie et ETc)
+            dr = min(taw, max(0.0, dr - pluie_eff_arr[i] + etc_arr[i]))
             dr_arr[i] = dr
             reserve_arr[i] = taw - dr
             stress_arr[i] = dr / taw if taw > 0 else 0.0
