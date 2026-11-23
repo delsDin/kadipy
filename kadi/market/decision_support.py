@@ -77,6 +77,9 @@ class Advisor:
             logistics (Logistics, optional): Instance de Logistics pour les coûts de transport.
             pricing (Pricing, optional): Instance de Pricing pour les prix réels du marché.
                 Si None, les méthodes utiliseront des prix estimés par défaut.
+            **kwargs (Any): Anciens paramètres nommés `forecasting_module`,
+                `logistics_module` et `pricing_module`. Leur utilisation
+                émet un `DeprecationWarning`.
         """
         # Références vers les sous-modules
         components = {"forecast": forecast, "logistics": logistics, "pricing": pricing}
@@ -99,8 +102,8 @@ class Advisor:
             raise TypeError(f"Arguments inattendus pour Advisor : {unknown}")
 
         self.forecast = components["forecast"]
-        self.logistics = components['logistics']
-        self.pricing = components['pricing']
+        self.logistics = components["logistics"]
+        self.pricing = components["pricing"]
 
     def __getattr__(self, name: str) -> Callable:
         """Intercepte les accès aux anciens noms de méthodes.
