@@ -217,11 +217,18 @@ class WeatherLoader:
                        confidence, fetched_at
                 FROM weather_data
                 WHERE location_id = ? AND date >= ? AND date <= ?
+                  AND latitude = ? AND longitude = ?
                 ORDER BY date ASC, fetched_at DESC
             """
             df = pd.read_sql_query(
                 query, conn,
-                params=(self.location.name, start, end),
+                params=(
+                    self.location.name,
+                    start,
+                    end,
+                    self.location.lat,
+                    self.location.lon,
+                ),
             )
 
             if df.empty:
@@ -289,6 +296,8 @@ class WeatherLoader:
                         confidence, fetched_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(location_id, date, hour) DO UPDATE SET
+                        latitude=excluded.latitude,
+                        longitude=excluded.longitude,
                         temperature_min=excluded.temperature_min,
                         temperature_max=excluded.temperature_max,
                         temperature_avg=excluded.temperature_avg,

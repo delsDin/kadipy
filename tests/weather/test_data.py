@@ -180,3 +180,45 @@ def test_alias_retrocompatibilite_weather_data(location):
     assert WeatherData is WeatherLoader
     weather = WeatherData(location)
     assert isinstance(weather, WeatherLoader)
+
+
+def test_cache_distingue_coordonnees_homonymes(tmp_path, monkeypatch):
+    """Deux parcelles homonymes de coordonnées distinctes ne partagent pas le cache."""
+    import kadi.cache as cache_module
+    import kadi.config as config_module
+
+    db_path = tmp_path / "weather.db"
+    monkeypatch.setattr(cache_module, "CACHE_DB", db_path)
+    monkeypatch.setattr(config_module, "CACHE_DB", db_path)
+
+    dates = pd.date_range("2025-05-01", periods=1)
+    df_nord = pd.DataFrame(
+        {
+            "temperature_min": [24.0],
+            "temperature_max": [34.0],
+            "precipitation": [0.0],
+        },
+        index=dates,
+    )
+    df_sud = pd.DataFrame(
+        {
+            "temperature_min": [21.0],
+            "temperature_max": [29.0],
+            "precipitation": [12.0],
+        },
+        index=dates,
+    )
+
+    parcelle_nord = WeatherLoader(Location(10.0, 2.0, name="audit"))
+    parcelle_sud = WeatherLoader(Location(6.0, 1.0, name="audit"))
+
+    parcelle_nord._to_cache(df_nord, "historical")
+    # Une parcelle homonyme à d'autres coordonnées ne doit pas lire ces données
+    assert parcelle_sud._from_cache("2025-05-01", "2025-05-01").empty
+
+    # Lors d'une mise à jour en conflit, les coordonnées stockées doivent suivre
+    parcelle_sud._to_cache(df_sud, "historical")
+    lu_sud = parcelle_sud._from_cache("2025-05-01", "2025-05-01")
+    assert not lu_sud.empty
+    assert lu_sud["precipitation"].iloc[0] == pytest.approx(12.0)
+    assert parcelle_nord._from_cache("2025-05-01", "2025-05-01").empty
