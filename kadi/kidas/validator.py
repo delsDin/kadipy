@@ -469,7 +469,8 @@ class Validator:
                 - DataFrame des lignes avec des références manquantes.
 
         Raises:
-            ValidationError: Si la colonne de clé est absente.
+            ValidationError: Si la colonne de clé est absente ou si
+                l'ensemble de référence 'ref' est absent ou invalide.
         """
         # Rétrocompatibilité : ancien paramètre accepté
         if ref is None and "reference_set" in kwargs:
@@ -478,6 +479,12 @@ class Validator:
         if fk_col not in self.df.columns:
             raise ValidationError(
                 f"Colonne de clé étrangère '{fk_col}' introuvable."
+            )
+
+        if not pd.api.types.is_list_like(ref):
+            raise ValidationError(
+                "L'ensemble de référence 'ref' est requis et doit être "
+                "une collection de valeurs valides."
             )
 
         # Détection des valeurs absentes de l'ensemble de référence
