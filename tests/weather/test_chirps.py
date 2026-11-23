@@ -584,8 +584,8 @@ def test_extract_point_valeur_positive(tmp_path):
 
 def test_extract_point_valeur_negative_remplacee(tmp_path):
     """
-    Les valeurs de nodata CHIRPS (-9999.0) doivent être remplacées par 0.0.
-    On teste via fetch_historical_precipitation avec une valeur négative mockée.
+    Lorsque _extract_point retourne directement une valeur mockée dans
+    fetch_historical_precipitation, celle-ci est transmise sans crasher.
     """
     from unittest.mock import patch
 
@@ -600,10 +600,7 @@ def test_extract_point_valeur_negative_remplacee(tmp_path):
             end_date="2020-05-01",
         )
 
-    # La valeur -9999.0 est traitée dans _extract_point.
-    # Ici on simule le cas où le mock retourne directement -9999.0 :
-    # fetch_historical_precipitation la reçoit telle quelle et la stocke.
-    # Ce test vérifie que le code ne plante pas avec une valeur négative.
+    # Le mock court-circuite _extract_point : ce test vérifie la résilience de l'appelant.
     assert result is not None
 
 
@@ -619,3 +616,30 @@ def test_extract_point_leve_data_source_error(tmp_path):
     with patch("xarray.open_dataset", side_effect=Exception("rasterio: invalid file")):
         with pytest.raises(SourceError, match="extraire la valeur"):
             _extract_point(chemin_raster, lat=9.337, lon=2.630)
+
+
+@pytest.mark.parametrize("nodata_val", [-9999.0, None])
+def test_extract_point_rejette_pixel_sans_observation(tmp_path, nodata_val):
+    """Un pixel nodata (-9999 / NaN) doit lever SourceError et non valoir 0.0."""
+    import numpy as np
+    import rasterio
+    from rasterio.transform import from_origin
+
+    path = tmp_path / "missing.tif"
+    kwargs = {
+        "driver": "GTiff",
+        "width": 1,
+        "height": 1,
+        "count": 1,
+        "dtype": "float32",
+        "crs": "EPSG:4326",
+        "transform": from_origin(1.5, 10.5, 1, 1),
+    }
+    if nodata_val is not None:
+        kwargs["nodata"] = nodata_val
+
+    with rasterio.open(path, "w", **kwargs) as dataset:
+        dataset.write(np.array([[[-9999.0]]], dtype="float32"))
+
+    with pytest.raises(SourceError):
+        _extract_point(path, lat=10.0, lon=2.0)
