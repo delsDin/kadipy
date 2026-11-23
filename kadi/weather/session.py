@@ -403,6 +403,26 @@ class Weather:
             )
             min_mm = min_rainfall_mm
 
+        max_days = CONFIG["weather"]["max_forecast_days"]
+        forecast_df = self.loader.forecast
+        if forecast_df is None or forecast_df.empty:
+            target_days = min(max(1, days) + 1, max_days)
+            self.loader.get_forecast(days=target_days)
+            self.risk = None
+        elif isinstance(forecast_df.index, pd.DatetimeIndex):
+            timezone = forecast_df.index.tz or "Africa/Porto-Novo"
+            today = pd.Timestamp.now(tz=timezone).normalize()
+            if forecast_df.index.tz is None:
+                today = today.tz_localize(None)
+            dates = forecast_df.index.normalize()
+            if (dates == today).any():
+                # Recharger uniquement si les jours futurs disponibles sont insuffisants
+                future_days = int(dates[dates > today].nunique())
+                target_days = min(max(1, days) + 1, max_days)
+                if future_days < (target_days - 1):
+                    self.loader.get_forecast(days=target_days)
+                    self.risk = None
+
         self._init_component("risk")
         return self.risk.rain_prob(days=days, min_mm=min_mm)
 

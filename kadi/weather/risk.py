@@ -390,7 +390,21 @@ class Risk:
             p_wet_if_dry = 0.5
             current_p_wet = 0.0
 
-        df = self.forecast.head(days)
+        df = self.forecast
+        if isinstance(df.index, pd.DatetimeIndex):
+            timezone = df.index.tz or "Africa/Porto-Novo"
+            today = pd.Timestamp.now(tz=timezone).normalize()
+            if df.index.tz is None:
+                today = today.tz_localize(None)
+            dates = df.index.normalize()
+            if (dates == today).any():
+                # Exclure la journée en cours fournie par Open-Meteo
+                df = df.loc[dates > today]
+                if df.empty:
+                    raise DataError(
+                        "Prévisions futures indisponibles après aujourd'hui."
+                    )
+        df = df.head(days)
         probs = {}
         max_prob = 0.0
 

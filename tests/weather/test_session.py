@@ -91,3 +91,59 @@ def test_alias_retrocompatibilite_weather_session(weather):
     assert WeatherSession is Weather
     session_old = WeatherSession(lat=9.3, lon=2.0)
     assert isinstance(session_old, Weather)
+
+
+def test_weather_rain_prob_gere_horizon_et_cache_memoire(monkeypatch):
+    """Weather.rain_prob() décale aujourd'hui et évite les rechargements superflus."""
+    session = Weather(lat=10.0, lon=2.0, name="Parakou")
+    today = (
+        pd.Timestamp.now(tz="Africa/Porto-Novo")
+        .normalize()
+        .tz_localize(None)
+    )
+    hist_dates = pd.date_range("2025-05-01", periods=2)
+    session.loader.historical = pd.DataFrame(
+        {
+            "precipitation": [0.0, 0.0],
+            "temperature_min": [20.0, 20.0],
+            "temperature_max": [30.0, 30.0],
+        },
+        index=hist_dates,
+    )
+
+    calls = []
+
+    def fake_get_forecast(days=7, refresh=False):
+        calls.append(days)
+        idx = pd.date_range(today, periods=days)
+        rains = [0.0] + [5.0] * max(0, days - 1)
+        df = pd.DataFrame({"precipitation": rains}, index=idx)
+        session.loader.forecast = df
+        return df
+
+    monkeypatch.setattr(session.loader, "get_forecast", fake_get_forecast)
+
+    # Appel initial : demande days + 1 pour inclure demain après aujourd'hui
+    res = session.rain_prob(days=1)
+    assert calls == [2]
+    assert res["tomorrow"] == pytest.approx(0.7)
+
+    # Second appel identique : réutilise les prévisions déjà chargées
+    res_repeat = session.rain_prob(days=1)
+    assert calls == [2]
+    assert res_repeat["tomorrow"] == pytest.approx(0.7)
+
+    # Plafonnement à CONFIG['weather']['max_forecast_days'] (15)
+    session.rain_prob(days=15)
+    assert calls == [2, 15]
+
+    # Prévision injectée hors ligne déjà suffisante : aucun appel à get_forecast
+    calls.clear()
+    session.risk = None
+    session.loader.forecast = pd.DataFrame(
+        {"precipitation": [0.0, 5.0]},
+        index=pd.date_range(today, periods=2),
+    )
+    res_offline = session.rain_prob(days=1)
+    assert calls == []
+    assert res_offline["tomorrow"] == pytest.approx(0.7)
