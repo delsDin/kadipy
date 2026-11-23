@@ -206,6 +206,8 @@ class Weather:
             days = CONFIG["weather"]["max_forecast_days"]
 
         df = self.loader.get_forecast(days=days)
+        # Invalider le composant de risque pour relire les nouvelles prévisions
+        self.risk = None
 
         return {
             "location": {
@@ -249,6 +251,10 @@ class Weather:
             months = months_back
 
         df = self.loader.get_historical(months=months, source=source)
+        # Invalider les composants dépendant de l'historique précédent
+        self.phenology = None
+        self.hydrology = None
+        self.risk = None
 
         # Filtre optionnel sur les colonnes
         if metric != "all":

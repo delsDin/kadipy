@@ -91,3 +91,56 @@ def test_alias_retrocompatibilite_weather_session(weather):
     assert WeatherSession is Weather
     session_old = WeatherSession(lat=9.3, lon=2.0)
     assert isinstance(session_old, Weather)
+
+
+def test_rechargement_donnees_invalide_composants_paresseux(monkeypatch):
+    """historical() et forecast() doivent forcer la reconstruction des composants."""
+    session = Weather(lat=10.0, lon=2.0, name="Parakou")
+    dates = pd.date_range("2025-05-01", periods=2)
+
+    def make_df(temp: float, rain: float = 0.0) -> pd.DataFrame:
+        return pd.DataFrame(
+            {
+                "temperature_min": [temp, temp],
+                "temperature_max": [temp, temp],
+                "precipitation": [rain, rain],
+            },
+            index=dates,
+        )
+
+    monkeypatch.setattr(
+        "kadi.weather.hydrology.Hydrology._resolve_soil",
+        lambda self, loc: "ferrugineux",
+    )
+    session.loader.historical = make_df(20.0)
+    session.loader.forecast = make_df(20.0, rain=0.0)
+    assert session.gdd("maize", dates[0], dates[-1])["gdd_accumulated"] == 20.0
+    _ = session.water_balance()
+    _ = session.rain_prob(days=1)
+    assert session.phenology is not None
+    assert session.hydrology is not None
+    assert session.risk is not None
+
+    # Rechargement historique : Phenology, Hydrology et Risk doivent être recréés
+    def reload_hist(**kwargs):
+        session.loader.historical = make_df(30.0)
+        return session.loader.historical
+
+    monkeypatch.setattr(session.loader, "get_historical", reload_hist)
+    session.historical(months=1)
+    assert session.phenology is None
+    assert session.hydrology is None
+    assert session.risk is None
+    assert session.gdd("maize", dates[0], dates[-1])["gdd_accumulated"] == 40.0
+
+    # Initialisation de Risk puis rechargement des prévisions
+    _ = session.rain_prob(days=1)
+    assert session.risk is not None
+
+    def reload_fore(**kwargs):
+        session.loader.forecast = make_df(25.0, rain=10.0)
+        return session.loader.forecast
+
+    monkeypatch.setattr(session.loader, "get_forecast", reload_fore)
+    session.forecast(days=2)
+    assert session.risk is None
