@@ -5,6 +5,7 @@ Ce module gère l'acquisition, le cache local (SQLite KadiPy) et la
 normalisation des données météorologiques pour kadi.weather.
 """
 
+import json
 import warnings
 
 import pandas as pd
@@ -103,7 +104,11 @@ class WeatherLoader:
 
         if not refresh:
             # Vérification du cache avant tout appel API
-            cached_data = self._from_cache(today.isoformat(), end_date.isoformat())
+            cached_data = self._from_cache(
+                today.isoformat(),
+                end_date.isoformat(),
+                scope="forecast",
+            )
             if not cached_data.empty and len(cached_data) >= days:
                 fetched_at = pd.to_datetime(cached_data["fetched_at"]).max()
                 cache_ttl = timedelta(
@@ -118,7 +123,7 @@ class WeatherLoader:
         # Appel API
         try:
             df = self._fetch_forecast(days=days)
-            self._to_cache(df, "forecast")
+            self._to_cache(df, "forecast", scope="forecast")
         except Exception as e:
             # Repli sur le cache si disponible
             if "cached_data" in locals() and not cached_data.empty:
@@ -170,7 +175,11 @@ class WeatherLoader:
 
         if not refresh:
             # Vérification du cache (tolérance de 5 jours)
-            cached_data = self._from_cache(start_date.isoformat(), today.isoformat())
+            cached_data = self._from_cache(
+                start_date.isoformat(),
+                today.isoformat(),
+                scope=f"historical:{source}",
+            )
             if not cached_data.empty and len(cached_data) >= (days - 5):
                 fetched_at = pd.to_datetime(cached_data["fetched_at"]).max()
                 cache_ttl = timedelta(
@@ -184,7 +193,11 @@ class WeatherLoader:
         # Appel API
         try:
             df = self._fetch_historical(days=days, source=source)
-            self._to_cache(df, "historical")
+            self._to_cache(
+                df,
+                "historical",
+                scope=f"historical:{source}",
+            )
         except Exception as e:
             if "cached_data" in locals() and not cached_data.empty:
                 self.historical = cached_data
@@ -199,13 +212,35 @@ class WeatherLoader:
         self.source = source
         return df
 
-    def _from_cache(self, start: str, end: str) -> pd.DataFrame:
+    def _cache_identity(self, scope: Optional[str] = None) -> str:
+        """Construit l'identifiant logique du cache selon le périmètre demandé.
+
+        Permet d'isoler les politiques de source (``forecast``,
+        ``historical:openmeteo``, ``historical:chirps``, ``historical:both``)
+        sans modifier le schéma SQLite existant.
+
+        Args:
+            scope (str, optional): Périmètre logique du cache. Si ``None``,
+                conserve le nom brut de la localisation pour la rétrocompatibilité.
+
+        Returns:
+            str: Identifiant de clé stocké dans la colonne ``location_id``.
+        """
+        if scope is None:
+            return self.location.name
+        return json.dumps(["weather-v2", self.location.name, scope])
+
+    def _from_cache(
+        self, start: str, end: str, scope: Optional[str] = None
+    ) -> pd.DataFrame:
         """
         Récupère les données météo depuis le cache SQLite KadiPy.
 
         Args:
             start (str): Date de début au format ISO (YYYY-MM-DD).
             end (str): Date de fin au format ISO (YYYY-MM-DD).
+            scope (str, optional): Périmètre logique du cache
+                (ex. 'forecast' ou 'historical:openmeteo').
 
         Returns:
             pd.DataFrame: DataFrame des données en cache, ou DataFrame vide.
@@ -221,7 +256,7 @@ class WeatherLoader:
             """
             df = pd.read_sql_query(
                 query, conn,
-                params=(self.location.name, start, end),
+                params=(self._cache_identity(scope), start, end),
             )
 
             if df.empty:
@@ -239,13 +274,17 @@ class WeatherLoader:
 
             return df
 
-    def _to_cache(self, data: pd.DataFrame, kind: str) -> None:
+    def _to_cache(
+        self, data: pd.DataFrame, kind: str, scope: Optional[str] = None
+    ) -> None:
         """
         Insère ou met à jour les données météo dans le cache SQLite KadiPy.
 
         Args:
             data (pd.DataFrame): DataFrame contenant les données météo normalisées.
             kind (str): Type de données ('forecast' ou 'historical').
+            scope (str, optional): Périmètre logique du cache pour isoler
+                le type de requête et la source demandée.
 
         Returns:
             None
@@ -300,7 +339,7 @@ class WeatherLoader:
                         fetched_at=excluded.fetched_at
                     """,
                     (
-                        self.location.name,
+                        self._cache_identity(scope),
                         self.location.lat,
                         self.location.lon,
                         date_str,

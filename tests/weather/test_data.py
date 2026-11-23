@@ -180,3 +180,69 @@ def test_alias_retrocompatibilite_weather_data(location):
     assert WeatherData is WeatherLoader
     weather = WeatherData(location)
     assert isinstance(weather, WeatherLoader)
+
+
+def test_cache_historique_isole_source_et_type(tmp_path, monkeypatch):
+    """Le cache sépare les politiques de source historique ainsi que les prévisions."""
+    import kadi.cache as cache_module
+    import kadi.config as config_module
+
+    db_path = tmp_path / "weather.db"
+    monkeypatch.setattr(cache_module, "CACHE_DB", db_path)
+    monkeypatch.setattr(config_module, "CACHE_DB", db_path)
+
+    loc = Location(lat=10.0, lon=2.0, name="audit")
+    loader = WeatherLoader(loc)
+
+    hist_dates = pd.date_range(end=pd.Timestamp.today().normalize(), periods=30)
+    df_chirps = pd.DataFrame(
+        {
+            "temperature_min": [20.0] * 30,
+            "temperature_max": [30.0] * 30,
+            "precipitation": [99.0] * 30,
+            "data_source": ["chirps"] * 30,
+        },
+        index=hist_dates,
+    )
+    df_openmeteo = pd.DataFrame(
+        {
+            "temperature_min": [20.0] * 30,
+            "temperature_max": [30.0] * 30,
+            "precipitation": [2.0] * 30,
+            "data_source": ["open-meteo-archive"] * 30,
+        },
+        index=hist_dates,
+    )
+
+    # Stockage en cache pour la source 'chirps'
+    monkeypatch.setattr(loader, "_fetch_historical", lambda **kw: df_chirps)
+    res_chirps = loader.get_historical(months=1, source="chirps")
+    assert (res_chirps["precipitation"] == 99.0).all()
+
+    # Une requête explicite avec source='openmeteo' ne doit pas relire le cache 'chirps'
+    monkeypatch.setattr(loader, "_fetch_historical", lambda **kw: df_openmeteo)
+    res_openmeteo = loader.get_historical(months=1, source="openmeteo")
+    assert (res_openmeteo["precipitation"] == 2.0).all()
+
+    # Le cache prévisionnel est également isolé du cache historique
+    fore_dates = pd.date_range(start=pd.Timestamp.today().normalize(), periods=3)
+    df_fore = pd.DataFrame(
+        {
+            "temperature_min": [22.0] * 3,
+            "temperature_max": [32.0] * 3,
+            "precipitation": [7.0] * 3,
+        },
+        index=fore_dates,
+    )
+    monkeypatch.setattr(loader, "_fetch_forecast", lambda **kw: df_fore)
+    res_fore = loader.get_forecast(days=3)
+    assert (res_fore["precipitation"] == 7.0).all()
+
+    # Une relecture depuis le cache 'chirps' reste intacte sans réseau
+    monkeypatch.setattr(
+        loader,
+        "_fetch_historical",
+        lambda **kw: (_ for _ in ()).throw(RuntimeError("Reseau non attendu")),
+    )
+    res_chirps_cache = loader.get_historical(months=1, source="chirps")
+    assert (res_chirps_cache["precipitation"] == 99.0).all()
