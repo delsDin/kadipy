@@ -67,6 +67,7 @@ class Advisor:
         forecast=None,
         logistics=None,
         pricing=None,
+        **kwargs: Any,
     ):
         """
         Initialise le module d'aide à la décision.
@@ -76,11 +77,33 @@ class Advisor:
             logistics (Logistics, optional): Instance de Logistics pour les coûts de transport.
             pricing (Pricing, optional): Instance de Pricing pour les prix réels du marché.
                 Si None, les méthodes utiliseront des prix estimés par défaut.
+            **kwargs (Any): Anciens paramètres nommés `forecasting_module`,
+                `logistics_module` et `pricing_module`. Leur utilisation
+                émet un `DeprecationWarning`.
         """
         # Références vers les sous-modules
-        self.forecast = forecast
-        self.logistics = logistics
-        self.pricing = pricing
+        components = {"forecast": forecast, "logistics": logistics, "pricing": pricing}
+        for old, new in (
+            ("forecasting_module", "forecast"),
+            ("logistics_module", "logistics"),
+            ("pricing_module", "pricing"),
+        ):
+            if old in kwargs:
+                warnings.warn(
+                    f"Le paramètre '{old}' est obsolète. Utilisez '{new}'.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                value = kwargs.pop(old)
+                if components[new] is None:
+                    components[new] = value
+        if kwargs:
+            unknown = ", ".join(sorted(kwargs))
+            raise TypeError(f"Arguments inattendus pour Advisor : {unknown}")
+
+        self.forecast = components["forecast"]
+        self.logistics = components["logistics"]
+        self.pricing = components["pricing"]
 
     def __getattr__(self, name: str) -> Callable:
         """Intercepte les accès aux anciens noms de méthodes.
