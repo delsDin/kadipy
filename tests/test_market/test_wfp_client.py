@@ -250,3 +250,37 @@ class TestFiltresAPI:
 
             params_appel = mock_get.call_args[1]["params"]
             assert params_appel.get("location_code") == "BEN"
+
+
+class TestWFPClientPrices:
+    """Vérifie la méthode publique actuelle WFPClient.prices() (API HAPI)."""
+
+    def test_prices_retourne_donnees_normalisees_sans_avertissement(self):
+        """prices() doit retourner le DataFrame HAPI normalisé sans DeprecationWarning."""
+        import warnings
+
+        reponse_mock = _creer_reponse_csv_mock(_CSV_HAPI_VALIDE)
+        with patch("kadi._sources.wfp_client.requests.get", return_value=reponse_mock):
+            client = WFPClient(app_identifier="identifiant_test")
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                df = client.prices("cotonou", "maize", _TIME_RANGE)
+
+        dep_warnings = [
+            w for w in caught if issubclass(w.category, DeprecationWarning)
+        ]
+        assert not dep_warnings
+        assert not df.empty
+        assert not df["is_simulated"].any()
+        assert {"date", "price", "unit", "source", "confidence_score"}.issubset(
+            set(df.columns)
+        )
+
+    def test_prices_fallback_simule_sans_identifiant(self):
+        """prices() sans app_identifier retourne des données simulées."""
+        client = WFPClient(app_identifier=None)
+        df = client.prices("cotonou", "maize", _TIME_RANGE)
+
+        assert not df.empty
+        assert df["is_simulated"].all()
+        assert (df["source"] == "simulated").all()
