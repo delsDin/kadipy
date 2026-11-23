@@ -180,3 +180,27 @@ def test_alias_retrocompatibilite_weather_data(location):
     assert WeatherData is WeatherLoader
     weather = WeatherData(location)
     assert isinstance(weather, WeatherLoader)
+
+
+def test_normalize_n_interpole_pas_lacune_superieure_a_trois_jours(location):
+    """Une lacune de 4 jours reste NaN tandis qu'une lacune de 3 jours est comblée."""
+    weather = WeatherLoader(location)
+    dates = pd.date_range("2025-05-01", periods=11)
+    df = pd.DataFrame(
+        {
+            "temperature_min": (
+                [20.0] + [np.nan] * 4 + [30.0] + [np.nan] * 3 + [22.0, 22.0]
+            ),
+            "temperature_max": [35.0] * 11,
+            "precipitation": [0.0] * 11,
+        },
+        index=dates,
+    )
+
+    result = weather._normalize(df)
+
+    # Lacune de 4 jours (indices 1..4) conservée à NaN
+    assert result["temperature_min"].iloc[1:5].isna().all()
+    # Lacune de 3 jours (indices 6..8) interpolée
+    assert result["temperature_min"].iloc[6:9].notna().all()
+    assert result["temperature_min"].iloc[6] == pytest.approx(28.0)

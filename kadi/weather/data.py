@@ -533,8 +533,15 @@ class WeatherLoader:
         # 4. Interpolation linéaire pour les lacunes courtes (max 3 jours)
         for col in cols_critiques:
             if df[col].isna().any():
-                df[col] = df[col].interpolate(
-                    method="linear", limit=3, limit_direction="both"
+                missing = df[col].isna()
+                groups = missing.ne(missing.shift()).cumsum()
+                lengths = missing.groupby(groups).transform("sum")
+                interpolated = df[col].interpolate(
+                    method="linear", limit_direction="both"
+                )
+                # Limiter l'interpolation aux lacunes de trois jours au plus
+                df[col] = df[col].where(
+                    ~missing | (lengths > 3), interpolated
                 )
 
         # 5. Remplissages résiduels après interpolation
