@@ -16,6 +16,7 @@ vers le 15 du mois M+1 (exemple : juillet disponible le 15 août).
 import gzip
 import io
 import logging
+import math
 import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
@@ -205,8 +206,8 @@ def _extract_point(raster_path: Path, lat: float, lon: float) -> float:
         precip = float(valeur[nom_var].values)
 
         # CHIRPS utilise -9999.0 comme valeur manquante
-        if precip < 0.0:
-            precip = 0.0
+        if not math.isfinite(precip) or precip < 0.0:
+            raise SourceError("Pixel CHIRPS sans observation valide.")
 
         return precip
 
