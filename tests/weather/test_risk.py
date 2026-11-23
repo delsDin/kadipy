@@ -224,3 +224,32 @@ def test_rain_prob_rejette_seuil_invalide(risk_setup, threshold):
     """Le seuil doit être numérique, fini et strictement positif."""
     with pytest.raises(ValidationError, match="min_mm"):
         Risk(*risk_setup, pd.DataFrame()).rain_prob(min_mm=threshold)
+
+
+def test_rain_prob_exclut_aujourdhui():
+    """tomorrow doit utiliser la prévision de demain lorsque aujourd'hui est présent."""
+    location = Location(lat=10.0, lon=2.0, name="Parakou")
+    today = (
+        pd.Timestamp.now(tz="Africa/Porto-Novo")
+        .normalize()
+        .tz_localize(None)
+    )
+    index = pd.date_range(today, periods=2) + pd.Timedelta(hours=12)
+    forecast = pd.DataFrame({"precipitation": [0.0, 5.0]}, index=index)
+
+    result = Risk(location, pd.Series([0.0, 0.0]), forecast).rain_prob()
+    assert result["tomorrow"] == pytest.approx(0.7)
+
+
+def test_rain_prob_leve_data_error_sans_prevision_future():
+    """Si la série ne contient qu'aujourd'hui sans date future, lever DataError."""
+    location = Location(lat=10.0, lon=2.0, name="Parakou")
+    today = (
+        pd.Timestamp.now(tz="Africa/Porto-Novo")
+        .normalize()
+        .tz_localize(None)
+    )
+    forecast = pd.DataFrame({"precipitation": [3.0]}, index=[today])
+
+    with pytest.raises(DataError):
+        Risk(location, pd.Series([0.0, 0.0]), forecast).rain_prob()

@@ -98,7 +98,8 @@ class WeatherLoader:
         Raises:
             OfflineError: Si l'API est inaccessible et qu'aucun cache n'existe.
         """
-        today = datetime.now().date()
+        # Aligner la date de référence sur le fuseau horaire local de la zone d'étude
+        today = pd.Timestamp.now(tz="Africa/Porto-Novo").date()
         end_date = today + timedelta(days=days - 1)
 
         if not refresh:
