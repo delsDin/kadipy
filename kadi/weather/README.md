@@ -168,18 +168,11 @@ pytest tests/weather/ -v
 
 ## Améliorations prévues
 
-**Évapotranspiration Penman-Monteith (FAO-56)**
-Remplacer Hargreaves-Samani par la méthode complète Penman-Monteith en
-utilisant le rayonnement solaire et la vitesse du vent disponibles via
-Open-Meteo.
-
-**Bimodalité complète (Sud)**
-Rendre l'algorithme Walter-Anyadike capable de retourner les deux saisons
-séparément (`onset_1`, `cessation_1`, `onset_2`, `cessation_2`).
-
-**SPI rigoureux**
-Remplacer l'approximation Z-Score par l'ajustement d'une distribution Gamma
-via `scipy.stats.gamma.fit`, conformément à la définition météorologique.
+**Intégration de Penman-Monteith (FAO-56) dans le bilan hydrique**
+`Hydrology.et0_fao56_penman()` est déjà disponible en appel direct. Son
+intégration automatique dans `water_balance()` à la place de
+Hargreaves-Samani (à partir du rayonnement solaire, du vent et de
+l'humidité Open-Meteo) reste prévue pour la v1.3.0.
 
 **Alertes climatiques extrêmes**
 Ajouter une méthode `extreme_weather_alerts()` pour détecter les vagues de
