@@ -180,3 +180,37 @@ def test_alias_retrocompatibilite_weather_data(location):
     assert WeatherData is WeatherLoader
     weather = WeatherData(location)
     assert isinstance(weather, WeatherLoader)
+
+
+def test_cache_conserve_indice_confiance(tmp_path, monkeypatch):
+    """Le cache conserve la valeur de confidence fournie par la source."""
+    import kadi.cache as cache_module
+    import kadi.config as config_module
+
+    db_path = tmp_path / "weather.db"
+    monkeypatch.setattr(cache_module, "CACHE_DB", db_path)
+    monkeypatch.setattr(config_module, "CACHE_DB", db_path)
+
+    loader = WeatherLoader(Location(lat=10.0, lon=2.0, name="audit"))
+    dates = pd.date_range("2025-05-01", periods=3)
+    df = pd.DataFrame(
+        {
+            "temperature_min": [20.0, 21.0, 22.0],
+            "temperature_max": [30.0, 31.0, 32.0],
+            "precipitation": [0.0, 1.0, 2.0],
+            "confidence": [0.95, np.nan, 0.0],
+        },
+        index=dates,
+    )
+
+    loader._to_cache(df, "forecast")
+    cached = loader._from_cache("2025-05-01", "2025-05-03")
+    assert cached["confidence"].iloc[0] == pytest.approx(0.95)
+    assert cached["confidence"].iloc[1] == pytest.approx(1.0)
+    assert cached["confidence"].iloc[2] == pytest.approx(0.0)
+
+    # Sans colonne confidence, la valeur par défaut 1.0 reste appliquée
+    df_sans_conf = df.drop(columns=["confidence"])
+    loader._to_cache(df_sans_conf.iloc[:1], "historical")
+    cached_def = loader._from_cache("2025-05-01", "2025-05-01")
+    assert cached_def["confidence"].iloc[0] == pytest.approx(1.0)

@@ -279,6 +279,13 @@ class WeatherLoader:
                 if not valeur_source or pd.isna(valeur_source):
                     valeur_source = "open-meteo"
 
+                # Conservation de l'indice de confiance fourni par la source
+                valeur_confidence = row.get("confidence", None)
+                if valeur_confidence is None or pd.isna(valeur_confidence):
+                    valeur_confidence = 1.0
+                else:
+                    valeur_confidence = float(valeur_confidence)
+
                 # Insertion avec gestion du conflit d'unicité (ON CONFLICT UPDATE)
                 cursor.execute(
                     """
@@ -312,7 +319,7 @@ class WeatherLoader:
                         row.get("humidity", 0.0),
                         kind,
                         str(valeur_source),
-                        1.0,
+                        valeur_confidence,
                         now,
                     ),
                 )
