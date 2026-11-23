@@ -344,7 +344,8 @@ class Phenology:
         if len(series) < dry_spell_window + trigger_days:
             return None
 
-        for i in range(len(series) - dry_spell_window - trigger_days):
+        # Inclure la dernière position disposant d'une fenêtre complète de contrôle
+        for i in range(len(series) - dry_spell_window - trigger_days + 1):
             trigger_sub = series.iloc[i: i + trigger_days]
             if trigger_sub.sum() >= trigger_amount:
                 potential_onset = trigger_sub.index[0]

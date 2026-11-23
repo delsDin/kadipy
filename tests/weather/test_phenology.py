@@ -142,3 +142,23 @@ def test_onset_donnees_vides(nord_setup):
     pheno = Phenology(location, pd.Series(dtype=float), temp_df)
     with pytest.raises(DataError):
         pheno.onset()
+
+
+def test_sivakumar_examine_derniere_fenetre_complete():
+    """Une série d'exactement 33 jours examine la dernière fenêtre complète."""
+    location = Location(lat=10.0, lon=2.0, name="Natitingou")
+    dates = pd.date_range("2025-05-01", periods=33)
+    precip = pd.Series([7.0] * 3 + [1.0] * 30, index=dates)
+    temp = pd.DataFrame(
+        {"temperature_min": [22.0] * 33, "temperature_max": [32.0] * 33},
+        index=dates,
+    )
+
+    result = Phenology(location, precip, temp).onset()
+    assert result["onset_1"] == "2025-05-01"
+
+    # Avec 32 jours, la fenêtre post-déclenchement reste incomplète
+    result_court = Phenology(
+        location, precip.iloc[:32], temp.iloc[:32]
+    ).onset()
+    assert result_court["onset_1"] is None
