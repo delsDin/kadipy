@@ -1211,3 +1211,17 @@ def test_portfolio_heuristique_revenu_fallback_si_pas_de_prix():
         f"Revenu de repli attendu : 750 000 XOF (5 ha × 150 000), obtenu : {revenu}."
     )
 
+
+@pytest.mark.parametrize("spacing", [1, 7, 30])
+def test_forecasting_predict_respecte_jours_calendaires(spacing):
+    """L'horizon journalier de predict() reste cohérent pour des relevés espacés."""
+    offsets = [i * spacing for i in range(40)]
+    history = pd.DataFrame({
+        "date": pd.Timestamp("2020-01-01") + pd.to_timedelta(offsets, unit="D"),
+        "price": [100.0 + offset for offset in offsets],
+    })
+    result = Forecasting().predict(
+        "maize", "cotonou", ahead=7, hist=history
+    )
+    assert result["predicted_price"] == pytest.approx(100.0 + offsets[-1] + 7.0)
+

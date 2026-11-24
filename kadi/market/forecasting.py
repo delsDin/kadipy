@@ -96,17 +96,18 @@ class Forecasting:
         Construit la matrice de features temporelles pour la régression.
 
         Les features générées sont :
-            - t          : indice séquentiel (0, 1, 2, …) - capture la tendance
-            - sin_365    : harmonique annuelle (sin) - pic de saison des récoltes
+            - t          : jours écoulés depuis la première observation
+            - sin_365    : harmonique annuelle (sin), cycle des récoltes
             - cos_365    : harmonique annuelle (cos)
-            - sin_182    : harmonique semi-annuelle (sin) - deuxième cycle de culture
+            - sin_182    : harmonique semi-annuelle (sin), deuxième cycle
             - cos_182    : harmonique semi-annuelle (cos)
 
         Toutes les features sont construites à partir de l'indice temporel
         pour être extrapolables vers le futur (pas besoin de prix futurs).
 
         Args:
-            series (np.ndarray): Vecteur d'indices temporels (entiers).
+            series (np.ndarray): Jours écoulés depuis la première
+                observation, éventuellement fractionnaires.
 
         Returns:
             np.ndarray: Matrice de shape (n, 5) contenant les 5 features.
@@ -340,9 +341,10 @@ class Forecasting:
         # Étape 2 : construction des features et entraînement
         # ------------------------------------------------------------------
 
-        # Création des indices temporels séquentiels pour les données d'entraînement
+        # Calcul des jours écoulés pour préserver la cadence réelle des relevés
         nb_pts = len(df_propre)
-        indices_train = np.arange(nb_pts)
+        elapsed = df_propre["date"] - df_propre["date"].iloc[0]
+        indices_train = (elapsed.dt.total_seconds() / 86400.0).to_numpy()
 
         # Construction de la matrice de features et du vecteur cible
         X_train = self._build_features(indices_train)
@@ -355,8 +357,8 @@ class Forecasting:
         # Étape 3 : prédiction pour l'horizon demandé
         # ------------------------------------------------------------------
 
-        # L'indice du point futur est la continuation séquentielle de l'historique
-        indice_futur = np.array([nb_pts - 1 + ahead])
+        # L'horizon est exprimé en jours calendaires depuis la dernière observation
+        indice_futur = np.array([indices_train[-1] + ahead])
         X_futur = self._build_features(indice_futur)
 
         # Prix prédit par le modèle entraîné
