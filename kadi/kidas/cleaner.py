@@ -327,12 +327,23 @@ class Cleaner:
                 masque_col = self.df[colonne].between(borne_basse, borne_haute)
 
             elif method == "zscore":
-                # Z-score standardisé : |z| ≤ thresh
-                z_scores = np.abs(stats.zscore(serie))
-                # Alignement avec l'index original (NaN pour les valeurs manquantes)
-                z_alignes = self.df[colonne].copy().astype(float)
-                z_alignes.loc[serie.index] = z_scores
-                masque_col = z_alignes <= thresh
+                # Z-score standardisé : |z| <= thresh (aucun outlier si série constante)
+                ecart_type = (
+                    float(serie.std(ddof=0))
+                    if len(serie) > 1 and serie.nunique() > 1
+                    else 0.0
+                )
+                if ecart_type > 0 and not np.isclose(ecart_type, 0.0):
+                    z_scores = np.abs(stats.zscore(serie))
+                    if np.isnan(z_scores).all():
+                        masque_col = pd.Series(True, index=self.df.index)
+                    else:
+                        # Alignement avec l'index original (NaN pour les valeurs manquantes)
+                        z_alignes = self.df[colonne].copy().astype(float)
+                        z_alignes.loc[serie.index] = z_scores
+                        masque_col = z_alignes <= thresh
+                else:
+                    masque_col = pd.Series(True, index=self.df.index)
 
             elif method == "mad":
                 # MAD : valeur robuste, moins sensible aux outliers extrêmes
