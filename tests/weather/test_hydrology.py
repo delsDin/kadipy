@@ -4,6 +4,7 @@ Tests du module hydrologique : bilan hydrique, ETo Hargreaves, ETo Penman-Montei
 
 import pytest
 from unittest.mock import patch
+import numpy as np
 import pandas as pd
 
 from kadi.weather.hydrology import Hydrology
@@ -134,3 +135,20 @@ def test_et0_penman_plage_realiste_benin(mock_resolve_soil, hydrology_setup):
     eto = hydro.et0_fao56_penman(tmin=24.0, tmax=34.0, humidity=65.0, wind_speed=2.5, solar_rad=22.0)
 
     assert 2.0 <= eto <= 10.0
+
+
+def test_water_balance_conserve_et_apres_faible_pluie(monkeypatch):
+    """Une faible pluie ne doit pas annuler l'évapotranspiration du jour."""
+    location = Location(lat=10.0, lon=2.0, name="Parakou")
+    dates = pd.date_range("2025-05-01", periods=1)
+    precip = pd.Series([1.0], index=dates)
+    temp = pd.DataFrame(
+        {"temperature_min": [20.0], "temperature_max": [30.0]},
+        index=dates,
+    )
+    hydro = Hydrology(location, precip, temp, soil_type="ferrugineux")
+    monkeypatch.setattr(hydro, "et0_hargreaves", lambda *a: np.array([5.0]))
+
+    result = hydro.water_balance().iloc[0]
+    assert result["evapotransp"] == pytest.approx(6.0)
+    assert result["deficit_eau"] == pytest.approx(5.0)
