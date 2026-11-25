@@ -408,16 +408,27 @@ class Pipeline:
             )
 
         # Génération d'une clé de cache sécurisée : hachage SHA-256 combinant le
-        # chemin brut, les options de feuille/en-tête Excel et les étapes.
+        # chemin brut, les options Excel, les métadonnées du fichier et les étapes.
         source_options = {}
         if isinstance(self._source, ExcelSource):
             source_options = {
                 "sheet": self._source.sheet,
                 "header": self._source.header,
             }
+        source_stat = None
+        source_path = getattr(self._source, "path", None)
+        if isinstance(source_path, (str, os.PathLike)) and os.path.isfile(source_path):
+            try:
+                stat = os.stat(source_path)
+                source_stat = {
+                    "mtime_ns": stat.st_mtime_ns,
+                    "size": stat.st_size,
+                }
+            except OSError:
+                source_stat = None
         _empreinte = hashlib.sha256(
             json.dumps(
-                [str(self._source.path), source_options, self._steps],
+                [str(self._source.path), source_options, source_stat, self._steps],
                 default=repr,
                 ensure_ascii=False,
             ).encode("utf-8")
