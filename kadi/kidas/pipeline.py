@@ -433,8 +433,21 @@ class Pipeline:
                     "Pipeline kidas : données chargées depuis le cache (clé: '%s').",
                     cle_cache,
                 )
-                rapport_cache["cache_utilise"] = True
-                return df_cached, deepcopy(rapport_cache)
+                rapport_hit = deepcopy(rapport_cache)
+                rapport_hit["cache_utilise"] = True
+                details = rapport_hit.get("details") or {}
+                # Synchronisation de l'état interne du pipeline avec le hit cache
+                self._df = df_cached
+                self._lignes_avant = rapport_hit.get("nb_rows_in", len(df_cached))
+                self._nrows_in = self._lignes_avant
+                self._reports["source"] = details.get(
+                    "source", self._reports.get("source")
+                )
+                for key in ("nettoyage", "validation", "normalisation"):
+                    self._reports[key] = details.get(key)
+                self._reports["quality_score"] = rapport_hit.get("quality_score")
+                self._reports["cache_utilise"] = True
+                return self._df, deepcopy(rapport_hit)
 
         # Lecture des données depuis la source et mémorisation du nombre de lignes brutes
         try:
