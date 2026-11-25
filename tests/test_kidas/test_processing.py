@@ -542,3 +542,26 @@ class TestPipeline:
         assert len(df) > 0
         assert rapport["details"]["source"]["path"] == str(path_obj)
 
+    def test_pipeline_cache_invalide_apres_modification_fichier(self, tmp_path, monkeypatch):
+        """Vérifie que le cache est invalidé si le fichier source local est modifié."""
+        cache = Cache(cache_dir=str(tmp_path / "cache"))
+        monkeypatch.setattr("kadi.kidas.pipeline.Cache", lambda: cache)
+
+        csv_path = tmp_path / "data.csv"
+        csv_path.write_text("prix\n10\n", encoding="utf-8")
+
+        df1, rep1 = Pipeline().load(str(csv_path)).run(cache=True)
+        assert df1["prix"].tolist() == [10]
+        assert rep1["cache_utilise"] is False
+
+        # Deuxième exécution sur fichier inchangé : hit cache attendu
+        df_hit, rep_hit = Pipeline().load(str(csv_path)).run(cache=True)
+        assert df_hit["prix"].tolist() == [10]
+        assert rep_hit["cache_utilise"] is True
+
+        # Modification du fichier local : le cache doit être invalidé
+        csv_path.write_text("prix\n999\n", encoding="utf-8")
+        df2, rep2 = Pipeline().load(str(csv_path)).run(cache=True)
+        assert df2["prix"].tolist() == [999]
+        assert rep2["cache_utilise"] is False
+
