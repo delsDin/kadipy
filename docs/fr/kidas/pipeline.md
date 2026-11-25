@@ -288,8 +288,9 @@ pipeline.export("rapport.json")
 ## Comportement du cache
 
 Le pipeline utilise un cache SQLite interne (géré par `Cache`). La clé de
-cache est calculée par hachage SHA-256 du chemin de la source, tronqué à
-16 caractères hexadécimaux.
+cache est calculée par hachage SHA-256 combinant le chemin de la source, les
+options Excel éventuelles (`sheet`, `header`) et la séquence ordonnée des
+étapes configurées, tronqué à 16 caractères hexadécimaux.
 
 Lorsque `cache=True` :
 
