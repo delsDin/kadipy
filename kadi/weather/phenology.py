@@ -249,10 +249,11 @@ class Phenology:
         start_ts = pd.to_datetime(start)
         end_ts = pd.to_datetime(end)
 
-        if crop.lower() not in self.crop:
+        crop_key = crop.strip().lower() if isinstance(crop, str) else ""
+        if crop_key not in self.crop:
             raise CropError(f"Culture non reconnue pour le calcul des GDD : {crop}")
 
-        params = self.crop.get(crop.lower())
+        params = self.crop[crop_key]
         tbase = params["base_temp"]
         gdd_req = params["gdd_total"]
 
