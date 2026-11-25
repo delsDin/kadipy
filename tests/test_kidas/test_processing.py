@@ -182,6 +182,20 @@ class TestValidator:
         assert valide is False
         assert len(df_hors) == 2
 
+    def test_check_ranges_valeurs_non_numeriques(self):
+        """Vérifie que les valeurs non numériques sont signalées sans lever TypeError."""
+        df = pd.DataFrame({"prix": ["abc", "100", "700", None]})
+        validator = Validator(df)
+        valide, df_hors = validator.check_ranges({"prix": (0, 500)})
+        assert valide is False
+        assert df_hors["prix"].tolist() == ["abc", "700"]
+
+        # Colonne mixte object contenant chaînes et nombres
+        df_mixte = pd.DataFrame({"prix": pd.Series(["invalide", 250, -5], dtype=object)})
+        valide_m, df_hors_m = Validator(df_mixte).check_ranges({"prix": (0, 500)})
+        assert valide_m is False
+        assert df_hors_m["prix"].tolist() == ["invalide", -5]
+
     def test_check_coords_benin_valides(self, sample_df):
         """Vérifie que des coordonnées dans la zone du Bénin sont acceptées."""
         validator = Validator(sample_df)

@@ -298,10 +298,32 @@ class Validator:
                 )
                 continue
 
-            # Détection des valeurs hors-intervalle
-            hors_borne = (
-                (self.df[colonne] < borne_min) | (self.df[colonne] > borne_max)
-            ) & self.df[colonne].notna()
+            serie = self.df[colonne]
+            bornes_numeriques = (
+                isinstance(borne_min, (int, float, np.number))
+                and not isinstance(borne_min, (bool, np.bool_))
+                and isinstance(borne_max, (int, float, np.number))
+                and not isinstance(borne_max, (bool, np.bool_))
+            )
+            if bornes_numeriques and (
+                not pd.api.types.is_numeric_dtype(serie)
+                or pd.api.types.is_bool_dtype(serie)
+            ):
+                if pd.api.types.is_bool_dtype(serie):
+                    hors_borne = serie.notna()
+                else:
+                    # Conversion numérique pour signaler les saisies non convertibles
+                    serie_num = pd.to_numeric(serie, errors="coerce")
+                    hors_borne = serie.notna() & (
+                        serie_num.isna()
+                        | (serie_num < borne_min)
+                        | (serie_num > borne_max)
+                    )
+            else:
+                # Détection des valeurs hors-intervalle
+                hors_borne = (
+                    (serie < borne_min) | (serie > borne_max)
+                ) & serie.notna()
 
             masque_erreurs = masque_erreurs | hors_borne
 
