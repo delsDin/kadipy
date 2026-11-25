@@ -549,7 +549,7 @@ class Market:
             **kwargs (Any): Anciens arguments (days_back) gérés pour rétrocompatibilité.
 
         Returns:
-            dict: Résultat de ``MarketPricing.seasonality()``, contenant :
+            dict: Résultat de ``Pricing.seasonality()``, contenant :
 
                 - ``indices`` (dict[int, float | None]) : les 12 indices
                   saisonniers, indexés par mois (1=jan, 12=déc). None si
@@ -562,7 +562,8 @@ class Market:
                 - ``nb_observations`` (int) : nombre d'observations utilisées.
                 - ``nb_mois_couverts`` (int) : mois avec données suffisantes.
                 - ``confiance`` (float) : score de fiabilité de 0.0 à 1.0.
-                - ``is_sim`` (bool) : True si les données sont simulées.
+                - ``sim`` (bool) : True si les données sont simulées.
+                - ``is_simulated`` (bool) : alias rétrocompatible de ``sim``.
                 - ``message`` (str | None) : avertissement si données insuffisantes.
         """
         if "days_back" in kwargs:
