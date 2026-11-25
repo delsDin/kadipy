@@ -1211,3 +1211,39 @@ def test_portfolio_heuristique_revenu_fallback_si_pas_de_prix():
         f"Revenu de repli attendu : 750 000 XOF (5 ha × 150 000), obtenu : {revenu}."
     )
 
+
+def test_pricing_fill_gaps_respecte_max_gap_et_bords():
+    """Vérifie que fill_gaps() n'interpole pas les trous dépassant max_gap ni les bords."""
+    pricing = Pricing()
+
+    # Trou de 4 valeurs (> max_gap=2) : doit rester entièrement NaN
+    df_grand_trou = pd.DataFrame({
+        "price": [100.0, np.nan, np.nan, np.nan, np.nan, 200.0]
+    })
+    res_grand_trou = pricing.fill_gaps(df_grand_trou, max_gap=2)
+    assert res_grand_trou["price"].iloc[1:5].isna().all()
+    assert res_grand_trou["price"].iloc[0] == 100.0
+    assert res_grand_trou["price"].iloc[5] == 200.0
+
+    # Trou de longueur max_gap + 1 (3 valeurs pour max_gap=2) : doit rester NaN
+    df_trou_limite = pd.DataFrame({
+        "price": [100.0, np.nan, np.nan, np.nan, 200.0]
+    })
+    res_trou_limite = pricing.fill_gaps(df_trou_limite, max_gap=2)
+    assert res_trou_limite["price"].iloc[1:4].isna().all()
+
+    # Trou de longueur <= max_gap avec NaN aux extrémités : seul l'intérieur est interpolé
+    df_bords = pd.DataFrame({
+        "price": [np.nan, 100.0, np.nan, np.nan, 130.0, np.nan]
+    })
+    res_bords = pricing.fill_gaps(df_bords, max_gap=2)
+    assert np.isnan(res_bords["price"].iloc[0])
+    assert res_bords["price"].iloc[2] == pytest.approx(110.0)
+    assert res_bords["price"].iloc[3] == pytest.approx(120.0)
+    assert np.isnan(res_bords["price"].iloc[5])
+
+    # Avec max_gap=0, aucune valeur manquante n'est interpolée
+    df_zero = pd.DataFrame({"price": [100.0, np.nan, 120.0]})
+    res_zero = pricing.fill_gaps(df_zero, max_gap=0)
+    assert np.isnan(res_zero["price"].iloc[1])
+

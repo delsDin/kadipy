@@ -418,12 +418,22 @@ class Pricing:
         )
         df_interpolated = series.copy()
 
-        if "price" in df_interpolated.columns:
-            # Interpolation linéaire avec limite sur la longueur des trous
-            df_interpolated["price"] = df_interpolated["price"].interpolate(
-                method="linear",
-                limit=max_gap,
-                limit_direction="both",
+        if (
+            "price" in df_interpolated.columns
+            and max_gap > 0
+            and df_interpolated["price"].isna().any()
+        ):
+            serie = df_interpolated["price"]
+            is_missing = serie.isna()
+            # Calcul de la taille de chaque trou contigu de valeurs manquantes
+            group_ids = (~is_missing).cumsum()
+            gap_sizes = is_missing.groupby(group_ids).transform("sum")
+            # Interpolation uniquement à l'intérieur des bornes observées
+            interpolated = serie.interpolate(method="linear", limit_area="inside")
+            # Conserver NaN lorsque la longueur du trou dépasse max_gap
+            df_interpolated["price"] = serie.where(
+                ~is_missing | (gap_sizes > max_gap),
+                interpolated,
             )
 
         return df_interpolated
