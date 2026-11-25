@@ -91,11 +91,11 @@ recommandation exploitable.
   prix origine) au coût total de transfert logistique.
 - **Stockage stratégique** : compare le prix projeté futur au prix actuel
   additionné des coûts de stockage, sur un horizon configurable
-  (`mois_stockage`).
+  (`months`).
 - **Score de confiance (Phase 4)** : chaque recommandation inclut un
   `confidence_score` composite (0 à 1), calculé à partir de la qualité de
   l'historique, du RMSE du modèle et de la probabilité de pluie.
-- **Optimisation de portfolio** : `portfolio_optimization()` utilise
+- **Optimisation de portfolio** : `optimize()` utilise
   `scipy.optimize.linprog` si disponible, avec un fallback heuristique.
 
 ### backtesting - Evaluation a posteriori
