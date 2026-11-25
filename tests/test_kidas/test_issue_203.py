@@ -12,3 +12,9 @@ def test_mise_en_cache_is_distincte_de_la_lecture(tmp_path):
     _, hit = pipeline.run(cache=True)
     assert miss["cache_utilise"] is False
     assert hit["cache_utilise"] is True
+
+
+def test_cache_pipeline_isole_du_repertoire_utilisateur(tmp_path):
+    """Vérifie que Pipeline() utilise un cache isolé sous tmp_path pendant les tests."""
+    pipeline = Pipeline()
+    assert str(tmp_path) in pipeline._cache.dir
