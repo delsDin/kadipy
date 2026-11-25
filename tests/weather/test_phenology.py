@@ -9,7 +9,7 @@ import pandas as pd
 
 from kadi.weather.phenology import Phenology
 from kadi.weather.location import Location
-from kadi.exceptions import DataError
+from kadi.exceptions import CropError, DataError
 
 
 # ---------------------------------------------------------------------------
@@ -142,3 +142,18 @@ def test_onset_donnees_vides(nord_setup):
     pheno = Phenology(location, pd.Series(dtype=float), temp_df)
     with pytest.raises(DataError):
         pheno.onset()
+
+
+def test_gdd_normalise_espaces_et_rejette_none(nord_setup):
+    """gdd() accepte les espaces autour du nom de culture et lève CropError sur None."""
+    pheno = Phenology(*nord_setup)
+
+    res = pheno.gdd(" Maize ", "2026-05-01", "2026-05-10")
+    assert res["gdd_accumulated"] == 170.0
+    assert res["crop"] == " Maize "
+
+    with pytest.raises(CropError):
+        pheno.gdd(None, "2026-05-01", "2026-05-10")
+
+    with pytest.raises(CropError):
+        pheno.gdd(123, "2026-05-01", "2026-05-10")
