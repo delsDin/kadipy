@@ -356,7 +356,10 @@ class Normalizer:
             "GBP": 750.0,     # Taux approximatif
         }
 
-        if from_ not in taux_vers_xof or to not in taux_vers_xof:
+        from_code = from_.strip().upper() if isinstance(from_, str) else ""
+        to_code = to.strip().upper() if isinstance(to, str) else ""
+
+        if from_code not in taux_vers_xof or to_code not in taux_vers_xof:
             logger.warning(
                 "Paire de devises %s/%s non disponible. Aucune conversion.",
                 from_,
@@ -365,7 +368,7 @@ class Normalizer:
             return self.df
 
         # Calcul du taux de conversion croisé
-        taux_conversion = taux_vers_xof[from_] / taux_vers_xof[to]
+        taux_conversion = taux_vers_xof[from_code] / taux_vers_xof[to_code]
 
         # Application de la conversion
         self.df[col] = self.df[col] * taux_conversion
@@ -373,15 +376,15 @@ class Normalizer:
         logger.info(
             "Colonne '%s' convertie de %s vers %s (taux: %.4f).",
             col,
-            from_,
-            to,
+            from_code,
+            to_code,
             taux_conversion,
         )
 
         # Traçabilité de la conversion
         self._mappings["devises"][col] = {
-            "from": from_,
-            "to": to,
+            "from": from_code,
+            "to": to_code,
             "taux": taux_conversion,
         }
 
