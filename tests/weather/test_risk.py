@@ -224,3 +224,19 @@ def test_rain_prob_rejette_seuil_invalide(risk_setup, threshold):
     """Le seuil doit être numérique, fini et strictement positif."""
     with pytest.raises(ValidationError, match="min_mm"):
         Risk(*risk_setup, pd.DataFrame()).rain_prob(min_mm=threshold)
+
+
+@pytest.mark.parametrize("days", [0, -1, None, True, False, 1.5, "2"])
+def test_rain_prob_rejette_days_invalide(risk_setup, days):
+    """Le paramètre days doit être un entier strictement positif."""
+    forecast = pd.DataFrame({"precipitation": [1.0, 2.0, 3.0]})
+    with pytest.raises(ValidationError, match="days"):
+        Risk(*risk_setup, forecast).rain_prob(days=days)
+
+
+def test_rain_prob_accepte_entier_numpy(risk_setup):
+    """Un entier NumPy strictement positif reste accepté par rain_prob()."""
+    forecast = pd.DataFrame({"precipitation": [1.0, 2.0, 3.0]})
+    res = Risk(*risk_setup, forecast).rain_prob(days=np.int64(2))
+    assert "tomorrow" in res
+    assert "2_days" in res

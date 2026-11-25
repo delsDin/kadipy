@@ -355,8 +355,18 @@ class Risk:
 
         Raises:
             DataError: Si les données de prévision sont absentes ou vides.
-            ValidationError: Si le seuil n'est pas fini et strictement positif.
+            ValidationError: Si le seuil n'est pas fini et strictement positif,
+                ou si ``days`` n'est pas un entier strictement positif.
         """
+        if (
+            isinstance(days, (bool, np.bool_))
+            or not isinstance(days, (int, np.integer))
+            or days <= 0
+        ):
+            raise ValidationError(
+                "Le paramètre 'days' doit être un entier strictement positif."
+            )
+
         try:
             valid_threshold = bool(np.isfinite(min_mm) and min_mm > 0)
         except (TypeError, ValueError):
