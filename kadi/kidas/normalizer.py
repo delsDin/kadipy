@@ -512,10 +512,10 @@ class Normalizer:
                 lons.append(None)
                 continue
 
-            # Recherche du marché dans la référence (correspondance partielle)
+            # Recherche du marché dans la référence (correspondance directe ou par nom complet inclus)
             coords_trouvees = None
             for cle_marche, coords in _MARCHE_COORDS.items():
-                if cle_marche in nom_norm or nom_norm in cle_marche:
+                if cle_marche in nom_norm or cle_marche.replace("-", " ") in nom_norm:
                     coords_trouvees = coords
                     break
 

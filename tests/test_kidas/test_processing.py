@@ -285,6 +285,20 @@ class TestNormalizer:
         assert "market_lat" in df_norm.columns
         assert "market_lon" in df_norm.columns
 
+    def test_std_markets_rejette_sous_chaines_generiques(self):
+        """Vérifie que les chaînes courtes ou génériques ne sont pas géolocalisées à tort."""
+        df = pd.DataFrame({
+            "marche": ["a", "la", "ville", "Porto Novo", "Marché de Kandi"]
+        })
+        normalizer = Normalizer(df)
+        df_norm = normalizer.std_markets(col="marche")
+
+        assert df_norm.loc[:2, ["market_lat", "market_lon"]].isna().all().all()
+        assert df_norm.loc[3, "market_lat"] == pytest.approx(6.497)
+        assert df_norm.loc[3, "market_lon"] == pytest.approx(2.627)
+        assert df_norm.loc[4, "market_lat"] == pytest.approx(11.133)
+        assert df_norm.loc[4, "market_lon"] == pytest.approx(2.940)
+
     def test_std_coords_ajoute_colonne_geometry(self, sample_df):
         """Vérifie que std_coords() ajoute la colonne 'geometry'."""
         pytest.importorskip("shapely")
