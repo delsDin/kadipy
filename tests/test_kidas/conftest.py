@@ -10,6 +10,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from kadi.kidas.cache import Cache
+
+
+@pytest.fixture(autouse=True)
+def isolated_pipeline_cache(tmp_path, monkeypatch):
+    """Isole le cache SQLite de Pipeline dans un répertoire temporaire par test."""
+    cache = Cache(cache_dir=str(tmp_path / "kidas_cache"))
+    monkeypatch.setattr("kadi.kidas.pipeline.Cache", lambda *args, **kwargs: cache)
+    return cache
+
 
 # =============================================================================
 # Fixtures : DataFrames de test
