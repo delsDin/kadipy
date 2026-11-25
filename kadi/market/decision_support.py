@@ -15,6 +15,8 @@ import warnings
 from math import isfinite
 from typing import Any, Callable
 
+import pandas as pd
+
 from kadi.config import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -141,8 +143,24 @@ class Advisor:
             if df.empty or "price" not in df.columns:
                 return 300.0, True, 0.0
 
+            prices_kg = df["price"]
+            if "unit" in df.columns and hasattr(self.pricing, "convert_unit"):
+                # Normalisation de toutes les observations vers XOF/kg
+                prices_kg = pd.Series(
+                    [
+                        self.pricing.convert_unit(
+                            price,
+                            unit if isinstance(unit, str) and unit.strip() else "XOF/kg",
+                            crop=crop,
+                        )
+                        for price, unit in zip(df["price"], df["unit"])
+                    ],
+                    index=df.index,
+                    dtype=float,
+                )
+
             # Calcul du prix médian (robuste aux outliers)
-            prix_median = float(df["price"].median())
+            prix_median = float(prices_kg.median())
 
             # Flag de simulation : True si au moins une ligne est simulée
             est_simule = (

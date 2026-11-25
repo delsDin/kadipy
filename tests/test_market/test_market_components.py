@@ -1211,3 +1211,36 @@ def test_portfolio_heuristique_revenu_fallback_si_pas_de_prix():
         f"Revenu de repli attendu : 750 000 XOF (5 ha × 150 000), obtenu : {revenu}."
     )
 
+
+def test_advisor_get_price_et_arbitrage_normalisent_en_xof_kg():
+    """Vérifie que _get_price() et arbitrage() convertissent les unités vers XOF/kg."""
+    pricing = Pricing()
+    df_cotonou = pd.DataFrame({
+        "price": [250_000.0, 250.0],
+        "unit": ["XOF/tonne", None],
+        "is_simulated": [False, False],
+    })
+    df_parakou = pd.DataFrame({
+        "price": [400_000.0],
+        "unit": ["XOF/tonne"],
+        "is_simulated": [False],
+    })
+
+    def faux_fetch(crop, market, days=30):
+        return df_cotonou if market == "cotonou" else df_parakou
+
+    pricing.fetch = faux_fetch
+    advisor = Advisor(pricing=pricing)
+
+    prix_cotonou, est_simule, _ = advisor._get_price("maize", "cotonou")
+    assert prix_cotonou == pytest.approx(250.0)
+    assert est_simule is False
+    # Le DataFrame source ne doit pas être muté
+    assert df_cotonou["price"].tolist() == [250_000.0, 250.0]
+
+    res = advisor.arbitrage("maize", "cotonou", "parakou", qty=1.0)
+    assert res["prix_origine_xof_kg"] == pytest.approx(250.0)
+    assert res["prix_destination_xof_kg"] == pytest.approx(400.0)
+    # Marge brute attendue : (400 - 250) * 1000 = 150 000 XOF/tonne moins 30 000 XOF de repli
+    assert res["gain_net_total_cfa"] == pytest.approx(120_000.0)
+
