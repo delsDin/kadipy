@@ -372,6 +372,35 @@ class TestPipeline:
         assert resultat is True
         assert (tmp_path / "rapport.json").exists()
 
+    def test_export_et_etat_interne_apres_cache_hit(self, tmp_path, monkeypatch):
+        """Vérifie que run(cache=True) synchronise _df, _reports et export() sur hit."""
+        import json
+
+        cache = Cache(cache_dir=str(tmp_path / "cache"))
+        monkeypatch.setattr("kadi.kidas.pipeline.Cache", lambda: cache)
+
+        csv_path = tmp_path / "data.csv"
+        csv_path.write_text("prix\n10\n10\n", encoding="utf-8")
+
+        p1 = Pipeline().load(str(csv_path)).add_step("drop_dupes")
+        df1, rep1 = p1.run(cache=True)
+        assert rep1["cache_utilise"] is False
+
+        p2 = Pipeline().load(str(csv_path)).add_step("drop_dupes")
+        df2, rep2 = p2.run(cache=True)
+        assert rep2["cache_utilise"] is True
+        pd.testing.assert_frame_equal(p2._df, df1)
+        assert p2._lignes_avant == 2
+        assert p2._nrows_in == 2
+        assert p2._reports["cache_utilise"] is True
+        assert p2._reports["nettoyage"] is not None
+
+        out = tmp_path / "report.json"
+        assert p2.export(str(out)) is True
+        exported = json.loads(out.read_text(encoding="utf-8"))
+        assert exported["cache_utilise"] is True
+        assert exported["nettoyage"] == rep2["details"]["nettoyage"]
+
     def test_rapport_contient_cles_documentees(self, temp_csv_file, tmp_path):
         """Vérifie que le rapport de run() contient les clés documentées."""
         pipeline = Pipeline()
