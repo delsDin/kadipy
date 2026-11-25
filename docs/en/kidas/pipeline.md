@@ -275,7 +275,7 @@ pipeline.export("rapport.json")
 
 ## Cache Behavior
 
-The pipeline uses an internal SQLite cache (managed by `Cache`). The cache key is calculated via SHA-256 hash of the source path, truncated to 16 hexadecimal characters.
+The pipeline uses an internal SQLite cache (managed by `Cache`). The cache key is calculated via a SHA-256 hash combining the source path, any Excel options (`sheet`, `header`), and the ordered sequence of configured steps, truncated to 16 hexadecimal characters.
 
 When `cache=True`:
 
