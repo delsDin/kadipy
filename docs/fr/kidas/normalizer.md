@@ -260,13 +260,14 @@ l'initialisation du `Normalizer`.
 normalizer.norm_cols()
 normalizer.std_crops(col="culture")
 normalizer.convert_units({"production": "tonne"})
+normalizer.std_markets(col="marche")
 
 hist = normalizer.mappings()
 # {
 #   "colonnes": {"Rendement (kg)": "rendement_kg", ...},
 #   "unites":   {"production": {"unite_source": "tonne", "facteur_kg": 1000.0, "unite_cible": "kg"}},
 #   "cultures": {"maïs": "maize", "Niébé": "cowpea"},
-#   "marches":  {},
+#   "marches":  {"Dantokpa": {"lat": 6.366, "lon": 2.437, "ville": "Cotonou"}},
 #   "devises":  {},
 # }
 ```
@@ -276,7 +277,7 @@ hist = normalizer.mappings()
 | `colonnes` | `dict` | `ancien_nom` → `nouveau_nom` pour chaque colonne renommée |
 | `unites` | `dict` | `colonne` → `{unite_source, facteur_kg, unite_cible}` |
 | `cultures` | `dict` | `nom_local` → `code_fao` pour chaque correspondance trouvée |
-| `marches` | `dict` | Vide dans la version actuelle |
+| `marches` | `dict` | `nom_local` → `{lat, lon, ville}` pour chaque marché géolocalisé via `std_markets()` |
 | `devises` | `dict` | `colonne` → `{from, to, taux}` |
 
 **Retour :** `dict` (copie de l'historique interne).

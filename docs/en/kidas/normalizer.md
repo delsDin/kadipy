@@ -233,13 +233,14 @@ Returns the full history of applied normalizations since `Normalizer` initializa
 normalizer.norm_cols()
 normalizer.std_crops(col="culture")
 normalizer.convert_units({"production": "tonne"})
+normalizer.std_markets(col="marche")
 
 hist = normalizer.mappings()
 # {
 #   "colonnes": {"Rendement (kg)": "rendement_kg", ...},
 #   "unites":   {"production": {"unite_source": "tonne", "facteur_kg": 1000.0, "unite_cible": "kg"}},
 #   "cultures": {"maïs": "maize", "Niébé": "cowpea"},
-#   "marches":  {},
+#   "marches":  {"Dantokpa": {"lat": 6.366, "lon": 2.437, "ville": "Cotonou"}},
 #   "devises":  {},
 # }
 ```
@@ -249,7 +250,7 @@ hist = normalizer.mappings()
 | `colonnes` | `dict` | `old_name` -> `new_name` for each renamed column |
 | `unites` | `dict` | `column` -> `{unite_source, facteur_kg, unite_cible}` |
 | `cultures` | `dict` | `local_name` -> `fao_code` for each match found |
-| `marches` | `dict` | Empty in current version |
+| `marches` | `dict` | `local_name` -> `{lat, lon, ville}` for each market geolocated via `std_markets()` |
 | `devises` | `dict` | `column` -> `{from, to, taux}` |
 
 **Returns:** `dict` (copy of internal history).
