@@ -162,7 +162,7 @@ class Pipeline:
             source (str | os.PathLike | Source): Chemin vers le fichier, URL de l'API,
                 ou instance Source directement.
             **kwargs: Arguments optionnels transmis au constructeur de la
-                Source (ex: encoding, sheet_name, use_dask).
+                Source (ex: encoding, sheet, use_dask).
 
         Returns:
             Pipeline: L'instance courante (pour le chaînage).
