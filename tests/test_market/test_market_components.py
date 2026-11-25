@@ -1211,3 +1211,23 @@ def test_portfolio_heuristique_revenu_fallback_si_pas_de_prix():
         f"Revenu de repli attendu : 750 000 XOF (5 ha × 150 000), obtenu : {revenu}."
     )
 
+
+def test_facade_market_seasonality_normalise_unites(mocker):
+    """Vérifie que Market.seasonality() normalise les unités mixtes vers XOF/kg."""
+    marche = Market(6.36, 2.41, "Cotonou")
+    dates = pd.date_range("2024-01-01", periods=104, freq="W")
+    df_mixte = pd.DataFrame({
+        "date": dates,
+        "price": [300_000.0 if i < 52 else 600.0 for i in range(104)],
+        "unit": ["XOF/tonne" if i < 52 else "XOF/kg" for i in range(104)],
+        "is_simulated": False,
+        "source": "wfp-vam",
+    })
+    df_mixte.loc[103, "unit"] = None
+    mocker.patch.object(marche.pricing, "fetch", return_value=df_mixte)
+
+    res = marche.seasonality(crop="maize")
+    assert res["prix_moyen_global"] == pytest.approx(450.0, abs=0.1)
+    # Vérifie que le DataFrame retourné par fetch() n'a pas été modifié sur place
+    assert df_mixte["price"].iloc[0] == 300_000.0
+

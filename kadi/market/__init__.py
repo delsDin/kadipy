@@ -576,6 +576,20 @@ class Market:
             crop, self.location, days=days, sim=mode_simule
         )
 
+        # Normalisation vers XOF/kg si la colonne d'unité est disponible
+        if not df_historique.empty and "unit" in df_historique.columns:
+            df_historique = df_historique.copy()
+            df_historique["price"] = df_historique.apply(
+                lambda row: self.pricing.convert_unit(
+                    row["price"],
+                    row["unit"]
+                    if isinstance(row["unit"], str) and row["unit"].strip()
+                    else "XOF/kg",
+                    crop=crop,
+                ),
+                axis=1,
+            )
+
         # --- Étape 2 : délégation du calcul au module pricing ---
         return self.pricing.seasonality(historique=df_historique)
 
