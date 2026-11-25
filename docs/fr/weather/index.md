@@ -147,7 +147,7 @@ df_chirps = weather.historical(months=36, source="chirps")
 
 | Paramètre | Type | Défaut | Description |
 |-----------|------|--------|-------------|
-| `metric` | `str` | `'all'` | Filtre de colonnes : `'temperature'`, `'precipitation'`, `'humidity'` ou `'all'` |
+| `metric` | `str` | `'all'` | Filtre de colonnes : `'temperature'`, `'precipitation'`, `'humidity'` (si disponible ; non collectée actuellement par Open-Meteo) ou `'all'` |
 | `months` | `int` | `120` | Nombre de mois d'historique |
 | `source` | `str` ou `None` | Valeur de `CONFIG` | Source de précipitation : `'chirps'`, `'openmeteo'` ou `'both'` |
 | `months_back` | `int` ou `None` | `None` | Ancien nom de `months` (déprécié) |

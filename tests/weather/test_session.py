@@ -6,6 +6,7 @@ import pytest
 from unittest.mock import patch
 import pandas as pd
 
+from kadi.exceptions import ValidationError
 from kadi.weather.session import Weather, WeatherSession
 
 
@@ -91,3 +92,41 @@ def test_alias_retrocompatibilite_weather_session(weather):
     assert WeatherSession is Weather
     session_old = WeatherSession(lat=9.3, lon=2.0)
     assert isinstance(session_old, Weather)
+
+
+def test_historical_filtre_metric_inconnue_ou_absente(weather, caplog):
+    """historical() lève ValidationError si metric est inconnue et avertit si humidity manque."""
+    df_hist = pd.DataFrame(
+        {
+            "temperature_min": [20.0],
+            "temperature_max": [33.0],
+            "temperature_mean": [26.5],
+            "precipitation": [1.0],
+            "data_quality": [1.0],
+        },
+        index=pd.date_range("2026-01-01", periods=1),
+    )
+
+    with patch.object(weather.loader, "get_historical", return_value=df_hist):
+        # Filtre valide par catégorie et par nom exact de colonne
+        df_temp = weather.historical(metric="temperature", months=1)
+        assert list(df_temp.columns) == [
+            "temperature_min",
+            "temperature_max",
+            "temperature_mean",
+        ]
+        assert list(weather.historical(metric="temperature_max", months=1).columns) == [
+            "temperature_max"
+        ]
+
+        # Métrique connue absente (humidity sur Open-Meteo) : avertissement + 0 colonne
+        with caplog.at_level("WARNING"):
+            df_hum = weather.historical(metric="humidity", months=1)
+        assert list(df_hum.columns) == []
+        assert df_hum.index.equals(df_hist.index)
+        assert "humidity" in caplog.text
+
+        # Métriques inconnues ou invalides -> ValidationError
+        for invalid in ("wind", "precip", "", "   ", None):
+            with pytest.raises(ValidationError):
+                weather.historical(metric=invalid, months=1)

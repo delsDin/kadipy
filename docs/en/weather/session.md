@@ -88,7 +88,7 @@ df_full = weather.historical(months=120, source="both")
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `metric` | `str` | `'all'` | Filter: `'temperature'`, `'precipitation'`, `'humidity'`, `'all'` |
+| `metric` | `str` | `'all'` | Filter: `'temperature'`, `'precipitation'`, `'humidity'` (if available; not currently collected by Open-Meteo), `'all'` |
 | `months` | `int` | `120` | Number of historical months |
 | `source` | `str` | `None` | Rainfall source: `'chirps'`, `'openmeteo'`, `'both'`. If None, uses `CONFIG`. |
 

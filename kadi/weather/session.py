@@ -6,17 +6,21 @@ Orchestre les classes Location, WeatherLoader, Phenology, Hydrology et Risk
 pour exposer une API simple, concise et unifiée des fonctions météorologiques.
 """
 
+import logging
 import warnings
 from typing import Optional, Union
 
 import pandas as pd
 
 from kadi.config import CONFIG
+from kadi.exceptions import ValidationError
 from .location import Location
 from .data import WeatherLoader
 from .phenology import Phenology
 from .hydrology import Hydrology
 from .risk import Risk
+
+logger = logging.getLogger(__name__)
 
 
 class Weather:
@@ -229,8 +233,12 @@ class Weather:
         Retourne les séries historiques météorologiques.
 
         Args:
-            metric (str): Filtre de colonne : 'temperature', 'precipitation',
-                'humidity' ou 'all' (défaut, toutes les colonnes).
+            metric (str): Filtre de colonne : ``'temperature'``,
+                ``'precipitation'``, ``'humidity'`` (si disponible dans la
+                source ou le cache ; retourne un DataFrame sans colonne avec
+                avertissement lorsqu'elle n'est pas fournie par Open-Meteo) ou
+                ``'all'`` (défaut, toutes les colonnes). Un nom ou préfixe de
+                colonne existant (ex. ``'temperature_max'``) est aussi accepté.
             months (int): Nombre de mois d'historique à récupérer.
             source (str): Source des données de précipitation. Valeurs acceptées :
                 'chirps', 'openmeteo', 'both'. Si None, utilise la valeur de CONFIG.
@@ -238,6 +246,10 @@ class Weather:
 
         Returns:
             pd.DataFrame: DataFrame historique avec DatetimeIndex.
+
+        Raises:
+            ValidationError: Si ``metric`` est invalide ou ne correspond à
+                aucune métrique ou colonne disponible.
         """
         if months_back is not None:
             warnings.warn(
@@ -248,15 +260,38 @@ class Weather:
             )
             months = months_back
 
+        if not isinstance(metric, str) or not metric.strip():
+            raise ValidationError(
+                "Le paramètre 'metric' doit être une chaîne non vide."
+            )
+
+        metric_clean = metric.strip()
+        known_metrics = {"all", "temperature", "precipitation", "humidity"}
+
         df = self.loader.get_historical(months=months, source=source)
 
-        # Filtre optionnel sur les colonnes
-        if metric != "all":
-            cols = [c for c in df.columns if metric in c]
-            if cols:
-                return df[cols]
+        if metric_clean == "all":
+            return df
 
-        return df
+        # Correspondance exacte ou par préfixe de nom de colonne
+        cols = [
+            c
+            for c in df.columns
+            if c == metric_clean or c.startswith(f"{metric_clean}_")
+        ]
+        if cols:
+            return df[cols]
+
+        if metric_clean not in known_metrics:
+            raise ValidationError(
+                f"Métrique '{metric}' inconnue ou absente des données historiques."
+            )
+
+        logger.warning(
+            "La métrique '%s' est absente des données historiques disponibles.",
+            metric_clean,
+        )
+        return df[cols]
 
     def gdd(
         self,
