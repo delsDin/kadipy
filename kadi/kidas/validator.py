@@ -375,13 +375,23 @@ class Validator:
             lat_min, lat_max = -90.0, 90.0
             lon_min, lon_max = -180.0, 180.0
 
-        # Détection des coordonnées hors bbox
-        hors_bbox = (
-            (self.df[lat] < lat_min) |
-            (self.df[lat] > lat_max) |
-            (self.df[lon] < lon_min) |
-            (self.df[lon] > lon_max)
-        ) & self.df[lat].notna() & self.df[lon].notna()
+        lat_num, lon_num = (
+            pd.Series(np.nan, index=self.df.index, dtype=float)
+            if pd.api.types.is_bool_dtype(self.df[col])
+            else pd.to_numeric(self.df[col], errors="coerce")
+            for col in (lat, lon)
+        )
+        non_nul = self.df[lat].notna() & self.df[lon].notna()
+
+        # Détection des coordonnées non numériques ou hors bbox
+        hors_bbox = non_nul & (
+            lat_num.isna()
+            | lon_num.isna()
+            | (lat_num < lat_min)
+            | (lat_num > lat_max)
+            | (lon_num < lon_min)
+            | (lon_num > lon_max)
+        )
 
         df_invalides = self.df[hors_bbox].copy()
         nb_invalides = len(df_invalides)

@@ -199,6 +199,18 @@ class TestValidator:
         assert valide is False
         assert len(df_invalides) == 1
 
+    def test_check_coords_valeurs_non_numeriques(self):
+        """Vérifie que les coordonnées non numériques sont détectées sans TypeError."""
+        df = pd.DataFrame({
+            "lat": ["abc", "9.3", None],
+            "lon": ["def", "2.6", "2.0"],
+        })
+        validator = Validator(df)
+        valide, df_invalides = validator.check_coords("lat", "lon")
+        assert valide is False
+        assert len(df_invalides) == 1
+        assert df_invalides["lat"].iloc[0] == "abc"
+
     def test_check_unique_sans_doublon(self, sample_df):
         """Vérifie la validation d'unicité sur un DataFrame."""
         validator = Validator(sample_df)
