@@ -266,6 +266,20 @@ class TestNormalizer:
         with pytest.raises(CleanError):
             normalizer.convert_units({"production": "caisse_inconnue"})
 
+    def test_convert_currency_insensible_a_la_casse(self):
+        """Vérifie que convert_currency() normalise la casse et les espaces des devises."""
+        df = pd.DataFrame({"prix": [10.0], "cout": [2.0]})
+        normalizer = Normalizer(df)
+        res = normalizer.convert_currency("prix", from_="eur", to="xof")
+        assert res["prix"].iloc[0] == pytest.approx(6559.57)
+        assert normalizer.mappings()["devises"]["prix"]["from"] == "EUR"
+        assert normalizer.mappings()["devises"]["prix"]["to"] == "XOF"
+
+        res = normalizer.convert_currency("cout", from_=" usd ", to=" xof ")
+        assert res["cout"].iloc[0] == pytest.approx(1200.0)
+        assert normalizer.mappings()["devises"]["cout"]["from"] == "USD"
+        assert normalizer.mappings()["devises"]["cout"]["to"] == "XOF"
+
     def test_std_crops_mais(self, sample_df):
         """Vérifie la normalisation des noms de cultures vers FAO."""
         normalizer = Normalizer(sample_df)
