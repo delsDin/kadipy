@@ -92,7 +92,7 @@ df_complet = weather.historical(months=120, source="both")
 
 | Nom | Type | Défaut | Description |
 |-----|------|--------|-------------|
-| `metric` | `str` | `'all'` | Filtre : `'temperature'`, `'precipitation'`, `'humidity'`, `'all'` |
+| `metric` | `str` | `'all'` | Filtre : `'temperature'`, `'precipitation'`, `'humidity'` (si disponible ; non collectée actuellement par Open-Meteo), `'all'` |
 | `months` | `int` | `120` | Nombre de mois d'historique |
 | `source` | `str` | `None` | Source précipitations : `'chirps'`, `'openmeteo'`, `'both'`. Si None, utilise `CONFIG`. |
 
